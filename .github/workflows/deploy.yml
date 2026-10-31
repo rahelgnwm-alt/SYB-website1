@@ -25,6 +25,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Setup Pages
+        id: pages
         uses: actions/configure-pages@v5
 
       - name: Setup Node.js
@@ -37,7 +38,13 @@ jobs:
         run: npm ci
 
       - name: Build
-        run: npm run build
+        run: |
+          BASE_PATH="${{ steps.pages.outputs.base_path }}"
+          if [ -n "$BASE_PATH" ] && [ "$BASE_PATH" != "/" ]; then
+            npm run build -- --base-href "${BASE_PATH}/"
+          else
+            npm run build -- --base-href /SYB-website1/
+          fi
 
       - name: Duplicate index.html as 404.html for SPA routing
         run: cp dist/SYB-Website/browser/index.html dist/SYB-Website/browser/404.html

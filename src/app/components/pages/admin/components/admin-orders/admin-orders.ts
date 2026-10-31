@@ -69,9 +69,9 @@ export class AdminOrdersComponent {
   });
 
   getImgUrl(path?: string): string {
-    if (!path) return '/products/red-jelly-serum.jpg';
-    if (path.startsWith('http') || path.startsWith('/')) return path;
-    return '/' + path;
+    if (!path) return 'products/red-jelly-serum.jpg';
+    if (path.startsWith('http://') || path.startsWith('https://')) return path;
+    return path.replace(/^\//, '');
   }
 
   showToast(msg: string): void {

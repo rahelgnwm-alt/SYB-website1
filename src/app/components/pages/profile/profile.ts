@@ -98,11 +98,11 @@ export class ProfileComponent {
   });
 
   getImgUrl(path: string | undefined): string {
-    if (!path) return '/images/logo.png';
-    if (path.startsWith('http://') || path.startsWith('https://') || path.startsWith('/')) {
+    if (!path) return 'images/logo.png';
+    if (path.startsWith('http://') || path.startsWith('https://')) {
       return path;
     }
-    return '/' + path;
+    return path.replace(/^\//, '');
   }
 
   rupiah(val: number): string {

@@ -24,16 +24,16 @@ export class AdminProductsComponent {
 
   // Pre-stocked authentic SYB beauty images
   readonly availableImages = [
-    { name: 'Red Jelly Serum', path: '/products/red-jelly-serum.jpg' },
-    { name: 'AHA Body Toner', path: '/products/aha-body-toner.jpg' },
-    { name: 'Body Serum Booster', path: '/products/body-serum-booster.jpg' },
-    { name: 'Golden Egg Jelly Mask', path: '/products/golden-egg-mask.jpg' },
-    { name: 'Lip Cream Matte', path: '/products/lip-cream-matte.jpg' },
-    { name: 'Vitamin Lippy Oil', path: '/products/lippy-oil-serum.jpg' },
-    { name: 'Peeling Serum', path: '/products/peeling-serum.jpg' },
-    { name: 'Jelly Mask Cherry', path: '/products/jelly-mask.jpg' },
-    { name: 'Powder Mask Sakura', path: '/products/powder-mask.jpg' },
-    { name: 'Paket Glow 3in1', path: '/products/glow-fresh-bundle.jpg' }
+    { name: 'Red Jelly Serum', path: 'products/red-jelly-serum.jpg' },
+    { name: 'AHA Body Toner', path: 'products/aha-body-toner.jpg' },
+    { name: 'Body Serum Booster', path: 'products/body-serum-booster.jpg' },
+    { name: 'Golden Egg Jelly Mask', path: 'products/golden-egg-mask.jpg' },
+    { name: 'Lip Cream Matte', path: 'products/lip-cream-matte.jpg' },
+    { name: 'Vitamin Lippy Oil', path: 'products/lippy-oil-serum.jpg' },
+    { name: 'Peeling Serum', path: 'products/peeling-serum.jpg' },
+    { name: 'Jelly Mask Cherry', path: 'products/jelly-mask.jpg' },
+    { name: 'Powder Mask Sakura', path: 'products/powder-mask.jpg' },
+    { name: 'Paket Glow 3in1', path: 'products/glow-fresh-bundle.jpg' }
   ];
 
   // Quick preset templates for rapid product curation
@@ -50,7 +50,7 @@ export class AdminProductsComponent {
       inventory: 1200,
       bpom: 'NA18230104821',
       badge: 'New Arrival ✦',
-      image: '/products/red-jelly-serum.jpg',
+      image: 'products/red-jelly-serum.jpg',
       accentColor: '#ff2a7a',
       ingredients: ['Niacinamide 10%', 'Hydrolyzed Collagen', 'Red Algae', 'Hyaluronic Acid 4D'],
       benefits: ['Mencerahkan noda hitam & bekas jerawat dalam 14 hari', 'Mengunci kelembapan dan elastisitas kulit', 'Ringan dan cepat meresap tanpa rasa lengket']
@@ -67,7 +67,7 @@ export class AdminProductsComponent {
       inventory: 850,
       bpom: 'NA18230701923',
       badge: 'Viral TikTok ✦',
-      image: '/products/aha-body-toner.jpg',
+      image: 'products/aha-body-toner.jpg',
       accentColor: '#e84393',
       ingredients: ['Glycolic Acid 7%', 'Niacinamide', 'Aloe Vera Extract', 'Panthenol B5'],
       benefits: ['Mengangkat sel kulit mati penyebab kusam di badan', 'Mencerahkan ketiak, leher, dan lipatan tubuh', 'Kulit badan halus bercahaya sejak pemakaian pertama']
@@ -84,7 +84,7 @@ export class AdminProductsComponent {
       inventory: 640,
       bpom: 'NA18220200889',
       badge: 'Best Seller ✦',
-      image: '/products/golden-egg-mask.jpg',
+      image: 'products/golden-egg-mask.jpg',
       accentColor: '#e17055',
       ingredients: ['Gold Flakes 24K', 'Caviar Extract', 'Squalane', 'Centella Asiatica'],
       benefits: ['Kaya antioksidan menangkal penuaan dini', 'Bangun tidur dengan kulit kenyal, segar & glowing', 'Meredakan iritasi dan kemerahan di wajah']
@@ -101,7 +101,7 @@ export class AdminProductsComponent {
       inventory: 1500,
       bpom: 'NA18231300941',
       badge: 'Fav Shade ✦',
-      image: '/products/lip-cream-matte.jpg',
+      image: 'products/lip-cream-matte.jpg',
       accentColor: '#d63031',
       ingredients: ['Vitamin E Acetate', 'Jojoba Seed Oil', 'Ceramide NP', 'Pigment Dispersion Ultra-Fine'],
       benefits: ['Warna intens satu kali usap tahan hingga 12 jam', 'Tidak bikin garis bibir pecah-pecah', 'Formula super ringan serasa tidak memakai lip cream']
@@ -118,7 +118,7 @@ export class AdminProductsComponent {
       inventory: 350,
       bpom: 'NA18230104821 (Paket Resmi)',
       badge: 'Hemat 50% ✦',
-      image: '/products/glow-fresh-bundle.jpg',
+      image: 'products/glow-fresh-bundle.jpg',
       accentColor: '#fd79a8',
       ingredients: ['Niacinamide Kompleks', 'Gold Caviar', 'Body Serum Booster'],
       benefits: ['Solusi lengkap wajah cerah dan tubuh glowing merata', 'Hemat lebih dari 95 ribu dibanding beli satuan', 'Gratis Beauty Pouch SYB Official edisi terbatas']
@@ -178,7 +178,7 @@ export class AdminProductsComponent {
   formSku = signal<string>('SYB-NEW-01');
   formBpom = signal<string>('NA18230109999');
   formBadge = signal<string>('New Arrival ✦');
-  formImage = signal<string>('/products/red-jelly-serum.jpg');
+  formImage = signal<string>('products/red-jelly-serum.jpg');
   formAccentColor = signal<string>('#ff2a7a');
   formHeroTagline = signal<string>('Formula pencerah intensif teruji klinis!');
   formDescription = signal<string>('');
@@ -272,9 +272,9 @@ export class AdminProductsComponent {
   });
 
   getImgUrl(path?: string): string {
-    if (!path) return '/products/red-jelly-serum.jpg';
-    if (path.startsWith('http') || path.startsWith('/')) return path;
-    return '/' + path;
+    if (!path) return 'products/red-jelly-serum.jpg';
+    if (path.startsWith('http://') || path.startsWith('https://')) return path;
+    return path.replace(/^\//, '');
   }
 
   showToast(msg: string): void {
@@ -297,7 +297,7 @@ export class AdminProductsComponent {
     this.formSku.set(`SYB-${Math.floor(1000 + Math.random() * 9000)}`);
     this.formBpom.set('NA182301' + Math.floor(10000 + Math.random() * 90000));
     this.formBadge.set('New Arrival ✦');
-    this.formImage.set('/products/red-jelly-serum.jpg');
+    this.formImage.set('products/red-jelly-serum.jpg');
     this.formAccentColor.set('#ff2a7a');
     this.formHeroTagline.set('Formula pencerah kulit intensif teruji klinis!');
     this.formDescription.set('Diformulasikan lembut dengan konsentrat bahan aktif untuk hasil glowing maksimal.');
@@ -583,7 +583,7 @@ export class AdminProductsComponent {
   onImgError(event: Event): void {
     const target = event.target as HTMLImageElement;
     if (target) {
-      target.src = '/products/red-jelly-serum.jpg';
+      target.src = 'products/red-jelly-serum.jpg';
     }
   }
 }
