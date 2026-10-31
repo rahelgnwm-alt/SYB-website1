@@ -129,6 +129,41 @@ export class AdminProductsComponent {
   readonly isProductModalOpen = signal<boolean>(false);
   readonly modalMode = signal<'add' | 'edit'>('add');
   readonly editingProductId = signal<string | null>(null);
+  readonly activeStudioTab = signal<'all' | 'basic' | 'pricing' | 'media' | 'formula' | 'variants'>('all');
+  readonly isPreviewVisible = signal<boolean>(true);
+
+  // Quick curation helpers
+  readonly brandSwatches = [
+    { name: 'SYB Rose', hex: '#ff0a6c' },
+    { name: 'Cherry Blossom', hex: '#e84393' },
+    { name: 'Velvet Plum', hex: '#7928ca' },
+    { name: 'Golden Glow', hex: '#f59e0b' },
+    { name: 'Coral Sunset', hex: '#ff6b6b' },
+    { name: 'Botanical Mint', hex: '#10b981' },
+    { name: 'Midnight Glam', hex: '#1e1b4b' }
+  ];
+
+  readonly suggestedIngredients = [
+    'Niacinamide 10%',
+    'Hyaluronic Acid 4D',
+    'Centella Asiatica',
+    'Hydrolyzed Collagen',
+    'Glycolic Acid (AHA)',
+    'Vitamin E',
+    'Ceramide NP',
+    'Alpha Arbutin',
+    'Retinol 1%'
+  ];
+
+  readonly commonProductTypes = [
+    'Serum Wajah',
+    'Body Toner',
+    'Jelly Mask',
+    'Lip Matte',
+    'Sunscreen SPF 50',
+    'Facial Wash',
+    'Body Booster'
+  ];
 
   // Form Fields
   formTitle = signal<string>('');
@@ -181,6 +216,10 @@ export class AdminProductsComponent {
 
   readonly profitPerUnit = computed(() => {
     return Math.max(0, this.formPrice() - this.formCostPrice());
+  });
+
+  readonly formTotalStockValuation = computed(() => {
+    return (this.formPrice() || 0) * (this.formInventory() || 0);
   });
 
   // Computeds
@@ -270,12 +309,14 @@ export class AdminProductsComponent {
     this.formVariants.set([
       { id: 'v1', name: 'Regular Size 20ml', price: 35000, stock: 500, sku: 'SYB-REG-01' }
     ]);
+    this.activeStudioTab.set('all');
     this.isProductModalOpen.set(true);
   }
 
   openEditProductModal(prod: Product): void {
     this.modalMode.set('edit');
     this.editingProductId.set(prod.id);
+    this.activeStudioTab.set('all');
     this.formTitle.set(prod.title);
     this.formSubtitle.set(prod.subtitle);
     this.formCategoryLabel.set(prod.categoryLabel);
@@ -521,5 +562,28 @@ export class AdminProductsComponent {
       return;
     }
     this.formVariants.update(list => list.filter((_, i) => i !== index));
+  }
+
+  setStudioTab(tab: 'all' | 'basic' | 'pricing' | 'media' | 'formula' | 'variants'): void {
+    this.activeStudioTab.set(tab);
+  }
+
+  togglePreview(): void {
+    this.isPreviewVisible.update(v => !v);
+  }
+
+  adjustFormInventory(delta: number): void {
+    this.formInventory.update(curr => Math.max(0, curr + delta));
+  }
+
+  selectSwatch(hex: string): void {
+    this.formAccentColor.set(hex);
+  }
+
+  onImgError(event: Event): void {
+    const target = event.target as HTMLImageElement;
+    if (target) {
+      target.src = '/products/red-jelly-serum.jpg';
+    }
   }
 }

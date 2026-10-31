@@ -269,479 +269,904 @@
 <!-- ==================== MODAL: PRODUCT STUDIO (ADD / EDIT) ==================== -->
 @if (isProductModalOpen()) {
   <div class="modal-backdrop" (click)="closeProductModal()">
-    <div class="product-studio-modal" (click)="$event.stopPropagation()">
-      <!-- Modal Top Bar -->
+    <div
+      class="product-studio-modal"
+      [class.preview-hidden]="!isPreviewVisible()"
+      (click)="$event.stopPropagation()"
+    >
+      <!-- ==================== STUDIO HEADER ==================== -->
       <div class="studio-modal-header">
-        <div class="studio-title-box">
-          <span class="studio-badge">{{ modalMode() === 'add' ? '✦ Studio Produk Baru' : '✏️ Edit Produk Katalog' }}</span>
-          <h3>{{ modalMode() === 'add' ? 'Tambah Produk Skincare SYB' : formTitle() }}</h3>
+        <div class="studio-header-left">
+          <div class="studio-breadcrumb">
+            <span class="studio-badge-tag">{{ modalMode() === 'add' ? '✦ STUDIO PRODUK BARU' : '✏️ EDIT PRODUK KATALOG' }}</span>
+            <span class="studio-sku-pill">SKU: {{ formSku() || 'SYB-NEW' }}</span>
+            <span class="studio-status-pill" [class.active]="formStatus() === 'Active'">
+              <span class="status-pulse-dot"></span>
+              {{ formStatus() === 'Active' ? 'Aktif di Web' : 'Draft' }}
+            </span>
+          </div>
+          <h3 class="studio-product-heading">{{ modalMode() === 'add' ? 'Tambah Produk Skincare SYB' : (formTitle() || 'Nama Produk') }}</h3>
         </div>
-        <div class="studio-header-actions">
-          <button class="btn-close-modal" id="btn-close-product-studio" (click)="closeProductModal()" title="Tutup">✕</button>
+
+        <div class="studio-header-right">
+          <!-- Toggle Live Preview Button -->
+          <button
+            type="button"
+            class="btn-toggle-preview"
+            (click)="togglePreview()"
+            [title]="isPreviewVisible() ? 'Sembunyikan panel preview untuk layar edit lebih luas' : 'Tampilkan panel preview live'"
+          >
+            <span class="preview-toggle-icon">{{ isPreviewVisible() ? '👁️' : '👁️‍🗨️' }}</span>
+            <span>{{ isPreviewVisible() ? 'Sembunyikan Preview' : 'Tampilkan Preview' }}</span>
+          </button>
+
+          <button
+            type="button"
+            class="btn-close-modal"
+            id="btn-close-product-studio"
+            (click)="closeProductModal()"
+            title="Tutup Studio (Esc)"
+          >
+            ✕
+          </button>
         </div>
       </div>
 
-      <!-- Quick Presets Toolbar -->
+      <!-- ==================== STUDIO NAVIGATION TABS ==================== -->
+      <div class="studio-tabs-bar">
+        <button
+          type="button"
+          class="studio-tab-pill"
+          [class.active]="activeStudioTab() === 'all'"
+          (click)="setStudioTab('all')"
+        >
+          <span class="tab-icon">📑</span>
+          <span>Semua Bagian</span>
+        </button>
+
+        <button
+          type="button"
+          class="studio-tab-pill"
+          [class.active]="activeStudioTab() === 'basic'"
+          (click)="setStudioTab('basic')"
+        >
+          <span class="tab-icon">🏷️</span>
+          <span>Informasi &amp; BPOM</span>
+        </button>
+
+        <button
+          type="button"
+          class="studio-tab-pill"
+          [class.active]="activeStudioTab() === 'pricing'"
+          (click)="setStudioTab('pricing')"
+        >
+          <span class="tab-icon">💰</span>
+          <span>Harga &amp; Inventaris</span>
+          @if (discountPercent() > 0) {
+            <span class="tab-badge-pill pink">{{ discountPercent() }}%</span>
+          }
+        </button>
+
+        <button
+          type="button"
+          class="studio-tab-pill"
+          [class.active]="activeStudioTab() === 'media'"
+          (click)="setStudioTab('media')"
+        >
+          <span class="tab-icon">🎨</span>
+          <span>Foto &amp; Branding</span>
+        </button>
+
+        <button
+          type="button"
+          class="studio-tab-pill"
+          [class.active]="activeStudioTab() === 'formula'"
+          (click)="setStudioTab('formula')"
+        >
+          <span class="tab-icon">✨</span>
+          <span>Formula &amp; Manfaat</span>
+          <span class="tab-badge-pill">{{ formKeyIngredients().length }}</span>
+        </button>
+
+        <button
+          type="button"
+          class="studio-tab-pill"
+          [class.active]="activeStudioTab() === 'variants'"
+          (click)="setStudioTab('variants')"
+        >
+          <span class="tab-icon">📦</span>
+          <span>Varian ({{ formVariants().length }})</span>
+        </button>
+      </div>
+
+      <!-- ==================== QUICK BEAUTY PRESETS TOOLBAR ==================== -->
       <div class="presets-toolbar">
         <span class="presets-label">⚡ Template Skincare Cepat:</span>
         <div class="presets-btn-track">
           @for (preset of beautyPresets; track preset.label) {
-            <button type="button" class="preset-pill-btn" (click)="applyPreset(preset)">
+            <button
+              type="button"
+              class="preset-pill-btn"
+              (click)="applyPreset(preset)"
+              [title]="'Terapkan template: ' + preset.title"
+            >
               {{ preset.label }}
             </button>
           }
         </div>
       </div>
 
-      <!-- Studio Body: 2 Columns (Form on left, Live Card Preview on right) -->
-      <div class="studio-modal-body">
-        <!-- LEFT: Form Pane -->
+      <!-- ==================== STUDIO BODY (2-COLUMN GRID) ==================== -->
+      <div class="studio-modal-body" [class.no-preview]="!isPreviewVisible()">
+        <!-- LEFT: Form Canvas -->
         <div class="studio-form-pane">
-          <form (submit)="$event.preventDefault(); saveProduct()" class="studio-form">
-            <!-- Section 1: Basic Information -->
-            <div class="form-section-card">
-              <h4 class="form-section-title">1. Informasi Utama &amp; Legalitas</h4>
-
-              <div class="form-group">
-                <label>Nama Produk Lengkap *</label>
-                <input
-                  type="text"
-                  [ngModel]="formTitle()"
-                  (ngModelChange)="formTitle.set($event)"
-                  name="title"
-                  required
-                  placeholder="Contoh: NEW SYB Collagen Bright Glow Serum 30ml"
-                  class="input-main"
-                />
-              </div>
-
-              <div class="form-group">
-                <label>Keterangan Singkat / Subtitle</label>
-                <input
-                  type="text"
-                  [ngModel]="formSubtitle()"
-                  (ngModelChange)="formSubtitle.set($event)"
-                  name="subtitle"
-                  placeholder="Contoh: Niacinamide 10% + Red Algae untuk kulit glowing kenyal"
-                />
-              </div>
-
-              <div class="form-row-three">
-                <div class="form-group">
-                  <label>Kategori Produk</label>
-                  <select
-                    [ngModel]="formCategoryLabel()"
-                    (ngModelChange)="formCategoryLabel.set($event)"
-                    name="catLabel"
-                  >
-                    <option value="Wajah">Perawatan Wajah</option>
-                    <option value="Tubuh">Perawatan Tubuh</option>
-                    <option value="Makeup">Make Up &amp; Bibir</option>
-                    <option value="Paket Ritual">Paket Ritual Bundling</option>
-                    <option value="Aksesoris">Aksesoris &amp; Pouch</option>
-                  </select>
-                </div>
-
-                <div class="form-group">
-                  <label>Tipe Produk</label>
-                  <input
-                    type="text"
-                    [ngModel]="formProductType()"
-                    (ngModelChange)="formProductType.set($event)"
-                    name="productType"
-                    placeholder="e.g. Serum Wajah, Toner, Lip Matte"
-                  />
-                </div>
-
-                <div class="form-group">
-                  <label>Status Visibilitas</label>
-                  <select
-                    [ngModel]="formStatus()"
-                    (ngModelChange)="formStatus.set($event)"
-                    name="status"
-                  >
-                    <option value="Active">Active (Tampil di Web)</option>
-                    <option value="Draft">Draft (Disembunyikan)</option>
-                  </select>
-                </div>
-              </div>
-
-              <div class="form-row-two">
-                <div class="form-group">
-                  <label>Nomor Izin Edar BPOM Resmi *</label>
-                  <input
-                    type="text"
-                    [ngModel]="formBpom()"
-                    (ngModelChange)="formBpom.set($event)"
-                    name="bpom"
-                    required
-                    placeholder="NA18230104821"
-                  />
-                  <small class="helper-text">Wajib nomor registrasi BPOM RI resmi terbit.</small>
-                </div>
-
-                <div class="form-group">
-                  <label>Badge Sorotan (Tag)</label>
-                  <input
-                    type="text"
-                    [ngModel]="formBadge()"
-                    (ngModelChange)="formBadge.set($event)"
-                    name="badge"
-                    placeholder="e.g. Best Seller ✦, Viral TikTok"
-                  />
-                </div>
-              </div>
-            </div>
-
-            <!-- Section 2: Pricing & Inventory -->
-            <div class="form-section-card">
-              <h4 class="form-section-title">2. Penetapan Harga &amp; Profitabilitas Pabrik</h4>
-
-              <div class="form-row-three">
-                <div class="form-group">
-                  <label>Harga Jual (Rp) *</label>
-                  <input
-                    type="number"
-                    [ngModel]="formPrice()"
-                    (ngModelChange)="formPrice.set($event)"
-                    name="price"
-                    required
-                    min="1000"
-                    step="500"
-                    class="input-price-highlight"
-                  />
-                </div>
-
-                <div class="form-group">
-                  <label>Harga Coret Asli (Rp)</label>
-                  <input
-                    type="number"
-                    [ngModel]="formOrigPrice()"
-                    (ngModelChange)="formOrigPrice.set($event)"
-                    name="origPrice"
-                    min="1000"
-                    step="500"
-                  />
-                </div>
-
-                <div class="form-group">
-                  <label>Harga Modal Pabrik / HPP (Rp)</label>
-                  <input
-                    type="number"
-                    [ngModel]="formCostPrice()"
-                    (ngModelChange)="formCostPrice.set($event)"
-                    name="costPrice"
-                    min="1000"
-                    step="500"
-                  />
-                </div>
-              </div>
-
-              <!-- Profit Calculation Strip -->
-              <div class="profit-calculator-strip">
-                <div class="profit-metric">
-                  <span class="m-label">Diskon Toko:</span>
-                  <strong class="m-val pink">{{ discountPercent() }}% OFF</strong>
-                </div>
-                <div class="profit-metric">
-                  <span class="m-label">Estimasi Margin Kotor:</span>
-                  <strong class="m-val green">{{ grossProfitMargin() }}%</strong>
-                </div>
-                <div class="profit-metric">
-                  <span class="m-label">Keuntungan / Pcs:</span>
-                  <strong class="m-val green">Rp {{ profitPerUnit() | number:'1.0-0' }}</strong>
-                </div>
-              </div>
-
-              <div class="form-row-two" style="margin-top: 1rem;">
-                <div class="form-group">
-                  <label>Stok Inventaris Pabrik (Unit)</label>
-                  <input
-                    type="number"
-                    [ngModel]="formInventory()"
-                    (ngModelChange)="formInventory.set($event)"
-                    name="inventory"
-                    min="0"
-                    step="10"
-                  />
-                </div>
-
-                <div class="form-group">
-                  <label>SKU Induk (Kode Produk)</label>
-                  <input
-                    type="text"
-                    [ngModel]="formSku()"
-                    (ngModelChange)="formSku.set($event)"
-                    name="sku"
-                    placeholder="SYB-PROD-01"
-                  />
-                </div>
-              </div>
-
-              <!-- Checkbox Options -->
-              <div class="checkbox-row">
-                <label class="custom-checkbox">
-                  <input
-                    type="checkbox"
-                    [ngModel]="formIsFeatured()"
-                    (ngModelChange)="formIsFeatured.set($event)"
-                    name="featured"
-                  />
-                  <span>Tampilkan di Sorotan Beranda (Featured Product)</span>
-                </label>
-                <label class="custom-checkbox">
-                  <input
-                    type="checkbox"
-                    [ngModel]="formIsFlashSale()"
-                    (ngModelChange)="formIsFlashSale.set($event)"
-                    name="flashsale"
-                  />
-                  <span>Ikutkan dalam Promo Flash Sale SYB</span>
-                </label>
-              </div>
-            </div>
-
-            <!-- Section 3: Visual & Media Asset -->
-            <div class="form-section-card">
-              <h4 class="form-section-title">3. Foto Produk &amp; Tema Aksen</h4>
-
-              <div class="image-selector-grid">
-                @for (img of availableImages; track img.name) {
-                  <div
-                    class="img-choice-card"
-                    [class.selected]="formImage() === img.path"
-                    (click)="formImage.set(img.path)"
-                  >
-                    <img [src]="img.path" [alt]="img.name" />
-                    <span>{{ img.name }}</span>
+          <div class="studio-form">
+            <!-- SECTION 1: Informasi Utama & Legalitas BPOM -->
+            @if (activeStudioTab() === 'all' || activeStudioTab() === 'basic') {
+              <div class="studio-section-card">
+                <div class="section-card-header">
+                  <div class="section-icon-badge">🏷️</div>
+                  <div class="section-title-wrap">
+                    <h4 class="section-heading">1. Informasi Utama &amp; Legalitas Resmi</h4>
+                    <p class="section-subheading">Nama produk, kategori kecantikan, izin edar BPOM, dan tag sorotan.</p>
                   </div>
-                }
-              </div>
+                </div>
 
-              <div class="form-row-two" style="margin-top: 1rem;">
-                <div class="form-group">
-                  <label>URL Gambar Manual (Opsional)</label>
+                <div class="form-field-group">
+                  <label class="field-label">
+                    <span>Nama Produk Lengkap *</span>
+                    <span class="char-count">{{ formTitle().length }} karakter</span>
+                  </label>
                   <input
                     type="text"
-                    [ngModel]="formImage()"
-                    (ngModelChange)="formImage.set($event)"
-                    name="imgUrl"
-                    placeholder="/products/red-jelly-serum.jpg"
+                    [ngModel]="formTitle()"
+                    (ngModelChange)="formTitle.set($event)"
+                    [ngModelOptions]="{standalone: true}"
+                    required
+                    placeholder="Contoh: FORTE Red Jelly Serum 20ml"
+                    class="studio-input large-bold"
                   />
                 </div>
 
-                <div class="form-group">
-                  <label>Warna Aksen Branding (Hex)</label>
-                  <div class="color-picker-row">
-                    <input
-                      type="color"
-                      [ngModel]="formAccentColor()"
-                      (ngModelChange)="formAccentColor.set($event)"
-                      name="accentColor"
-                      class="color-input"
-                    />
+                <div class="form-field-group">
+                  <label class="field-label">Subtitle / Keunggulan Utama</label>
+                  <input
+                    type="text"
+                    [ngModel]="formSubtitle()"
+                    (ngModelChange)="formSubtitle.set($event)"
+                    [ngModelOptions]="{standalone: true}"
+                    placeholder="Contoh: Niacinamide 10% · formula intensif pencerah &amp; glowing merona"
+                    class="studio-input"
+                  />
+                </div>
+
+                <div class="form-grid-three">
+                  <div class="form-field-group">
+                    <label class="field-label">Kategori Utama</label>
+                    <select
+                      [ngModel]="formCategoryLabel()"
+                      (ngModelChange)="formCategoryLabel.set($event)"
+                      [ngModelOptions]="{standalone: true}"
+                      class="studio-select"
+                    >
+                      <option value="Wajah">Perawatan Wajah (Face)</option>
+                      <option value="Tubuh">Perawatan Tubuh (Body)</option>
+                      <option value="Makeup">Make Up &amp; Bibir</option>
+                      <option value="Paket Ritual">Paket Ritual Bundling</option>
+                      <option value="Aksesoris">Aksesoris &amp; Pouch</option>
+                    </select>
+                  </div>
+
+                  <div class="form-field-group">
+                    <label class="field-label">Tipe Produk</label>
                     <input
                       type="text"
-                      [ngModel]="formAccentColor()"
-                      (ngModelChange)="formAccentColor.set($event)"
-                      name="accentColorHex"
-                      class="color-hex-text"
+                      [ngModel]="formProductType()"
+                      (ngModelChange)="formProductType.set($event)"
+                      [ngModelOptions]="{standalone: true}"
+                      placeholder="e.g. Serum Wajah, Toner"
+                      class="studio-input"
+                    />
+                    <div class="quick-pill-suggestions">
+                      @for (t of commonProductTypes.slice(0, 4); track t) {
+                        <button
+                          type="button"
+                          class="suggestion-tag"
+                          (click)="formProductType.set(t)"
+                        >
+                          {{ t }}
+                        </button>
+                      }
+                    </div>
+                  </div>
+
+                  <div class="form-field-group">
+                    <label class="field-label">Status Visibilitas</label>
+                    <select
+                      [ngModel]="formStatus()"
+                      (ngModelChange)="formStatus.set($event)"
+                      [ngModelOptions]="{standalone: true}"
+                      class="studio-select"
+                    >
+                      <option value="Active">🟢 Active (Tampil di Toko)</option>
+                      <option value="Draft">⚪ Draft (Disimpan Internal)</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div class="form-grid-two">
+                  <div class="form-field-group">
+                    <label class="field-label">
+                      <span>Nomor Izin Edar BPOM RI *</span>
+                      <span class="bpom-check-label">✓ Wajib Resmi</span>
+                    </label>
+                    <div class="input-with-icon">
+                      <span class="field-prefix-icon">🛡️</span>
+                      <input
+                        type="text"
+                        [ngModel]="formBpom()"
+                        (ngModelChange)="formBpom.set($event)"
+                        [ngModelOptions]="{standalone: true}"
+                        required
+                        placeholder="NA18210103429"
+                        class="studio-input font-mono"
+                      />
+                    </div>
+                    <small class="field-hint">Nomor notifikasi resmi Badan POM RI terdaftar.</small>
+                  </div>
+
+                  <div class="form-field-group">
+                    <label class="field-label">Badge Sorotan (Tag Khusus)</label>
+                    <input
+                      type="text"
+                      [ngModel]="formBadge()"
+                      (ngModelChange)="formBadge.set($event)"
+                      [ngModelOptions]="{standalone: true}"
+                      placeholder="e.g. Best Seller ✦, Viral TikTok ✦, New Arrival ✦"
+                      class="studio-input"
+                    />
+                    <div class="quick-pill-suggestions">
+                      <button type="button" class="suggestion-tag" (click)="formBadge.set('Best Seller ✦')">Best Seller ✦</button>
+                      <button type="button" class="suggestion-tag" (click)="formBadge.set('Viral TikTok ✦')">Viral TikTok ✦</button>
+                      <button type="button" class="suggestion-tag" (click)="formBadge.set('New Arrival ✦')">New Arrival ✦</button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            }
+
+            <!-- SECTION 2: Penetapan Harga, Margin & Inventaris -->
+            @if (activeStudioTab() === 'all' || activeStudioTab() === 'pricing') {
+              <div class="studio-section-card">
+                <div class="section-card-header">
+                  <div class="section-icon-badge gold">💰</div>
+                  <div class="section-title-wrap">
+                    <h4 class="section-heading">2. Penetapan Harga &amp; Profitabilitas Pabrik</h4>
+                    <p class="section-subheading">Kalkulasi laba bersih, diskon, modal pabrik (HPP), dan kontrol stok.</p>
+                  </div>
+                </div>
+
+                <div class="form-grid-three">
+                  <div class="form-field-group">
+                    <label class="field-label">Harga Jual Konsumen (Rp) *</label>
+                    <div class="input-with-prefix">
+                      <span class="currency-prefix">Rp</span>
+                      <input
+                        type="number"
+                        [ngModel]="formPrice()"
+                        (ngModelChange)="formPrice.set($event)"
+                        [ngModelOptions]="{standalone: true}"
+                        required
+                        min="1000"
+                        step="500"
+                        class="studio-input highlight-price"
+                      />
+                    </div>
+                  </div>
+
+                  <div class="form-field-group">
+                    <label class="field-label">Harga Coret Asli (Rp)</label>
+                    <div class="input-with-prefix">
+                      <span class="currency-prefix">Rp</span>
+                      <input
+                        type="number"
+                        [ngModel]="formOrigPrice()"
+                        (ngModelChange)="formOrigPrice.set($event)"
+                        [ngModelOptions]="{standalone: true}"
+                        min="1000"
+                        step="500"
+                        class="studio-input"
+                      />
+                    </div>
+                  </div>
+
+                  <div class="form-field-group">
+                    <label class="field-label">Harga Modal Pabrik / HPP (Rp)</label>
+                    <div class="input-with-prefix">
+                      <span class="currency-prefix">Rp</span>
+                      <input
+                        type="number"
+                        [ngModel]="formCostPrice()"
+                        (ngModelChange)="formCostPrice.set($event)"
+                        [ngModelOptions]="{standalone: true}"
+                        min="1000"
+                        step="500"
+                        class="studio-input"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Financial Intelligence Dashboard Card -->
+                <div class="financial-card-grid">
+                  <div class="finance-metric-box">
+                    <span class="finance-label">Diskon Toko</span>
+                    <strong class="finance-value pink">{{ discountPercent() }}% OFF</strong>
+                    <span class="finance-sub">Berdasarkan harga coret</span>
+                  </div>
+
+                  <div class="finance-metric-box">
+                    <span class="finance-label">Margin Kotor Pabrik</span>
+                    <strong
+                      class="finance-value"
+                      [class.green]="grossProfitMargin() >= 40"
+                      [class.gold]="grossProfitMargin() < 40 && grossProfitMargin() >= 20"
+                      [class.orange]="grossProfitMargin() < 20"
+                    >
+                      {{ grossProfitMargin() }}%
+                    </strong>
+                    <span class="finance-sub">Target sehat &ge; 40%</span>
+                  </div>
+
+                  <div class="finance-metric-box">
+                    <span class="finance-label">Keuntungan Bersih / Pcs</span>
+                    <strong class="finance-value green">Rp {{ profitPerUnit() | number:'1.0-0' }}</strong>
+                    <span class="finance-sub">Selisih jual - modal HPP</span>
+                  </div>
+
+                  <div class="finance-metric-box">
+                    <span class="finance-label">Valuasi Stok Total</span>
+                    <strong class="finance-value purple">Rp {{ formTotalStockValuation() | number:'1.0-0' }}</strong>
+                    <span class="finance-sub">{{ formInventory() | number:'1.0-0' }} pcs di gudang</span>
+                  </div>
+                </div>
+
+                <div class="form-grid-two" style="margin-top: 1.25rem;">
+                  <div class="form-field-group">
+                    <label class="field-label">Stok Inventaris Pabrik (Unit)</label>
+                    <div class="input-with-steppers">
+                      <input
+                        type="number"
+                        [ngModel]="formInventory()"
+                        (ngModelChange)="formInventory.set($event)"
+                        [ngModelOptions]="{standalone: true}"
+                        min="0"
+                        step="10"
+                        class="studio-input"
+                      />
+                      <div class="quick-stock-steppers">
+                        <button type="button" class="stepper-btn" (click)="adjustFormInventory(50)">+50</button>
+                        <button type="button" class="stepper-btn" (click)="adjustFormInventory(100)">+100</button>
+                        <button type="button" class="stepper-btn" (click)="adjustFormInventory(500)">+500</button>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="form-field-group">
+                    <label class="field-label">SKU Induk (Kode Produk)</label>
+                    <input
+                      type="text"
+                      [ngModel]="formSku()"
+                      (ngModelChange)="formSku.set($event)"
+                      [ngModelOptions]="{standalone: true}"
+                      placeholder="SYB-PROD-01"
+                      class="studio-input font-mono"
                     />
                   </div>
                 </div>
-              </div>
-            </div>
 
-            <!-- Section 4: Key Ingredients & Benefits -->
-            <div class="form-section-card">
-              <h4 class="form-section-title">4. Kandungan Unggulan &amp; Manfaat Kulit</h4>
+                <!-- Promotional Flags -->
+                <div class="promotional-toggles-card">
+                  <label class="beauty-toggle-item">
+                    <input
+                      type="checkbox"
+                      [ngModel]="formIsFeatured()"
+                      (ngModelChange)="formIsFeatured.set($event)"
+                      [ngModelOptions]="{standalone: true}"
+                      class="toggle-checkbox"
+                    />
+                    <div class="toggle-text-wrap">
+                      <span class="toggle-title">⭐ Tampilkan di Sorotan Beranda (Featured Product)</span>
+                      <span class="toggle-desc">Menampilkan produk di carousel utama dan rekomendasi beranda website SYB.</span>
+                    </div>
+                  </label>
 
-              <!-- Ingredients Chips -->
-              <div class="form-group">
-                <label>Kandungan Utama (Hero Ingredients):</label>
-                <div class="chips-container">
-                  @for (ing of formKeyIngredients(); track $index) {
-                    <span class="chip-item">
-                      {{ ing }}
-                      <button type="button" (click)="removeIngredientChip($index)">✕</button>
-                    </span>
-                  }
-                </div>
-                <div class="chip-add-row">
-                  <input
-                    type="text"
-                    [ngModel]="tempIngredientInput()"
-                    (ngModelChange)="tempIngredientInput.set($event)"
-                    (keydown.enter)="$event.preventDefault(); addIngredientChip(tempIngredientInput())"
-                    placeholder="Ketik bahan lalu Enter (e.g. Niacinamide 10%, Collagen)"
-                  />
-                  <button type="button" class="btn-chip-add" (click)="addIngredientChip(tempIngredientInput())">+ Tambah Bahan</button>
-                </div>
-              </div>
-
-              <!-- Benefits List -->
-              <div class="form-group" style="margin-top: 1rem;">
-                <label>Manfaat Produk bagi Konsumen:</label>
-                <ul class="form-bullet-list">
-                  @for (ben of formBenefits(); track $index) {
-                    <li>
-                      <span>{{ ben }}</span>
-                      <button type="button" class="btn-remove-list" (click)="removeBenefitItem($index)">Hapus</button>
-                    </li>
-                  }
-                </ul>
-                <div class="chip-add-row">
-                  <input
-                    type="text"
-                    [ngModel]="tempBenefitInput()"
-                    (ngModelChange)="tempBenefitInput.set($event)"
-                    (keydown.enter)="$event.preventDefault(); addBenefitItem()"
-                    placeholder="Ketik manfaat nyata (e.g. Mencerahkan dalam 14 hari)"
-                  />
-                  <button type="button" class="btn-chip-add" (click)="addBenefitItem()">+ Tambah Manfaat</button>
+                  <label class="beauty-toggle-item">
+                    <input
+                      type="checkbox"
+                      [ngModel]="formIsFlashSale()"
+                      (ngModelChange)="formIsFlashSale.set($event)"
+                      [ngModelOptions]="{standalone: true}"
+                      class="toggle-checkbox"
+                    />
+                    <div class="toggle-text-wrap">
+                      <span class="toggle-title">⚡ Sertakan dalam Promo Flash Sale SYB</span>
+                      <span class="toggle-desc">Menambahkan badge countdown kilat dan banner penawaran terbatas.</span>
+                    </div>
+                  </label>
                 </div>
               </div>
-            </div>
+            }
 
-            <!-- Section 5: Variants Manager -->
-            <div class="form-section-card">
-              <div class="section-title-between">
-                <h4 class="form-section-title">5. Pengaturan Varian (Ukuran / Shade)</h4>
-                <button type="button" class="btn-sm-outline" (click)="addVariantItem()">+ Tambah Varian</button>
+            <!-- SECTION 3: Visual & Media Asset -->
+            @if (activeStudioTab() === 'all' || activeStudioTab() === 'media') {
+              <div class="studio-section-card">
+                <div class="section-card-header">
+                  <div class="section-icon-badge purple">🎨</div>
+                  <div class="section-title-wrap">
+                    <h4 class="section-heading">3. Galeri Foto &amp; Tema Aksen Branding</h4>
+                    <p class="section-subheading">Pilih foto produk autentik SYB resolusi tinggi dan warna aksen kartu.</p>
+                  </div>
+                </div>
+
+                <div class="media-gallery-section">
+                  <label class="field-label">Pilih Foto Produk Resmi SYB (Klik untuk memilih):</label>
+                  <div class="gallery-photo-grid">
+                    @for (img of availableImages; track img.name) {
+                      <div
+                        class="gallery-photo-card"
+                        [class.active]="formImage() === img.path || formImage() === img.path.replace('/', '')"
+                        (click)="formImage.set(img.path)"
+                        [title]="img.name"
+                      >
+                        <div class="photo-thumbnail-wrap">
+                          <img [src]="img.path" [alt]="img.name" (error)="onImgError($event)" />
+                          @if (formImage() === img.path || formImage() === img.path.replace('/', '')) {
+                            <div class="selected-checkmark-badge">✓</div>
+                          }
+                        </div>
+                        <span class="photo-title-caption">{{ img.name }}</span>
+                      </div>
+                    }
+                  </div>
+                </div>
+
+                <div class="form-grid-two" style="margin-top: 1.25rem;">
+                  <div class="form-field-group">
+                    <label class="field-label">URL Foto Produk Kustom</label>
+                    <input
+                      type="text"
+                      [ngModel]="formImage()"
+                      (ngModelChange)="formImage.set($event)"
+                      [ngModelOptions]="{standalone: true}"
+                      placeholder="/products/red-jelly-serum.jpg"
+                      class="studio-input"
+                    />
+                    <small class="field-hint">Dapat menggunakan path lokal /products/... atau URL HTTPS eksternal.</small>
+                  </div>
+
+                  <div class="form-field-group">
+                    <label class="field-label">Warna Aksen Branding (Hex):</label>
+                    <div class="swatches-palette-row">
+                      @for (swatch of brandSwatches; track swatch.hex) {
+                        <button
+                          type="button"
+                          class="swatch-circle-btn"
+                          [style.background]="swatch.hex"
+                          [class.active]="formAccentColor() === swatch.hex"
+                          (click)="selectSwatch(swatch.hex)"
+                          [title]="swatch.name + ' (' + swatch.hex + ')'"
+                        >
+                          @if (formAccentColor() === swatch.hex) {
+                            <span class="swatch-check">✓</span>
+                          }
+                        </button>
+                      }
+
+                      <div class="custom-color-inline">
+                        <input
+                          type="color"
+                          [ngModel]="formAccentColor()"
+                          (ngModelChange)="formAccentColor.set($event)"
+                          [ngModelOptions]="{standalone: true}"
+                          class="color-native-picker"
+                          title="Pilih warna custom"
+                        />
+                        <input
+                          type="text"
+                          [ngModel]="formAccentColor()"
+                          (ngModelChange)="formAccentColor.set($event)"
+                          [ngModelOptions]="{standalone: true}"
+                          class="studio-input color-hex-field"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </div>
               </div>
+            }
 
-              <div class="variants-table-mini">
-                @for (v of formVariants(); track v.id; let i = $index) {
-                  <div class="variant-item-card">
-                    <div class="var-field name">
-                      <label>Nama Varian</label>
-                      <input
-                        type="text"
-                        [ngModel]="v.name"
-                        (ngModelChange)="v.name = $event"
-                        placeholder="e.g. 20ml / Shade 01"
-                      />
-                    </div>
-                    <div class="var-field price">
-                      <label>Harga (Rp)</label>
-                      <input
-                        type="number"
-                        [ngModel]="v.price"
-                        (ngModelChange)="v.price = $event"
-                        step="500"
-                      />
-                    </div>
-                    <div class="var-field stock">
-                      <label>Stok</label>
-                      <input
-                        type="number"
-                        [ngModel]="v.stock"
-                        (ngModelChange)="v.stock = $event"
-                      />
-                    </div>
-                    <div class="var-field sku">
-                      <label>SKU Varian</label>
-                      <input
-                        type="text"
-                        [ngModel]="v.sku"
-                        (ngModelChange)="v.sku = $event"
-                      />
-                    </div>
-                    <button type="button" class="btn-del-var" (click)="removeVariantItem(i)" title="Hapus Varian">
-                      ✕
+            <!-- SECTION 4: Kandungan & Manfaat Kulit -->
+            @if (activeStudioTab() === 'all' || activeStudioTab() === 'formula') {
+              <div class="studio-section-card">
+                <div class="section-card-header">
+                  <div class="section-icon-badge pink">✨</div>
+                  <div class="section-title-wrap">
+                    <h4 class="section-heading">4. Kandungan Aktif &amp; Klaim Manfaat Kulit</h4>
+                    <p class="section-subheading">Bahan aktif unggulan (hero ingredients), manfaat bagi konsumen, dan panduan pakai.</p>
+                  </div>
+                </div>
+
+                <!-- Hero Ingredients -->
+                <div class="form-field-group">
+                  <label class="field-label">Kandungan Utama (Hero Ingredients):</label>
+                  <div class="beauty-tag-cloud">
+                    @for (ing of formKeyIngredients(); track $index) {
+                      <span class="beauty-tag-chip">
+                        <span class="chip-star">✦</span>
+                        <span>{{ ing }}</span>
+                        <button type="button" class="chip-remove-btn" (click)="removeIngredientChip($index)" title="Hapus bahan">✕</button>
+                      </span>
+                    }
+                  </div>
+
+                  <div class="input-with-button-row">
+                    <input
+                      type="text"
+                      [ngModel]="tempIngredientInput()"
+                      (ngModelChange)="tempIngredientInput.set($event)"
+                      [ngModelOptions]="{standalone: true}"
+                      (keydown.enter)="$event.preventDefault(); addIngredientChip(tempIngredientInput())"
+                      placeholder="Ketik bahan baru lalu tekan Enter (e.g. Niacinamide 10%, Red Algae)"
+                      class="studio-input"
+                    />
+                    <button
+                      type="button"
+                      class="btn-studio-action"
+                      (click)="addIngredientChip(tempIngredientInput())"
+                    >
+                      + Tambah Bahan
                     </button>
                   </div>
-                }
-              </div>
-            </div>
 
-            <!-- Form Submit Bar -->
-            <div class="studio-form-bottom-bar">
-              <button type="button" class="btn-ghost" (click)="closeProductModal()">Batal</button>
-              <button type="submit" class="btn-submit-studio" id="btn-save-product-submit">
-                {{ modalMode() === 'add' ? '✦ Publikasikan Produk Baru' : '💾 Simpan Perubahan Produk' }}
-              </button>
-            </div>
-          </form>
-        </div>
-
-        <!-- RIGHT: Live Storefront Card Preview -->
-        <div class="studio-preview-pane">
-          <div class="preview-sticky-wrap">
-            <div class="preview-header">
-              <span class="preview-pulse"></span>
-              <h4>Live Storefront Preview</h4>
-              <small>Tampilan Nyata bagi Pembeli di Website</small>
-            </div>
-
-            <div class="mock-product-card" [style.--accent]="formAccentColor()">
-              <div class="mock-card-media">
-                <img [src]="getImgUrl(formImage())" [alt]="formTitle()" />
-                @if (formBadge()) {
-                  <span class="mock-badge" [style.background]="formAccentColor()">{{ formBadge() }}</span>
-                }
-                @if (formIsFlashSale()) {
-                  <span class="mock-flash-badge">⚡ FLASH SALE</span>
-                }
-              </div>
-
-              <div class="mock-card-content">
-                <div class="mock-category-row">
-                  <span class="mock-category">{{ formCategoryLabel() }}</span>
-                  <span class="mock-rating">⭐ 5.0 (42)</span>
-                </div>
-
-                <h3 class="mock-title">{{ formTitle() || 'Nama Produk Skincare SYB' }}</h3>
-                <p class="mock-subtitle">{{ formSubtitle() || 'Deskripsi singkat keunggulan produk' }}</p>
-
-                <!-- BPOM Pill -->
-                <div class="mock-bpom">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
-                  <span>{{ formBpom() || 'BPOM NA Resmi' }}</span>
-                </div>
-
-                <!-- Ingredients snippet -->
-                @if (formKeyIngredients().length) {
-                  <div class="mock-ingredients">
-                    @for (ing of formKeyIngredients().slice(0, 3); track ing) {
-                      <span class="mock-ing-tag">{{ ing }}</span>
+                  <div class="quick-suggest-strip">
+                    <span class="suggest-caption">Saran cepat:</span>
+                    @for (sug of suggestedIngredients; track sug) {
+                      <button
+                        type="button"
+                        class="suggest-pill"
+                        (click)="addIngredientChip(sug)"
+                      >
+                        + {{ sug }}
+                      </button>
                     }
                   </div>
-                }
+                </div>
 
-                <div class="mock-pricing-row">
-                  <div>
-                    <span class="mock-price">Rp {{ formPrice() | number:'1.0-0' }}</span>
-                    @if (formOrigPrice() > formPrice()) {
-                      <s class="mock-orig-price">Rp {{ formOrigPrice() | number:'1.0-0' }}</s>
+                <!-- Manfaat Produk -->
+                <div class="form-field-group" style="margin-top: 1.5rem;">
+                  <label class="field-label">Manfaat Utama bagi Konsumen:</label>
+                  <div class="benefit-item-list">
+                    @for (ben of formBenefits(); track $index) {
+                      <div class="benefit-card-row">
+                        <span class="benefit-badge-num">{{ $index + 1 }}</span>
+                        <span class="benefit-text">{{ ben }}</span>
+                        <button
+                          type="button"
+                          class="btn-delete-item"
+                          (click)="removeBenefitItem($index)"
+                          title="Hapus manfaat"
+                        >
+                          ✕
+                        </button>
+                      </div>
                     }
                   </div>
-                  @if (discountPercent() > 0) {
-                    <span class="mock-discount-tag">-{{ discountPercent() }}%</span>
+
+                  <div class="input-with-button-row">
+                    <input
+                      type="text"
+                      [ngModel]="tempBenefitInput()"
+                      (ngModelChange)="tempBenefitInput.set($event)"
+                      [ngModelOptions]="{standalone: true}"
+                      (keydown.enter)="$event.preventDefault(); addBenefitItem()"
+                      placeholder="Contoh: Mencerahkan noda hitam dan menyamarkan pori dalam 14 hari"
+                      class="studio-input"
+                    />
+                    <button
+                      type="button"
+                      class="btn-studio-action"
+                      (click)="addBenefitItem()"
+                    >
+                      + Tambah Manfaat
+                    </button>
+                  </div>
+                </div>
+
+                <!-- Cara Penggunaan -->
+                <div class="form-field-group" style="margin-top: 1.5rem;">
+                  <label class="field-label">Cara Penggunaan / Step Ritual:</label>
+                  <div class="benefit-item-list">
+                    @for (step of formHowToUse(); track $index) {
+                      <div class="benefit-card-row">
+                        <span class="benefit-badge-num step">Langkah {{ $index + 1 }}</span>
+                        <span class="benefit-text">{{ step }}</span>
+                        <button
+                          type="button"
+                          class="btn-delete-item"
+                          (click)="removeHowToUseItem($index)"
+                          title="Hapus langkah"
+                        >
+                          ✕
+                        </button>
+                      </div>
+                    }
+                  </div>
+
+                  <div class="input-with-button-row">
+                    <input
+                      type="text"
+                      [ngModel]="tempHowToUseInput()"
+                      (ngModelChange)="tempHowToUseInput.set($event)"
+                      [ngModelOptions]="{standalone: true}"
+                      (keydown.enter)="$event.preventDefault(); addHowToUseItem()"
+                      placeholder="Contoh: Teteskan 2-3 tetes ke seluruh wajah bersih, tepuk lembut hingga meresap"
+                      class="studio-input"
+                    />
+                    <button
+                      type="button"
+                      class="btn-studio-action"
+                      (click)="addHowToUseItem()"
+                    >
+                      + Tambah Langkah
+                    </button>
+                  </div>
+                </div>
+              </div>
+            }
+
+            <!-- SECTION 5: Varian & Ukuran -->
+            @if (activeStudioTab() === 'all' || activeStudioTab() === 'variants') {
+              <div class="studio-section-card">
+                <div class="section-card-header between">
+                  <div class="section-title-wrap flex-row">
+                    <div class="section-icon-badge blue">📦</div>
+                    <div>
+                      <h4 class="section-heading">5. Pengaturan Varian (Ukuran / Shade / Refill)</h4>
+                      <p class="section-subheading">Kelola berbagai ukuran botol, isi ulang, paket nilai, dan stok spesifik per SKU.</p>
+                    </div>
+                  </div>
+                  <button type="button" class="btn-studio-pill-add" (click)="addVariantItem()">
+                    <span>+ Tambah Varian Baru</span>
+                  </button>
+                </div>
+
+                <div class="variants-card-stack">
+                  @for (v of formVariants(); track v.id; let i = $index) {
+                    <div class="variant-studio-card">
+                      <div class="variant-card-topbar">
+                        <div class="variant-index-badge">Varian #{{ i + 1 }}</div>
+                        @if (v.stock > 0) {
+                          <span class="var-stock-pill safe">{{ v.stock | number:'1.0-0' }} pcs</span>
+                        } @else {
+                          <span class="var-stock-pill empty">Habis</span>
+                        }
+                      </div>
+
+                      <div class="variant-fields-grid">
+                        <div class="form-field-group var-name">
+                          <label class="field-label">Nama Varian &amp; Kemasan</label>
+                          <input
+                            type="text"
+                            [ngModel]="v.name"
+                            (ngModelChange)="v.name = $event"
+                            [ngModelOptions]="{standalone: true}"
+                            placeholder="e.g. 20ml Regular Glass Bottle"
+                            class="studio-input"
+                          />
+                        </div>
+
+                        <div class="form-field-group var-price">
+                          <label class="field-label">Harga (Rp)</label>
+                          <div class="input-with-prefix">
+                            <span class="currency-prefix">Rp</span>
+                            <input
+                              type="number"
+                              [ngModel]="v.price"
+                              (ngModelChange)="v.price = $event"
+                              [ngModelOptions]="{standalone: true}"
+                              step="500"
+                              class="studio-input font-bold"
+                            />
+                          </div>
+                        </div>
+
+                        <div class="form-field-group var-stock">
+                          <label class="field-label">Stok (pcs)</label>
+                          <input
+                            type="number"
+                            [ngModel]="v.stock"
+                            (ngModelChange)="v.stock = $event"
+                            [ngModelOptions]="{standalone: true}"
+                            class="studio-input"
+                          />
+                        </div>
+
+                        <div class="form-field-group var-sku">
+                          <label class="field-label">SKU Varian</label>
+                          <input
+                            type="text"
+                            [ngModel]="v.sku"
+                            (ngModelChange)="v.sku = $event"
+                            [ngModelOptions]="{standalone: true}"
+                            class="studio-input font-mono"
+                          />
+                        </div>
+
+                        <div class="var-action-col">
+                          <button
+                            type="button"
+                            class="btn-delete-variant"
+                            (click)="removeVariantItem(i)"
+                            title="Hapus varian ini"
+                          >
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                          </button>
+                        </div>
+                      </div>
+                    </div>
                   }
                 </div>
+              </div>
+            }
+          </div>
+        </div>
 
-                <button type="button" class="mock-add-btn" [style.background]="formAccentColor()">
-                  + Keranjang Belanja
-                </button>
+        <!-- RIGHT: Live Storefront Card Preview Dock -->
+        @if (isPreviewVisible()) {
+          <div class="studio-preview-pane">
+            <div class="preview-sticky-dock">
+              <!-- Live Preview Header -->
+              <div class="preview-badge-header">
+                <div class="pulse-indicator-row">
+                  <span class="live-pulse-dot"></span>
+                  <span class="live-label">LIVE STOREFRONT PREVIEW</span>
+                </div>
+                <small class="live-subtext">Pratinjau Nyata Kartu Produk di Website Pembeli</small>
               </div>
-            </div>
 
-            <div class="preview-spec-box">
-              <div class="spec-row">
-                <span>Status:</span>
-                <strong [class.green-text]="formStatus() === 'Active'">{{ formStatus() }}</strong>
+              <!-- High-End Storefront Card Mockup -->
+              <div class="storefront-card-mock" [style.--accent]="formAccentColor()">
+                <!-- Card Media -->
+                <div class="storefront-card-media">
+                  <img
+                    [src]="getImgUrl(formImage())"
+                    [alt]="formTitle()"
+                    class="card-product-img"
+                    (error)="onImgError($event)"
+                  />
+
+                  @if (formBadge()) {
+                    <span class="storefront-badge" [style.background]="formAccentColor()">
+                      {{ formBadge() }}
+                    </span>
+                  }
+
+                  @if (formIsFlashSale()) {
+                    <span class="storefront-flash-sale">
+                      ⚡ FLASH SALE
+                    </span>
+                  }
+
+                  <!-- Heart Wishlist Icon Mock -->
+                  <div class="storefront-wishlist-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>
+                  </div>
+                </div>
+
+                <!-- Card Content -->
+                <div class="storefront-card-content">
+                  <div class="storefront-meta-row">
+                    <span class="storefront-category">Perawatan {{ formCategoryLabel() }}</span>
+                    <span class="storefront-rating">⭐ 4.9 (4.2k)</span>
+                  </div>
+
+                  <h4 class="storefront-title">{{ formTitle() || 'Nama Produk Skincare SYB' }}</h4>
+                  <p class="storefront-subtitle">{{ formSubtitle() || 'Formula konsentrat pencerah &amp; glowing merona' }}</p>
+
+                  <!-- BPOM Badge -->
+                  <div class="storefront-bpom-pill">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                    <span>BPOM RI: {{ formBpom() || 'NA18210103429' }}</span>
+                  </div>
+
+                  <!-- Ingredients snippet tags -->
+                  @if (formKeyIngredients().length) {
+                    <div class="storefront-ingredients-strip">
+                      @for (ing of formKeyIngredients().slice(0, 3); track ing) {
+                        <span class="storefront-ing-pill">{{ ing }}</span>
+                      }
+                    </div>
+                  }
+
+                  <!-- Price & Discount -->
+                  <div class="storefront-price-row">
+                    <div class="price-val-wrap">
+                      <span class="storefront-sell-price">Rp {{ formPrice() | number:'1.0-0' }}</span>
+                      @if (formOrigPrice() > formPrice()) {
+                        <s class="storefront-orig-price">Rp {{ formOrigPrice() | number:'1.0-0' }}</s>
+                      }
+                    </div>
+                    @if (discountPercent() > 0) {
+                      <span class="storefront-discount-badge">-{{ discountPercent() }}%</span>
+                    }
+                  </div>
+
+                  <!-- Add to Bag CTA Button -->
+                  <button
+                    type="button"
+                    class="storefront-add-btn"
+                    [style.background]="formAccentColor()"
+                  >
+                    + Keranjang Belanja
+                  </button>
+                </div>
               </div>
-              <div class="spec-row">
-                <span>Total Varian:</span>
-                <strong>{{ formVariants().length }} pilihan</strong>
-              </div>
-              <div class="spec-row">
-                <span>Inventaris Siap:</span>
-                <strong>{{ formInventory() | number:'1.0-0' }} botol / pot</strong>
+
+              <!-- Quick Specs Widget -->
+              <div class="preview-spec-sheet">
+                <div class="spec-tile">
+                  <span class="tile-label">Status Produk:</span>
+                  <strong class="tile-val" [class.green]="formStatus() === 'Active'">
+                    {{ formStatus() === 'Active' ? '🟢 Aktif di Toko' : '⚪ Draft' }}
+                  </strong>
+                </div>
+                <div class="spec-tile">
+                  <span class="tile-label">Varian Tersedia:</span>
+                  <strong class="tile-val">{{ formVariants().length }} Pilihan</strong>
+                </div>
+                <div class="spec-tile">
+                  <span class="tile-label">Stok Pabrik:</span>
+                  <strong class="tile-val">{{ formInventory() | number:'1.0-0' }} pcs</strong>
+                </div>
+                <div class="spec-tile">
+                  <span class="tile-label">Est. Laba / Pcs:</span>
+                  <strong class="tile-val green">Rp {{ profitPerUnit() | number:'1.0-0' }}</strong>
+                </div>
               </div>
             </div>
           </div>
+        }
+      </div>
+
+      <!-- ==================== FIXED ACTION FOOTER ==================== -->
+      <div class="studio-fixed-footer">
+        <div class="footer-meta-info">
+          <span class="footer-sku-tag">SKU: {{ formSku() || 'SYB-DEFAULT' }}</span>
+          <span class="footer-sep">•</span>
+          <span class="footer-profit-hint">
+            Margin: <strong>{{ grossProfitMargin() }}%</strong> (Untung <strong>Rp {{ profitPerUnit() | number:'1.0-0' }}</strong> / pcs)
+          </span>
+        </div>
+
+        <div class="footer-actions-group">
+          <button
+            type="button"
+            class="btn-studio-cancel"
+            (click)="closeProductModal()"
+          >
+            Batal
+          </button>
+
+          <button
+            type="button"
+            class="btn-studio-save"
+            id="btn-save-product-submit"
+            (click)="saveProduct()"
+          >
+            <span class="btn-icon">💾</span>
+            <span>{{ modalMode() === 'add' ? 'Publikasikan Produk Baru' : 'Simpan Perubahan Produk' }}</span>
+          </button>
         </div>
       </div>
     </div>
