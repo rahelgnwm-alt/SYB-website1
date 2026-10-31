@@ -1,0 +1,99 @@
+:host {
+  display: block;
+}
+
+.go {
+  padding: clamp(80px, 12vw, 180px) 0;
+  background: var(--pink-50);
+  overflow: hidden;
+}
+
+.go__grid {
+  display: grid;
+  grid-template-columns: 1.15fr 1fr;
+  gap: clamp(40px, 6vw, 110px);
+  align-items: center;
+}
+
+.go__media {
+  position: relative;
+  aspect-ratio: 4 / 3.4;
+  border-radius: var(--radius-lg);
+  --p: 0.5;
+  overflow: hidden;
+}
+
+.go__media img {
+  width: 100%;
+  height: 120%;
+  object-fit: cover;
+  border-radius: var(--radius-lg);
+  transform: translateY(calc((var(--p) - 0.5) * -14%));
+}
+
+.go__sticker {
+  position: absolute;
+  z-index: 2;
+  right: 28px;
+  bottom: 28px;
+  width: clamp(110px, 11vw, 160px);
+  animation: spin 16s linear infinite;
+  filter: drop-shadow(0 14px 30px rgba(61, 15, 48, 0.25));
+}
+
+.go__sticker text {
+  font-size: 17px;
+  font-weight: 800;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  fill: var(--pink-900);
+}
+
+.go__sticker .go__sticker-heart {
+  font-size: 54px;
+  letter-spacing: 0;
+  fill: var(--pink-400);
+}
+
+.go__title {
+  font-size: clamp(56px, 8.5vw, 150px);
+  margin: 18px 0 28px;
+}
+
+.go__lead {
+  margin: 0;
+  font-size: 19px;
+  line-height: 1.65;
+  color: var(--plum-soft);
+  max-width: 480px;
+}
+
+.go__chips {
+  list-style: none;
+  padding: 0;
+  margin: 30px 0 40px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.go__chips li {
+  padding: 10px 18px;
+  border-radius: var(--radius-pill);
+  font-size: 14px;
+  font-weight: 600;
+  background: var(--white);
+  box-shadow: inset 0 0 0 1.5px var(--pink-200);
+  transition: transform 0.4s var(--ease-jelly), box-shadow 0.3s;
+}
+
+.go__chips li:hover {
+  transform: translateY(-4px) rotate(-2deg);
+  box-shadow: inset 0 0 0 1.5px var(--pink-900);
+}
+
+@media (max-width: 1100px) {
+  .go__grid {
+    grid-template-columns: 1fr;
+  }
+}

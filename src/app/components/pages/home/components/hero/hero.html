@@ -1,0 +1,49 @@
+<section class="hero" data-progress="top" aria-labelledby="hero-title">
+  <div class="hero__sticky" (pointermove)="heroMove($event)">
+    <div class="hero__media">
+      <img src="images/hero.jpg" alt="Perempuan muda Indonesia dengan kulit glowing" fetchpriority="high" />
+    </div>
+    <div class="hero__veil"></div>
+
+    <!-- floating jelly bubbles -->
+    <div class="bubbles" aria-hidden="true">
+      @for (b of [1, 2, 3, 4, 5, 6]; track b) {
+        <span class="bubble b{{ b }}"></span>
+      }
+    </div>
+
+    <div class="hero__content container is-in">
+      <p class="eyebrow eyebrow--light"><span class="line-mask"><span style="--d: 0ms">SYB Official · Indonesia</span></span></p>
+      <h1 id="hero-title" class="display hero__title">
+        <span class="line-mask"><span style="--d: 80ms">Siap</span></span>
+        <span class="line-mask"><span style="--d: 180ms">Glowing</span></span>
+        <span class="line-mask"><span style="--d: 280ms">Hari ini</span></span>
+        <span class="hero__rotator" aria-live="polite">
+          @for (p of places; track p; let i = $index) {
+            <span
+              [class.active]="i === placeIndex()"
+              [class.past]="i === (placeIndex() - 1 + places.length) % places.length"
+            >{{ p }}</span>
+          }
+        </span>
+      </h1>
+      <div class="hero__cta line-mask">
+        <span style="--d: 520ms">
+          <a class="btn btn--light" href="{{ shopUrl }}/collections/best-seller" appMagnetic id="hero-shop">
+            Belanja Best Seller
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M13 6l6 6-6 6" stroke-linecap="round" stroke-linejoin="round" /></svg>
+          </a>
+          <a class="btn btn--ghost" href="#ritual" appMagnetic id="hero-ritual">Temukan Ritualmu</a>
+        </span>
+      </div>
+    </div>
+
+    <div class="hero__bar container">
+      <span class="hero__time"><i class="live-dot"></i> Jakarta {{ time.clockLabel() }} WIB</span>
+      <a href="#manifesto" class="hero__scroll" aria-label="Scroll ke bawah">
+        <span>Scroll</span><i></i>
+      </a>
+      <span class="hide-sm">Diskon hingga 80% ✦ 100% Asli</span>
+    </div>
+  </div>
+</section>

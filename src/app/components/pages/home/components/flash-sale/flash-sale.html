@@ -1,0 +1,26 @@
+<section class="flash" aria-labelledby="flash-title">
+  <div class="flash__bg" aria-hidden="true">
+    <div class="flash__marquee">
+      @for (n of [0, 1, 2, 3]; track n) {
+        <span>Flash Sale ✦ Flash Sale ✦ </span>
+      }
+    </div>
+  </div>
+  <div class="container flash__inner">
+    <div appReveal>
+      <p class="eyebrow eyebrow--light">Limited time offer</p>
+      <h2 id="flash-title" class="flash__title">Flash sale berakhir dalam</h2>
+    </div>
+    <div class="countdown" appReveal="scale" [revealDelay]="120" aria-live="off">
+      <div><b>{{ time.countdown().h }}</b><small>Jam</small></div>
+      <i>:</i>
+      <div><b>{{ time.countdown().m }}</b><small>Menit</small></div>
+      <i>:</i>
+      <div><b>{{ time.countdown().s }}</b><small>Detik</small></div>
+    </div>
+    <a class="btn btn--light" routerLink="/products" appMagnetic appReveal [revealDelay]="240" id="flash-shop">
+      Ambil Promonya
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M13 6l6 6-6 6" stroke-linecap="round" stroke-linejoin="round" /></svg>
+    </a>
+  </div>
+</section>

@@ -1,0 +1,756 @@
+<div class="admin-tab-content">
+  <!-- Page Header -->
+  <div class="page-header-row">
+    <div>
+      <div class="breadcrumb">Admin / Katalog Produk</div>
+      <h1 class="page-title">Manajemen Produk & Inventaris</h1>
+      <p class="page-desc">Kelola katalog skincare resmi SYB, stok inventaris pabrik, harga grosir/diskon, dan registrasi BPOM.</p>
+    </div>
+    <div class="header-actions">
+      <button class="btn-primary-black" (click)="openAddProductModal()" id="btn-add-product">
+        <span class="btn-icon">✦</span>
+        <span>+ Tambah Produk Baru</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- KPI Metrics Row -->
+  <div class="kpi-grid four-cols">
+    <div class="kpi-card">
+      <div class="kpi-icon-wrap pink">🏷️</div>
+      <div class="kpi-data">
+        <span class="kpi-label">TOTAL PRODUK AKTIF</span>
+        <strong class="kpi-val">{{ activeProductsCount() }} <small>/ {{ totalProductsCount() }} total</small></strong>
+      </div>
+    </div>
+
+    <div class="kpi-card">
+      <div class="kpi-icon-wrap green">💰</div>
+      <div class="kpi-data">
+        <span class="kpi-label">ESTIMASI NILAI INVENTARIS</span>
+        <strong class="kpi-val">Rp {{ totalInventoryValue() | number:'1.0-0' }}</strong>
+      </div>
+    </div>
+
+    <div class="kpi-card" [class.alert-card]="lowStockProductsCount() > 0">
+      <div class="kpi-icon-wrap yellow">⚠️</div>
+      <div class="kpi-data">
+        <span class="kpi-label">PERINGATAN STOK RENDAH (&lt;500)</span>
+        <strong class="kpi-val">{{ lowStockProductsCount() }} Produk</strong>
+      </div>
+    </div>
+
+    <div class="kpi-card">
+      <div class="kpi-icon-wrap purple">✨</div>
+      <div class="kpi-data">
+        <span class="kpi-label">SERTIFIKASI BPOM RESMI</span>
+        <strong class="kpi-val">100% Terverifikasi</strong>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Products Card -->
+  <div class="shopify-card">
+    <!-- Toolbar: Categories Tabs + Search + Filters -->
+    <div class="table-toolbar">
+      <div class="filter-group-left">
+        <!-- Status Tabs (Semua, Wajah, Tubuh, Makeup, Paket Ritual) -->
+        <div class="status-tabs">
+          <button
+            class="status-tab-btn"
+            [class.active]="productCategoryFilter() === 'Semua'"
+            (click)="productCategoryFilter.set('Semua')"
+          >
+            Semua ({{ totalProductsCount() }})
+          </button>
+          <button
+            class="status-tab-btn"
+            [class.active]="productCategoryFilter() === 'Wajah'"
+            (click)="productCategoryFilter.set('Wajah')"
+          >
+            Wajah
+          </button>
+          <button
+            class="status-tab-btn"
+            [class.active]="productCategoryFilter() === 'Tubuh'"
+            (click)="productCategoryFilter.set('Tubuh')"
+          >
+            Tubuh
+          </button>
+          <button
+            class="status-tab-btn"
+            [class.active]="productCategoryFilter() === 'Makeup'"
+            (click)="productCategoryFilter.set('Makeup')"
+          >
+            Makeup
+          </button>
+          <button
+            class="status-tab-btn"
+            [class.active]="productCategoryFilter() === 'Paket Ritual'"
+            (click)="productCategoryFilter.set('Paket Ritual')"
+          >
+            Paket Ritual
+          </button>
+        </div>
+      </div>
+
+      <div class="filter-group-right">
+        <!-- Search query input -->
+        <div class="inline-search">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+          <input
+            type="text"
+            placeholder="Cari produk, SKU, BPOM..."
+            [ngModel]="searchProductQuery()"
+            (ngModelChange)="searchProductQuery.set($event)"
+          />
+        </div>
+
+        <!-- Stock Level Filter -->
+        <select
+          class="filter-select"
+          [value]="productStockFilter()"
+          (change)="productStockFilter.set($any($event.target).value)"
+        >
+          <option value="All">Semua Tingkat Stok</option>
+          <option value="LowStock">Stok Menipis (&lt; 500)</option>
+          <option value="OutOfStock">Stok Habis (0)</option>
+        </select>
+
+        <!-- Sorting -->
+        <select
+          class="filter-select"
+          [value]="productSortBy()"
+          (change)="productSortBy.set($any($event.target).value)"
+        >
+          <option value="default">Urutan Default</option>
+          <option value="name">Nama Produk (A-Z)</option>
+          <option value="price-asc">Harga Terendah</option>
+          <option value="price-desc">Harga Tertinggi</option>
+          <option value="stock-desc">Stok Terbanyak</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Products Table -->
+    <div class="table-wrapper">
+      <table class="shopify-table">
+        <thead>
+          <tr>
+            <th style="width: 50px;">FOTO</th>
+            <th>PRODUK &amp; VARIAN</th>
+            <th>KATEGORI</th>
+            <th>STATUS</th>
+            <th>INVENTARIS (STOK)</th>
+            <th>HARGA JUAL &amp; CORET</th>
+            <th>IZIN BPOM</th>
+            <th style="text-align: right;">AKSI</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (prod of filteredProducts(); track prod.id) {
+            <tr class="product-row" [class.row-draft]="prod.status === 'Draft'">
+              <!-- Thumbnail -->
+              <td>
+                <div class="product-thumb-wrap">
+                  <img [src]="getImgUrl(prod.image)" [alt]="prod.title" class="product-thumb" />
+                  @if (prod.badge) {
+                    <span class="thumb-badge">{{ prod.badge.split(' ')[0] }}</span>
+                  }
+                </div>
+              </td>
+
+              <!-- Title & Meta -->
+              <td>
+                <div class="product-title-cell">
+                  <a class="product-title-link" (click)="openEditProductModal(prod)" title="Klik untuk edit produk">
+                    {{ prod.title }}
+                  </a>
+                  <div class="product-sku-meta">
+                    <span class="sku-tag">SKU: {{ prod.variants[0]?.sku || 'SYB-DEFAULT' }}</span>
+                    <span class="bullet">•</span>
+                    <span class="variants-count">{{ prod.variants?.length || 1 }} Varian</span>
+                    @if (prod.isFlashSale) {
+                      <span class="flash-tag">⚡ Flash Sale</span>
+                    }
+                  </div>
+                </div>
+              </td>
+
+              <!-- Category -->
+              <td>
+                <span class="category-pill" [attr.data-cat]="prod.categoryLabel">
+                  {{ prod.categoryLabel }}
+                </span>
+              </td>
+
+              <!-- Status -->
+              <td>
+                <button
+                  type="button"
+                  class="status-toggle-btn"
+                  [class.status-active]="prod.status === 'Active'"
+                  [class.status-draft]="prod.status !== 'Active'"
+                  (click)="toggleProductStatus(prod)"
+                  title="Klik untuk ubah status aktif/draft"
+                >
+                  <span class="status-dot"></span>
+                  {{ prod.status }}
+                </button>
+              </td>
+
+              <!-- Inventory With Stepper -->
+              <td>
+                <div class="inventory-cell">
+                  <div class="inventory-val-row">
+                    <span class="inventory-number" [class.low-stock]="prod.inventory < 500" [class.out-of-stock]="prod.inventory === 0">
+                      {{ prod.inventory | number:'1.0-0' }}
+                    </span>
+                    <span class="inventory-unit">pcs</span>
+                    @if (prod.inventory >= 500) {
+                      <span class="stock-badge in-stock">Stok Aman</span>
+                    } @else if (prod.inventory > 0) {
+                      <span class="stock-badge low-stock">Menipis</span>
+                    } @else {
+                      <span class="stock-badge empty-stock">Habis</span>
+                    }
+                  </div>
+                  <div class="inventory-quick-stepper">
+                    <button class="step-btn minus" (click)="quickAdjustStock(prod, -10)" title="Kurangi 10 pcs">-10</button>
+                    <button class="step-btn plus" (click)="quickAdjustStock(prod, 10)" title="Tambah 10 pcs">+10</button>
+                  </div>
+                </div>
+              </td>
+
+              <!-- Price & Strikethrough -->
+              <td>
+                <div class="price-cell">
+                  <strong class="sell-price">Rp {{ prod.price | number:'1.0-0' }}</strong>
+                  @if (prod.originalPrice && prod.originalPrice > prod.price) {
+                    <div class="price-discount-meta">
+                      <s class="compare-price">Rp {{ prod.originalPrice | number:'1.0-0' }}</s>
+                      <span class="discount-badge">-{{ Math.round((1 - prod.price / prod.originalPrice) * 100) }}%</span>
+                    </div>
+                  }
+                </div>
+              </td>
+
+              <!-- BPOM Certification -->
+              <td>
+                <div class="bpom-pill" title="Terdaftar di Badan Pengawas Obat dan Makanan">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="bpom-icon"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+                  <span>{{ prod.bpomNumber }}</span>
+                </div>
+              </td>
+
+              <!-- Actions -->
+              <td style="text-align: right;">
+                <div class="action-buttons-group">
+                  <button class="btn-action edit" (click)="openEditProductModal(prod)" title="Edit Detail Produk">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg>
+                    <span>Edit</span>
+                  </button>
+                  <button class="btn-action icon-only" (click)="duplicateProduct(prod)" title="Duplikasi Produk (Draft)">
+                    📋
+                  </button>
+                  <button class="btn-action delete icon-only" (click)="deleteProduct(prod.id)" title="Hapus Produk">
+                    🗑️
+                  </button>
+                </div>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== MODAL: PRODUCT STUDIO (ADD / EDIT) ==================== -->
+@if (isProductModalOpen()) {
+  <div class="modal-backdrop" (click)="closeProductModal()">
+    <div class="product-studio-modal" (click)="$event.stopPropagation()">
+      <!-- Modal Top Bar -->
+      <div class="studio-modal-header">
+        <div class="studio-title-box">
+          <span class="studio-badge">{{ modalMode() === 'add' ? '✦ Studio Produk Baru' : '✏️ Edit Produk Katalog' }}</span>
+          <h3>{{ modalMode() === 'add' ? 'Tambah Produk Skincare SYB' : formTitle() }}</h3>
+        </div>
+        <div class="studio-header-actions">
+          <button class="btn-close-modal" id="btn-close-product-studio" (click)="closeProductModal()" title="Tutup">✕</button>
+        </div>
+      </div>
+
+      <!-- Quick Presets Toolbar -->
+      <div class="presets-toolbar">
+        <span class="presets-label">⚡ Template Skincare Cepat:</span>
+        <div class="presets-btn-track">
+          @for (preset of beautyPresets; track preset.label) {
+            <button type="button" class="preset-pill-btn" (click)="applyPreset(preset)">
+              {{ preset.label }}
+            </button>
+          }
+        </div>
+      </div>
+
+      <!-- Studio Body: 2 Columns (Form on left, Live Card Preview on right) -->
+      <div class="studio-modal-body">
+        <!-- LEFT: Form Pane -->
+        <div class="studio-form-pane">
+          <form (submit)="$event.preventDefault(); saveProduct()" class="studio-form">
+            <!-- Section 1: Basic Information -->
+            <div class="form-section-card">
+              <h4 class="form-section-title">1. Informasi Utama &amp; Legalitas</h4>
+
+              <div class="form-group">
+                <label>Nama Produk Lengkap *</label>
+                <input
+                  type="text"
+                  [ngModel]="formTitle()"
+                  (ngModelChange)="formTitle.set($event)"
+                  name="title"
+                  required
+                  placeholder="Contoh: NEW SYB Collagen Bright Glow Serum 30ml"
+                  class="input-main"
+                />
+              </div>
+
+              <div class="form-group">
+                <label>Keterangan Singkat / Subtitle</label>
+                <input
+                  type="text"
+                  [ngModel]="formSubtitle()"
+                  (ngModelChange)="formSubtitle.set($event)"
+                  name="subtitle"
+                  placeholder="Contoh: Niacinamide 10% + Red Algae untuk kulit glowing kenyal"
+                />
+              </div>
+
+              <div class="form-row-three">
+                <div class="form-group">
+                  <label>Kategori Produk</label>
+                  <select
+                    [ngModel]="formCategoryLabel()"
+                    (ngModelChange)="formCategoryLabel.set($event)"
+                    name="catLabel"
+                  >
+                    <option value="Wajah">Perawatan Wajah</option>
+                    <option value="Tubuh">Perawatan Tubuh</option>
+                    <option value="Makeup">Make Up &amp; Bibir</option>
+                    <option value="Paket Ritual">Paket Ritual Bundling</option>
+                    <option value="Aksesoris">Aksesoris &amp; Pouch</option>
+                  </select>
+                </div>
+
+                <div class="form-group">
+                  <label>Tipe Produk</label>
+                  <input
+                    type="text"
+                    [ngModel]="formProductType()"
+                    (ngModelChange)="formProductType.set($event)"
+                    name="productType"
+                    placeholder="e.g. Serum Wajah, Toner, Lip Matte"
+                  />
+                </div>
+
+                <div class="form-group">
+                  <label>Status Visibilitas</label>
+                  <select
+                    [ngModel]="formStatus()"
+                    (ngModelChange)="formStatus.set($event)"
+                    name="status"
+                  >
+                    <option value="Active">Active (Tampil di Web)</option>
+                    <option value="Draft">Draft (Disembunyikan)</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="form-row-two">
+                <div class="form-group">
+                  <label>Nomor Izin Edar BPOM Resmi *</label>
+                  <input
+                    type="text"
+                    [ngModel]="formBpom()"
+                    (ngModelChange)="formBpom.set($event)"
+                    name="bpom"
+                    required
+                    placeholder="NA18230104821"
+                  />
+                  <small class="helper-text">Wajib nomor registrasi BPOM RI resmi terbit.</small>
+                </div>
+
+                <div class="form-group">
+                  <label>Badge Sorotan (Tag)</label>
+                  <input
+                    type="text"
+                    [ngModel]="formBadge()"
+                    (ngModelChange)="formBadge.set($event)"
+                    name="badge"
+                    placeholder="e.g. Best Seller ✦, Viral TikTok"
+                  />
+                </div>
+              </div>
+            </div>
+
+            <!-- Section 2: Pricing & Inventory -->
+            <div class="form-section-card">
+              <h4 class="form-section-title">2. Penetapan Harga &amp; Profitabilitas Pabrik</h4>
+
+              <div class="form-row-three">
+                <div class="form-group">
+                  <label>Harga Jual (Rp) *</label>
+                  <input
+                    type="number"
+                    [ngModel]="formPrice()"
+                    (ngModelChange)="formPrice.set($event)"
+                    name="price"
+                    required
+                    min="1000"
+                    step="500"
+                    class="input-price-highlight"
+                  />
+                </div>
+
+                <div class="form-group">
+                  <label>Harga Coret Asli (Rp)</label>
+                  <input
+                    type="number"
+                    [ngModel]="formOrigPrice()"
+                    (ngModelChange)="formOrigPrice.set($event)"
+                    name="origPrice"
+                    min="1000"
+                    step="500"
+                  />
+                </div>
+
+                <div class="form-group">
+                  <label>Harga Modal Pabrik / HPP (Rp)</label>
+                  <input
+                    type="number"
+                    [ngModel]="formCostPrice()"
+                    (ngModelChange)="formCostPrice.set($event)"
+                    name="costPrice"
+                    min="1000"
+                    step="500"
+                  />
+                </div>
+              </div>
+
+              <!-- Profit Calculation Strip -->
+              <div class="profit-calculator-strip">
+                <div class="profit-metric">
+                  <span class="m-label">Diskon Toko:</span>
+                  <strong class="m-val pink">{{ discountPercent() }}% OFF</strong>
+                </div>
+                <div class="profit-metric">
+                  <span class="m-label">Estimasi Margin Kotor:</span>
+                  <strong class="m-val green">{{ grossProfitMargin() }}%</strong>
+                </div>
+                <div class="profit-metric">
+                  <span class="m-label">Keuntungan / Pcs:</span>
+                  <strong class="m-val green">Rp {{ profitPerUnit() | number:'1.0-0' }}</strong>
+                </div>
+              </div>
+
+              <div class="form-row-two" style="margin-top: 1rem;">
+                <div class="form-group">
+                  <label>Stok Inventaris Pabrik (Unit)</label>
+                  <input
+                    type="number"
+                    [ngModel]="formInventory()"
+                    (ngModelChange)="formInventory.set($event)"
+                    name="inventory"
+                    min="0"
+                    step="10"
+                  />
+                </div>
+
+                <div class="form-group">
+                  <label>SKU Induk (Kode Produk)</label>
+                  <input
+                    type="text"
+                    [ngModel]="formSku()"
+                    (ngModelChange)="formSku.set($event)"
+                    name="sku"
+                    placeholder="SYB-PROD-01"
+                  />
+                </div>
+              </div>
+
+              <!-- Checkbox Options -->
+              <div class="checkbox-row">
+                <label class="custom-checkbox">
+                  <input
+                    type="checkbox"
+                    [ngModel]="formIsFeatured()"
+                    (ngModelChange)="formIsFeatured.set($event)"
+                    name="featured"
+                  />
+                  <span>Tampilkan di Sorotan Beranda (Featured Product)</span>
+                </label>
+                <label class="custom-checkbox">
+                  <input
+                    type="checkbox"
+                    [ngModel]="formIsFlashSale()"
+                    (ngModelChange)="formIsFlashSale.set($event)"
+                    name="flashsale"
+                  />
+                  <span>Ikutkan dalam Promo Flash Sale SYB</span>
+                </label>
+              </div>
+            </div>
+
+            <!-- Section 3: Visual & Media Asset -->
+            <div class="form-section-card">
+              <h4 class="form-section-title">3. Foto Produk &amp; Tema Aksen</h4>
+
+              <div class="image-selector-grid">
+                @for (img of availableImages; track img.name) {
+                  <div
+                    class="img-choice-card"
+                    [class.selected]="formImage() === img.path"
+                    (click)="formImage.set(img.path)"
+                  >
+                    <img [src]="img.path" [alt]="img.name" />
+                    <span>{{ img.name }}</span>
+                  </div>
+                }
+              </div>
+
+              <div class="form-row-two" style="margin-top: 1rem;">
+                <div class="form-group">
+                  <label>URL Gambar Manual (Opsional)</label>
+                  <input
+                    type="text"
+                    [ngModel]="formImage()"
+                    (ngModelChange)="formImage.set($event)"
+                    name="imgUrl"
+                    placeholder="/products/red-jelly-serum.jpg"
+                  />
+                </div>
+
+                <div class="form-group">
+                  <label>Warna Aksen Branding (Hex)</label>
+                  <div class="color-picker-row">
+                    <input
+                      type="color"
+                      [ngModel]="formAccentColor()"
+                      (ngModelChange)="formAccentColor.set($event)"
+                      name="accentColor"
+                      class="color-input"
+                    />
+                    <input
+                      type="text"
+                      [ngModel]="formAccentColor()"
+                      (ngModelChange)="formAccentColor.set($event)"
+                      name="accentColorHex"
+                      class="color-hex-text"
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Section 4: Key Ingredients & Benefits -->
+            <div class="form-section-card">
+              <h4 class="form-section-title">4. Kandungan Unggulan &amp; Manfaat Kulit</h4>
+
+              <!-- Ingredients Chips -->
+              <div class="form-group">
+                <label>Kandungan Utama (Hero Ingredients):</label>
+                <div class="chips-container">
+                  @for (ing of formKeyIngredients(); track $index) {
+                    <span class="chip-item">
+                      {{ ing }}
+                      <button type="button" (click)="removeIngredientChip($index)">✕</button>
+                    </span>
+                  }
+                </div>
+                <div class="chip-add-row">
+                  <input
+                    type="text"
+                    [ngModel]="tempIngredientInput()"
+                    (ngModelChange)="tempIngredientInput.set($event)"
+                    (keydown.enter)="$event.preventDefault(); addIngredientChip(tempIngredientInput())"
+                    placeholder="Ketik bahan lalu Enter (e.g. Niacinamide 10%, Collagen)"
+                  />
+                  <button type="button" class="btn-chip-add" (click)="addIngredientChip(tempIngredientInput())">+ Tambah Bahan</button>
+                </div>
+              </div>
+
+              <!-- Benefits List -->
+              <div class="form-group" style="margin-top: 1rem;">
+                <label>Manfaat Produk bagi Konsumen:</label>
+                <ul class="form-bullet-list">
+                  @for (ben of formBenefits(); track $index) {
+                    <li>
+                      <span>{{ ben }}</span>
+                      <button type="button" class="btn-remove-list" (click)="removeBenefitItem($index)">Hapus</button>
+                    </li>
+                  }
+                </ul>
+                <div class="chip-add-row">
+                  <input
+                    type="text"
+                    [ngModel]="tempBenefitInput()"
+                    (ngModelChange)="tempBenefitInput.set($event)"
+                    (keydown.enter)="$event.preventDefault(); addBenefitItem()"
+                    placeholder="Ketik manfaat nyata (e.g. Mencerahkan dalam 14 hari)"
+                  />
+                  <button type="button" class="btn-chip-add" (click)="addBenefitItem()">+ Tambah Manfaat</button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Section 5: Variants Manager -->
+            <div class="form-section-card">
+              <div class="section-title-between">
+                <h4 class="form-section-title">5. Pengaturan Varian (Ukuran / Shade)</h4>
+                <button type="button" class="btn-sm-outline" (click)="addVariantItem()">+ Tambah Varian</button>
+              </div>
+
+              <div class="variants-table-mini">
+                @for (v of formVariants(); track v.id; let i = $index) {
+                  <div class="variant-item-card">
+                    <div class="var-field name">
+                      <label>Nama Varian</label>
+                      <input
+                        type="text"
+                        [ngModel]="v.name"
+                        (ngModelChange)="v.name = $event"
+                        placeholder="e.g. 20ml / Shade 01"
+                      />
+                    </div>
+                    <div class="var-field price">
+                      <label>Harga (Rp)</label>
+                      <input
+                        type="number"
+                        [ngModel]="v.price"
+                        (ngModelChange)="v.price = $event"
+                        step="500"
+                      />
+                    </div>
+                    <div class="var-field stock">
+                      <label>Stok</label>
+                      <input
+                        type="number"
+                        [ngModel]="v.stock"
+                        (ngModelChange)="v.stock = $event"
+                      />
+                    </div>
+                    <div class="var-field sku">
+                      <label>SKU Varian</label>
+                      <input
+                        type="text"
+                        [ngModel]="v.sku"
+                        (ngModelChange)="v.sku = $event"
+                      />
+                    </div>
+                    <button type="button" class="btn-del-var" (click)="removeVariantItem(i)" title="Hapus Varian">
+                      ✕
+                    </button>
+                  </div>
+                }
+              </div>
+            </div>
+
+            <!-- Form Submit Bar -->
+            <div class="studio-form-bottom-bar">
+              <button type="button" class="btn-ghost" (click)="closeProductModal()">Batal</button>
+              <button type="submit" class="btn-submit-studio" id="btn-save-product-submit">
+                {{ modalMode() === 'add' ? '✦ Publikasikan Produk Baru' : '💾 Simpan Perubahan Produk' }}
+              </button>
+            </div>
+          </form>
+        </div>
+
+        <!-- RIGHT: Live Storefront Card Preview -->
+        <div class="studio-preview-pane">
+          <div class="preview-sticky-wrap">
+            <div class="preview-header">
+              <span class="preview-pulse"></span>
+              <h4>Live Storefront Preview</h4>
+              <small>Tampilan Nyata bagi Pembeli di Website</small>
+            </div>
+
+            <div class="mock-product-card" [style.--accent]="formAccentColor()">
+              <div class="mock-card-media">
+                <img [src]="getImgUrl(formImage())" [alt]="formTitle()" />
+                @if (formBadge()) {
+                  <span class="mock-badge" [style.background]="formAccentColor()">{{ formBadge() }}</span>
+                }
+                @if (formIsFlashSale()) {
+                  <span class="mock-flash-badge">⚡ FLASH SALE</span>
+                }
+              </div>
+
+              <div class="mock-card-content">
+                <div class="mock-category-row">
+                  <span class="mock-category">{{ formCategoryLabel() }}</span>
+                  <span class="mock-rating">⭐ 5.0 (42)</span>
+                </div>
+
+                <h3 class="mock-title">{{ formTitle() || 'Nama Produk Skincare SYB' }}</h3>
+                <p class="mock-subtitle">{{ formSubtitle() || 'Deskripsi singkat keunggulan produk' }}</p>
+
+                <!-- BPOM Pill -->
+                <div class="mock-bpom">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+                  <span>{{ formBpom() || 'BPOM NA Resmi' }}</span>
+                </div>
+
+                <!-- Ingredients snippet -->
+                @if (formKeyIngredients().length) {
+                  <div class="mock-ingredients">
+                    @for (ing of formKeyIngredients().slice(0, 3); track ing) {
+                      <span class="mock-ing-tag">{{ ing }}</span>
+                    }
+                  </div>
+                }
+
+                <div class="mock-pricing-row">
+                  <div>
+                    <span class="mock-price">Rp {{ formPrice() | number:'1.0-0' }}</span>
+                    @if (formOrigPrice() > formPrice()) {
+                      <s class="mock-orig-price">Rp {{ formOrigPrice() | number:'1.0-0' }}</s>
+                    }
+                  </div>
+                  @if (discountPercent() > 0) {
+                    <span class="mock-discount-tag">-{{ discountPercent() }}%</span>
+                  }
+                </div>
+
+                <button type="button" class="mock-add-btn" [style.background]="formAccentColor()">
+                  + Keranjang Belanja
+                </button>
+              </div>
+            </div>
+
+            <div class="preview-spec-box">
+              <div class="spec-row">
+                <span>Status:</span>
+                <strong [class.green-text]="formStatus() === 'Active'">{{ formStatus() }}</strong>
+              </div>
+              <div class="spec-row">
+                <span>Total Varian:</span>
+                <strong>{{ formVariants().length }} pilihan</strong>
+              </div>
+              <div class="spec-row">
+                <span>Inventaris Siap:</span>
+                <strong>{{ formInventory() | number:'1.0-0' }} botol / pot</strong>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- Toast -->
+@if (toastMessage(); as msg) {
+  <div class="admin-toast" role="alert">
+    {{ msg }}
+  </div>
+}

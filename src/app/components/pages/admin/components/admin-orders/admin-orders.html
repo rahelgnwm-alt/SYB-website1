@@ -1,0 +1,397 @@
+<div class="admin-tab-content">
+  <!-- Page Header -->
+  <div class="page-header-row">
+    <div>
+      <div class="breadcrumb">Admin / Semua Pesanan</div>
+      <h1 class="page-title">Pusat Manajemen Pesanan Pelanggan</h1>
+      <p class="page-desc">Pantau pesanan e-commerce masuk, status pembayaran gateway, kelola pemenuhan gudang, dan terbitkan resi kurir.</p>
+    </div>
+  </div>
+
+  <!-- KPI Metrics Row -->
+  <div class="kpi-grid four-cols">
+    <div class="kpi-card">
+      <div class="kpi-icon-wrap blue">📦</div>
+      <div class="kpi-data">
+        <span class="kpi-label">TOTAL PESANAN</span>
+        <strong class="kpi-val">{{ totalOrders() }} Transaksi</strong>
+        <small class="kpi-sub">Sepanjang waktu</small>
+      </div>
+    </div>
+
+    <div class="kpi-card">
+      <div class="kpi-icon-wrap green">💰</div>
+      <div class="kpi-data">
+        <span class="kpi-label">TOTAL OMSET TERBAYAR</span>
+        <strong class="kpi-val">Rp {{ totalRevenue() | number:'1.0-0' }}</strong>
+        <small class="kpi-sub">Pembayaran terverifikasi</small>
+      </div>
+    </div>
+
+    <div class="kpi-card" [class.alert-card]="unfulfilledCount() > 0">
+      <div class="kpi-icon-wrap yellow">⏳</div>
+      <div class="kpi-data">
+        <span class="kpi-label">PERLU DIKEMAS</span>
+        <strong class="kpi-val">{{ unfulfilledCount() }} Pesanan</strong>
+        <small class="kpi-sub">Menunggu cetak resi</small>
+      </div>
+    </div>
+
+    <div class="kpi-card">
+      <div class="kpi-icon-wrap purple">🚚</div>
+      <div class="kpi-data">
+        <span class="kpi-label">SELESAI DITERIMA</span>
+        <strong class="kpi-val">{{ deliveredCount() }} Paket</strong>
+        <small class="kpi-sub">Tuntas sampai tujuan</small>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Card -->
+  <div class="shopify-card">
+    <!-- Toolbar -->
+    <div class="table-toolbar">
+      <div class="filter-group-left">
+        <div class="status-tabs">
+          <button
+            class="status-tab-btn"
+            [class.active]="statusFilter() === 'All'"
+            (click)="statusFilter.set('All')"
+          >
+            Semua ({{ totalOrders() }})
+          </button>
+          <button
+            class="status-tab-btn"
+            [class.active]="statusFilter() === 'Unfulfilled'"
+            (click)="statusFilter.set('Unfulfilled')"
+          >
+            Perlu Dikemas ({{ unfulfilledCount() }})
+          </button>
+          <button
+            class="status-tab-btn"
+            [class.active]="statusFilter() === 'Ready to Ship'"
+            (click)="statusFilter.set('Ready to Ship')"
+          >
+            Siap Dijemput ({{ readyCount() }})
+          </button>
+          <button
+            class="status-tab-btn"
+            [class.active]="statusFilter() === 'Shipped'"
+            (click)="statusFilter.set('Shipped')"
+          >
+            Dalam Pengiriman ({{ shippedCount() }})
+          </button>
+          <button
+            class="status-tab-btn"
+            [class.active]="statusFilter() === 'Delivered'"
+            (click)="statusFilter.set('Delivered')"
+          >
+            Selesai ({{ deliveredCount() }})
+          </button>
+        </div>
+      </div>
+
+      <div class="filter-group-right">
+        <!-- Search query input -->
+        <div class="inline-search">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+          <input
+            type="text"
+            placeholder="Cari order, customer, resi..."
+            [ngModel]="searchQuery()"
+            (ngModelChange)="searchQuery.set($event)"
+          />
+        </div>
+
+        <select
+          class="filter-select"
+          [value]="courierFilter()"
+          (change)="courierFilter.set($any($event.target).value)"
+        >
+          <option value="All">Semua Ekspedisi</option>
+          <option value="J&amp;T">J&amp;T Express</option>
+          <option value="JNE">JNE Express</option>
+          <option value="SICEPAT">SiCepat Ekspres</option>
+          <option value="GOSEND">GoSend Instant</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Orders Table -->
+    <div class="table-wrapper">
+      <table class="shopify-table">
+        <thead>
+          <tr>
+            <th>NO. ORDER &amp; WAKTU</th>
+            <th>CUSTOMER</th>
+            <th>PRODUK YANG DIPESAN</th>
+            <th>TOTAL PEMBAYARAN</th>
+            <th>STATUS BAYAR</th>
+            <th>STATUS PEMENUHAN</th>
+            <th>EKSPEDISI &amp; RESI</th>
+            <th style="text-align: right;">AKSI</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (ord of filteredOrders(); track ord.id) {
+            <tr class="order-table-row">
+              <!-- Order Number & Date -->
+              <td>
+                <div class="order-main-meta">
+                  <strong class="ord-num">{{ ord.orderNumber }}</strong>
+                  <span class="ord-date">{{ ord.createdAt }}</span>
+                </div>
+              </td>
+
+              <!-- Customer -->
+              <td>
+                <div class="ord-customer">
+                  <strong class="cust-name">{{ ord.customerName }}</strong>
+                  <span class="cust-dest">{{ ord.shippingAddress.city }}</span>
+                  <small class="cust-phone">📱 {{ ord.customerPhone }}</small>
+                </div>
+              </td>
+
+              <!-- Items -->
+              <td>
+                <div class="ord-items-cell">
+                  @for (item of ord.items; track item.productId) {
+                    <div class="ord-item-snippet">
+                      <img [src]="getImgUrl(item.image)" [alt]="item.title" class="ord-thumb" />
+                      <div class="ord-item-info">
+                        <span class="it-title">{{ item.title }}</span>
+                        <span class="it-sub">{{ item.quantity }}x &bull; {{ item.variantName }}</span>
+                      </div>
+                    </div>
+                  }
+                </div>
+              </td>
+
+              <!-- Total -->
+              <td>
+                <div class="ord-total-cell">
+                  <strong class="total-bold">Rp {{ ord.total | number:'1.0-0' }}</strong>
+                  <small class="ongkir-meta">+Ongkir: Rp {{ ord.shippingCost | number:'1.0-0' }}</small>
+                </div>
+              </td>
+
+              <!-- Payment Status -->
+              <td>
+                <span class="payment-chip" [class.paid]="ord.paymentStatus === 'Paid'">
+                  ✓ {{ ord.paymentStatus }}
+                </span>
+              </td>
+
+              <!-- Fulfillment Status with interactive Selector -->
+              <td>
+                <select
+                  class="status-selector"
+                  [value]="ord.fulfillmentStatus"
+                  (change)="updateFulfillmentStatus(ord.id, $event)"
+                  [class.status-unfulfilled]="ord.fulfillmentStatus === 'Unfulfilled'"
+                  [class.status-ready]="ord.fulfillmentStatus === 'Ready to Ship'"
+                  [class.status-shipped]="ord.fulfillmentStatus === 'Shipped'"
+                  [class.status-delivered]="ord.fulfillmentStatus === 'Delivered'"
+                >
+                  <option value="Unfulfilled">⏳ Perlu Dikemas</option>
+                  <option value="Ready to Ship">📦 Siap Dijemput</option>
+                  <option value="Shipped">🚚 Sedang Dikirim</option>
+                  <option value="Delivered">✅ Selesai Diterima</option>
+                </select>
+              </td>
+
+              <!-- Courier & Tracking -->
+              <td>
+                <div class="ord-courier-cell">
+                  <span class="courier-tag" [attr.data-c]="ord.courier">{{ ord.courier }}</span>
+                  @if (ord.trackingNumber && !ord.trackingNumber.includes('PENDING')) {
+                    <div class="resi-row">
+                      <code>{{ ord.trackingNumber }}</code>
+                      <button class="btn-copy-mini" (click)="copyTrackingCode(ord.trackingNumber)" title="Salin Resi">📋</button>
+                    </div>
+                  } @else {
+                    <span class="no-resi">Menunggu Resi</span>
+                  }
+                </div>
+              </td>
+
+              <!-- Actions -->
+              <td style="text-align: right;">
+                <div class="ord-actions-row">
+                  <button
+                    class="btn-icon-action"
+                    (click)="openShippingLabel(ord)"
+                    title="Cetak Label Resi Thermal 10x15"
+                  >
+                    🖨️
+                  </button>
+                  <button
+                    class="btn-icon-action"
+                    (click)="openTrackingModal(ord)"
+                    title="Lacak Perjalanan Paket"
+                  >
+                    📍
+                  </button>
+                  <button
+                    class="btn-icon-action del"
+                    (click)="deleteOrder(ord.id)"
+                    title="Hapus Pesanan"
+                  >
+                    🗑️
+                  </button>
+                </div>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== MODAL: 10x15 THERMAL SHIPPING WAYBILL ==================== -->
+@if (isLabelModalOpen(); as order) {
+  <div class="modal-backdrop" (click)="closeShippingLabel()">
+    <div class="thermal-label-modal" (click)="$event.stopPropagation()">
+      <div class="thermal-modal-header">
+        <div class="thermal-title">
+          <span class="badge-thermal">Pratinjau Cetak Resi 10x15 cm</span>
+          <h3>Label Pengiriman Thermal Otomatis</h3>
+        </div>
+        <div class="thermal-actions">
+          <button class="btn-print-thermal" (click)="printShippingLabel()">
+            🖨️ Cetak ke Printer Thermal
+          </button>
+          <button class="btn-close-modal" (click)="closeShippingLabel()">✕</button>
+        </div>
+      </div>
+
+      <div class="thermal-modal-body">
+        <div class="thermal-preview-container">
+          <div class="thermal-label-sheet">
+            <div class="thermal-header-row">
+              <div class="thermal-courier-logo">
+                <span class="courier-name-huge">{{ activeLabelOrder()?.courier }}</span>
+                <span class="service-name-huge">{{ activeLabelOrder()?.serviceName }}</span>
+              </div>
+              <div class="thermal-routing-box">
+                <span class="route-code">SUB &rarr; {{ activeLabelOrder()?.shippingAddress?.city?.slice(0, 3)?.toUpperCase() }}</span>
+                <span class="route-hub">DC-{{ activeLabelOrder()?.shippingAddress?.postalCode }}</span>
+              </div>
+            </div>
+
+            <div class="thermal-barcode-section">
+              <div class="barcode-graphic-stripes">
+                <div class="bar thin"></div><div class="bar thick"></div><div class="bar med"></div><div class="bar ultra"></div>
+                <div class="bar thick"></div><div class="bar thin"></div><div class="bar med"></div><div class="bar ultra"></div>
+                <div class="bar thin"></div><div class="bar thick"></div><div class="bar thin"></div><div class="bar thick"></div>
+              </div>
+              <span class="barcode-num-text">{{ activeLabelOrder()?.trackingNumber }}</span>
+            </div>
+
+            <div class="thermal-address-grid">
+              <div class="address-col sender">
+                <span class="address-role">PENGIRIM (SENDER):</span>
+                <strong class="company-name">SYBofficial Store (Pusat)</strong>
+                <p class="addr-detail">Kawasan Rungkut Industri Blok C-12, Surabaya, Jawa Timur 60293</p>
+                <span class="phone-num">Telp: 0812-3333-6909</span>
+              </div>
+              <div class="address-col receiver">
+                <span class="address-role">PENERIMA (RECEIVER):</span>
+                <strong class="receiver-name">{{ activeLabelOrder()?.customerName }}</strong>
+                <p class="addr-detail">{{ activeLabelOrder()?.shippingAddress?.street }}, {{ activeLabelOrder()?.shippingAddress?.city }}, {{ activeLabelOrder()?.shippingAddress?.province }}</p>
+                <span class="postal-bold">KODE POS: {{ activeLabelOrder()?.shippingAddress?.postalCode }}</span>
+                <span class="phone-num">Telp: {{ activeLabelOrder()?.customerPhone }}</span>
+              </div>
+            </div>
+
+            <div class="thermal-specs-row">
+              <div class="spec-cell">
+                <span class="sp-lbl">Berat Paket:</span>
+                <strong class="sp-val">{{ activeLabelOrder()?.weightGrams || 450 }} gr</strong>
+              </div>
+              <div class="spec-cell">
+                <span class="sp-lbl">Status Pembayaran:</span>
+                <strong class="sp-val green-text">{{ activeLabelOrder()?.paymentStatus }}</strong>
+              </div>
+              <div class="spec-cell">
+                <span class="sp-lbl">No. Referensi:</span>
+                <strong class="sp-val">{{ activeLabelOrder()?.orderNumber }}</strong>
+              </div>
+            </div>
+
+            <div class="thermal-goods-box">
+              <span class="goods-heading">Daftar Isi Paket:</span>
+              <ul class="goods-list">
+                @for (item of activeLabelOrder()?.items; track item.productId) {
+                  <li>
+                    <span>• {{ item.title }} ({{ item.variantName }})</span>
+                    <strong>Qty: {{ item.quantity }}</strong>
+                  </li>
+                }
+              </ul>
+            </div>
+
+            <div class="thermal-footer">
+              <span>PT SYB INOVASI NUSANTARA • OFFICIAL ORDER</span>
+              <span>Dicetak Otomatis dari Panel Admin SYB</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- ==================== MODAL: LIVE TRACKING ==================== -->
+@if (isTrackingModalOpen(); as order) {
+  <div class="modal-backdrop" (click)="closeTrackingModal()">
+    <div class="tracking-modal" (click)="$event.stopPropagation()">
+      <div class="tracking-modal-header">
+        <div class="tracking-header-info">
+          <span class="badge-courier-pill">{{ activeTrackingOrder()?.courier }} LIVE TRACKING</span>
+          <h3>Pelacakan Ekspedisi {{ activeTrackingOrder()?.orderNumber }}</h3>
+          <div class="tracking-sub-meta">
+            <span>Resi: <strong>{{ activeTrackingOrder()?.trackingNumber }}</strong></span>
+            <span>&bull;</span>
+            <span>Tujuan: <strong>{{ activeTrackingOrder()?.shippingAddress?.city }}</strong></span>
+          </div>
+        </div>
+        <button class="btn-close-modal" (click)="closeTrackingModal()">✕</button>
+      </div>
+
+      <div class="tracking-modal-body">
+        <div class="milestones-timeline-wrap">
+          @for (mile of activeTrackingMilestones(); track mile.title) {
+            <div class="milestone-entry" [class.completed]="mile.status === 'completed'" [class.active]="mile.status === 'active'">
+              <div class="milestone-indicator">
+                <div class="indicator-icon">
+                  @if (mile.status === 'completed') { ✓ }
+                  @else if (mile.status === 'active') { ⚡ }
+                  @else { ○ }
+                </div>
+                <div class="indicator-line"></div>
+              </div>
+
+              <div class="milestone-content">
+                <div class="milestone-title-row">
+                  <h4 class="mile-title">{{ mile.title }}</h4>
+                  <span class="mile-time">{{ mile.time }}</span>
+                </div>
+                <span class="mile-location">{{ mile.location }}</span>
+                <p class="mile-desc">{{ mile.description }}</p>
+              </div>
+            </div>
+          }
+        </div>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- Toast -->
+@if (toastMessage(); as msg) {
+  <div class="admin-toast" role="alert">
+    {{ msg }}
+  </div>
+}

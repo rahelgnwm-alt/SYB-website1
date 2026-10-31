@@ -1,0 +1,49 @@
+<!-- ============================== FOOTER ============================== -->
+<footer class="footer">
+  <div class="container footer__top">
+    <div class="footer__brand">
+      <img src="images/logo.png" alt="SYB" class="footer__logo" width="130" height="45" />
+      <p>Rangkaian skincare, bodycare dan make up dengan bahan aktif alami yang diformulasikan lembut untuk kulit yang sehat dan terawat.</p>
+      <form class="newsletter" (submit)="$event.preventDefault()">
+        <label for="newsletter-email" class="sr-only">Email</label>
+        <input id="newsletter-email" type="email" placeholder="Email kamu untuk promo eksklusif" required />
+        <button type="submit" aria-label="Daftar" id="newsletter-submit">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M13 6l6 6-6 6" stroke-linecap="round" stroke-linejoin="round" /></svg>
+        </button>
+      </form>
+    </div>
+
+    <nav class="footer__col" aria-label="Belanja">
+      <h4>Belanja</h4>
+      <a routerLink="/products">Semua Produk</a>
+      <a routerLink="/cart">Keranjang</a>
+      <a href="{{ shopUrl }}/collections/skincare">Skin Care</a>
+      <a href="{{ shopUrl }}/collections/cosmetic">Make Up</a>
+      <a href="{{ shopUrl }}/collections/body-care">Body Care</a>
+      <a href="{{ shopUrl }}/collections/bundling">Bundling</a>
+    </nav>
+    <nav class="footer__col" aria-label="Bantuan">
+      <h4>Bantuan</h4>
+      <a href="{{ shopUrl }}/pages/shipping-deliveries/shipping-deliveries">Pengiriman</a>
+      <a href="{{ shopUrl }}/pages/shipping-deliveries/return">Pengembalian</a>
+      <a href="{{ shopUrl }}/pages/shipping-deliveries/exchange">Penukaran</a>
+      <a href="{{ shopUrl }}/pages/shipping-deliveries/payment">Pembayaran</a>
+      <a href="{{ shopUrl }}/pages/shipping-deliveries/faq">FAQ</a>
+      <a routerLink="/admin">Portal Admin (Produk & Logistik)</a>
+    </nav>
+    <nav class="footer__col" aria-label="Ikuti kami">
+      <h4>Ikuti kami</h4>
+      <a href="https://www.instagram.com/sybofficial.id/" target="_blank" rel="noopener">Instagram</a>
+      <a href="https://www.tiktok.com/@sybofficial" target="_blank" rel="noopener">TikTok</a>
+      <a href="https://www.facebook.com/sybofficial.id/" target="_blank" rel="noopener">Facebook</a>
+      <a href="https://wa.me/6281333369909" target="_blank" rel="noopener">WhatsApp</a>
+    </nav>
+  </div>
+
+  <div class="footer__mega" aria-hidden="true">SYB</div>
+
+  <div class="container footer__bottom">
+    <span>© {{ year }} SYB Official Indonesia</span>
+    <span>Made with ♥ for every glow</span>
+  </div>
+</footer>

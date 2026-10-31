@@ -1,0 +1,34 @@
+<section class="cats" aria-labelledby="cats-title">
+  <div class="container cats__grid">
+    <div class="cats__list">
+      <p class="eyebrow" appReveal>Shop by category</p>
+      <h2 id="cats-title" class="sr-only">Belanja berdasarkan kategori</h2>
+      <ul>
+        @for (c of categories; track c.name; let i = $index) {
+          <li appReveal [revealDelay]="i * 90">
+            <a
+              [href]="c.href"
+              [class.active]="activeCategory() === i"
+              (mouseenter)="activeCategory.set(i)"
+              (focus)="activeCategory.set(i)"
+              [id]="'cat-' + i"
+            >
+              <small>0{{ i + 1 }}</small>
+              <span class="cats__name">{{ c.name }}</span>
+              <span class="cats__note">{{ c.note }}</span>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M7 17 17 7M9 7h8v8" stroke-linecap="round" stroke-linejoin="round" /></svg>
+            </a>
+          </li>
+        }
+      </ul>
+    </div>
+
+    <div class="cats__preview" appReveal="scale" aria-hidden="true">
+      <div class="cats__blob"></div>
+      @for (c of categories; track c.name; let i = $index) {
+        <img [src]="c.image" alt="" [class.active]="activeCategory() === i" loading="lazy" />
+      }
+      <span class="cats__count">0{{ activeCategory() + 1 }} / 0{{ categories.length }}</span>
+    </div>
+  </div>
+</section>

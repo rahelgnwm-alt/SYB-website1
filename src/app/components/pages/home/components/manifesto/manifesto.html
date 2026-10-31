@@ -1,0 +1,29 @@
+<section
+  #sectionRef
+  id="manifesto"
+  class="manifesto"
+  data-progress="top"
+  aria-label="Manifesto SYB"
+>
+  <div class="manifesto__sticky container">
+    <span
+      class="manifesto__mark"
+      aria-hidden="true"
+      [style.transform]="'rotate(' + (progress() * 20) + 'deg)'"
+    >“</span>
+    <p class="manifesto__text">
+      @for (w of manifestoWords; track $index) {
+        <span
+          [class.lit]="isLit($index)"
+          [class.current]="isCurrent($index)"
+          [style.--i]="$index"
+        >{{ w }} </span>
+      }
+    </p>
+    <p
+      class="manifesto__sign"
+      [style.opacity]="signOpacity()"
+      [style.transform]="'translateY(' + ((1 - signOpacity()) * 20) + 'px)'"
+    >— The SYB Glow Manifesto</p>
+  </div>
+</section>

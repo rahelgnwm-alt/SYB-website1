@@ -1,0 +1,70 @@
+<!-- ============================== ANNOUNCEMENT ============================== -->
+<div class="announce" role="region" aria-label="Pengumuman">
+  <div class="announce__track">
+    @for (n of [0, 1]; track n) {
+      <span>Selamat datang di SYB Official</span><i>✦</i>
+      <span>Diskon hingga 80%</span><i>♥</i>
+      <span>100% Produk Asli & BPOM</span><i>✦</i>
+      <span>Gratis Ongkir min. 150rb</span><i>♥</i>
+    }
+  </div>
+</div>
+
+<!-- ============================== HEADER ============================== -->
+<header
+  class="header"
+  [class.is-scrolled]="scrolled()"
+  [class.is-solid]="solid()"
+  [class.flow]="solid()"
+  [class.menu-open]="menuOpen()"
+>
+  <div class="header__inner container">
+    <a class="header__logo" routerLink="/" aria-label="SYB Official — beranda" (click)="menuOpen.set(false)">
+      <img src="images/logo.png" alt="SYB Official" width="130" height="45" />
+    </a>
+
+    <nav class="header__nav" aria-label="Navigasi utama">
+      <a routerLink="/products" routerLinkActive="active" id="nav-products">Semua Produk</a>
+      <a routerLink="/about" routerLinkActive="active" id="nav-about">Tentang Kami</a>
+      <a routerLink="/flash-sale" routerLinkActive="active" id="nav-flash">Flash Sale</a>
+      <a routerLink="/rituals" routerLinkActive="active" id="nav-rituals">Glow O'Clock</a>
+    </nav>
+
+    <div class="header__actions">
+      <a class="icon-btn" routerLink="/products" aria-label="Cari produk" id="header-search">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="11" cy="11" r="7" /><path d="m20 20-3.5-3.5" stroke-linecap="round" /></svg>
+      </a>
+      <button class="icon-btn hide-sm account-btn" (click)="handleAccountClick($event)" aria-label="Akun" id="header-account">
+        @if (auth.isAdmin()) {
+          <span class="header-admin-crown" title="Portal Admin SYB Aktif">👑</span>
+        } @else if (auth.isAuthenticated()) {
+          <span class="header-user-badge" [title]="auth.currentUser()?.fullName">{{ auth.currentUser()?.fullName?.[0] || 'U' }}</span>
+        } @else {
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="8" r="4" /><path d="M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6" stroke-linecap="round" /></svg>
+        }
+      </button>
+      <a class="icon-btn cart" routerLink="/cart" aria-label="Keranjang" id="header-cart" (click)="menuOpen.set(false)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M5 8h14l-1.2 11.2a2 2 0 0 1-2 1.8H8.2a2 2 0 0 1-2-1.8L5 8Z" /><path d="M9 8V6a3 3 0 0 1 6 0v2" stroke-linecap="round" /></svg>
+        <span class="cart__count" [class.bump]="cart.bump()">{{ cart.count() }}</span>
+      </a>
+      <button class="burger" (click)="menuOpen.set(!menuOpen())" [attr.aria-expanded]="menuOpen()" aria-label="Menu" id="header-menu">
+        <span></span><span></span>
+      </button>
+    </div>
+  </div>
+
+  <div class="mobile-menu" [class.open]="menuOpen()">
+    <a routerLink="/products" [style.--i]="0" (click)="menuOpen.set(false)">Semua Produk</a>
+    <a routerLink="/about" [style.--i]="1" (click)="menuOpen.set(false)">Tentang Kami (Profil Perusahaan)</a>
+    <a routerLink="/flash-sale" [style.--i]="2" (click)="menuOpen.set(false)">Flash Sale</a>
+    <a routerLink="/rituals" [style.--i]="3" (click)="menuOpen.set(false)">Glow O'Clock</a>
+    <a routerLink="/cart" [style.--i]="4" (click)="menuOpen.set(false)">Keranjang ({{ cart.count() }})</a>
+    @if (!auth.isAuthenticated()) {
+      <a (click)="handleAccountClick($event); menuOpen.set(false)" [style.--i]="5" id="mobile-account-btn">Masuk / Akun Saya</a>
+    } @else if (auth.isAdmin()) {
+      <a routerLink="/admin/products" (click)="menuOpen.set(false)" [style.--i]="5" class="menu-admin-link">👑 Portal Admin SYB</a>
+    } @else {
+      <a routerLink="/profile" (click)="menuOpen.set(false)" [style.--i]="5">Profil Saya ({{ auth.currentUser()?.fullName?.split(' ')?.[0] }})</a>
+    }
+  </div>
+</header>

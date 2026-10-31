@@ -1,0 +1,75 @@
+<section id="ritual" class="ritual" aria-labelledby="ritual-title">
+  <div class="container ritual__head">
+    <div appReveal>
+      <p class="eyebrow">Glow O'Clock</p>
+      <h2 id="ritual-title" class="display ritual__title">Dua ritual.<br /><span class="gradient-text">Satu glow.</span></h2>
+    </div>
+
+    <div class="live-clock" appReveal [revealDelay]="150">
+      <svg viewBox="0 0 120 120" class="clock" aria-hidden="true">
+        <defs>
+          <linearGradient id="clockGrad" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0" stop-color="#ff8bc6" />
+            <stop offset="1" stop-color="#c098f4" />
+          </linearGradient>
+        </defs>
+        <circle cx="60" cy="60" r="56" fill="#fff" stroke="url(#clockGrad)" stroke-width="3" />
+        @for (t of [0,1,2,3,4,5,6,7,8,9,10,11]; track t) {
+          <line x1="60" y1="10" x2="60" [attr.y2]="t % 3 === 0 ? 18 : 14" stroke="#ff8bc6" [attr.stroke-width]="t % 3 === 0 ? 3 : 1.5" stroke-linecap="round" [attr.transform]="'rotate(' + t * 30 + ' 60 60)'" />
+        }
+        <line x1="60" y1="60" x2="60" y2="34" stroke="#3d0f30" stroke-width="4" stroke-linecap="round" [attr.transform]="'rotate(' + time.hands().h + ' 60 60)'" />
+        <line x1="60" y1="60" x2="60" y2="22" stroke="#3d0f30" stroke-width="2.5" stroke-linecap="round" [attr.transform]="'rotate(' + time.hands().m + ' 60 60)'" />
+        <line x1="60" y1="66" x2="60" y2="18" stroke="#ff0a6c" stroke-width="1.5" stroke-linecap="round" class="clock__sec" [attr.transform]="'rotate(' + time.hands().s + ' 60 60)'" />
+        <circle cx="60" cy="60" r="3.5" fill="#ff0a6c" />
+      </svg>
+      <div>
+        <p class="live-clock__time">{{ time.clockLabel() }} <small>WIB</small></p>
+        <p class="live-clock__msg">{{ time.greeting() }}</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="ritual__panels container">
+    @for (r of rituals; track r.key; let i = $index) {
+      <article
+        class="r-panel r-panel--{{ r.key }}"
+        [class.is-now]="time.ritualNow() === r.key"
+        [class.is-active]="activeRitual() === r.key"
+        [class.is-dim]="activeRitual() !== null && activeRitual() !== r.key"
+        (mouseenter)="activeRitual.set(r.key)"
+        (mouseleave)="activeRitual.set(null)"
+        appReveal
+        [revealDelay]="i * 150"
+      >
+        <img class="r-panel__img" [src]="r.image" [alt]="r.label" loading="lazy" />
+        <div class="r-panel__shade"></div>
+
+        <div class="r-panel__top">
+          <span class="r-panel__label">{{ r.label }}</span>
+          @if (time.ritualNow() === r.key) {
+            <span class="now-pill"><i class="live-dot"></i> Sekarang</span>
+          }
+        </div>
+
+        <div class="r-panel__body">
+          <p class="r-panel__time">{{ r.time }}</p>
+          <h3 class="r-panel__title">{{ r.title }}</h3>
+          <ol class="r-steps">
+            @for (s of r.steps; track s.product.id; let j = $index) {
+              <li [style.--j]="j">
+                <a [routerLink]="['/products', s.product.id]">
+                  <img [src]="s.product.image" [alt]="s.product.name" loading="lazy" />
+                  <span>
+                    <small>0{{ j + 1 }} · {{ s.step }}</small>
+                    {{ s.product.name }}
+                  </span>
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 17 17 7M9 7h8v8" stroke-linecap="round" stroke-linejoin="round" /></svg>
+                </a>
+              </li>
+            }
+          </ol>
+        </div>
+      </article>
+    }
+  </div>
+</section>

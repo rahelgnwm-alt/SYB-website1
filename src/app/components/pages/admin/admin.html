@@ -1,0 +1,116 @@
+<div class="shopify-layout">
+  <!-- ==================== LEFT SIDEBAR (Shopify High-End Dark) ==================== -->
+  <aside class="shopify-sidebar">
+    <div class="sidebar-header">
+      <div class="store-avatar">SYB</div>
+      <div class="store-meta">
+        <h2 class="store-name">SYBofficial</h2>
+        <span class="store-plan">Shopify Plus &bull; Official Store</span>
+      </div>
+    </div>
+
+    <!-- Navigation List -->
+    <nav class="sidebar-nav">
+      <div class="nav-section-title">Manajemen Utama</div>
+
+      <a
+        routerLink="/admin/products"
+        routerLinkActive="active"
+        class="nav-item"
+        id="btn-nav-products"
+      >
+        <span class="nav-icon">🏷️</span>
+        <span class="nav-text">Katalog Produk</span>
+        <span class="nav-counter">{{ totalProductsCount() }}</span>
+      </a>
+
+      <a
+        routerLink="/admin/shipping"
+        routerLinkActive="active"
+        class="nav-item"
+        id="btn-nav-shipping"
+      >
+        <span class="nav-icon">🚚</span>
+        <span class="nav-text">Pengiriman &amp; Logistik</span>
+        <span class="nav-counter shipping-badge">{{ activeShippingCount() }}</span>
+      </a>
+
+      <a
+        routerLink="/admin/orders"
+        routerLinkActive="active"
+        class="nav-item"
+        id="btn-nav-orders"
+      >
+        <span class="nav-icon">📦</span>
+        <span class="nav-text">Semua Pesanan</span>
+        @if (unfulfilledCount() > 0) {
+          <span class="nav-counter alert" title="Perlu dikemas">{{ unfulfilledCount() }}</span>
+        } @else {
+          <span class="nav-counter">{{ totalOrdersCount() }}</span>
+        }
+      </a>
+
+      <div class="nav-section-title">Aksi Cepat</div>
+      <a routerLink="/admin/products" class="nav-quick-btn" id="btn-quick-add-prod">
+        <span>+ Tambah Produk</span>
+        <kbd>N</kbd>
+      </a>
+
+      <a routerLink="/admin/shipping" class="nav-quick-btn" id="btn-quick-new-ship">
+        <span>🚚 Buat Resi Pengiriman</span>
+        <kbd>S</kbd>
+      </a>
+
+      <div class="nav-section-title">Sales Channel</div>
+      <a routerLink="/" class="nav-item online-store-link" target="_blank" title="Buka website publik di tab baru">
+        <span class="nav-icon">🌐</span>
+        <span>Lihat Website Publik</span>
+        <span class="link-ext">↗</span>
+      </a>
+    </nav>
+
+    <!-- Sidebar Footer -->
+    <div class="sidebar-footer">
+      <div class="admin-profile">
+        <div class="user-avatar">SA</div>
+        <div class="user-info">
+          <span class="user-name">{{ authService.currentUser()?.fullName || 'Super Admin' }}</span>
+          <span class="user-role">Pusat Operasional SYB</span>
+        </div>
+      </div>
+      <button class="btn-logout" (click)="logout()" title="Keluar dari sesi admin" aria-label="Logout">
+        🚪
+      </button>
+    </div>
+  </aside>
+
+  <!-- ==================== MAIN CONTENT CANVAS ==================== -->
+  <main class="shopify-main">
+    <!-- Top Action Bar -->
+    <header class="shopify-topbar">
+      <div class="topbar-warehouse-status">
+        <span class="warehouse-pulse-dot"></span>
+        <span class="warehouse-title">Gudang Surabaya (Aktif)</span>
+        <span class="warehouse-sep">&bull;</span>
+        <span class="warehouse-hub-name">Rungkut Industri E-Commerce Hub</span>
+      </div>
+
+      <div class="topbar-right-actions">
+        <a routerLink="/admin/products" class="topbar-quick-link pink">
+          + Produk Baru
+        </a>
+        <a routerLink="/admin/shipping" class="topbar-quick-link">
+          🚚 Kirim Paket
+        </a>
+        <a routerLink="/" class="topbar-store-link" target="_blank" title="Buka Toko Online">
+          Lihat Toko &rarr;
+        </a>
+      </div>
+    </header>
+
+    <!-- Routed Child Component Canvas -->
+    <div class="shopify-canvas">
+      <router-outlet />
+    </div>
+  </main>
+</div>

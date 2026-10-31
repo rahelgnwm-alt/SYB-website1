@@ -1,0 +1,84 @@
+@if (authService.isLoginModalOpen()) {
+<div class="modal-backdrop" (click)="close()">
+  <div class="auth-card" (click)="$event.stopPropagation()">
+    <button class="btn-close-modal" (click)="close()" title="Tutup">✕</button>
+
+    <div class="auth-header">
+      <div class="auth-icon-badge" [class.admin-glow]="isDetectedAdmin()">
+        {{ isDetectedAdmin() ? '👑' : '🌸' }}
+      </div>
+      <h2 class="auth-title">Masuk ke Akun SYB Official</h2>
+    </div>
+
+    <!-- Quick Role Switcher Banner -->
+    <div class="role-switcher-banner">
+      <button type="button" class="role-switch-btn" [class.active]="selectedDemoType() === 'admin'"
+        (click)="fillAdminDemo()" id="btn-switch-admin">
+        <span class="role-icon">👑</span>
+        <div class="role-meta">
+          <strong>Admin Toko</strong>
+          <small>admin@sybindonesia.com</small>
+        </div>
+      </button>
+
+      <button type="button" class="role-switch-btn" [class.active]="selectedDemoType() === 'customer'"
+        (click)="fillCustomerDemo()" id="btn-switch-customer">
+        <span class="role-icon">🌸</span>
+        <div class="role-meta">
+          <strong>Pelanggan (Customer)</strong>
+          <small>aulia.r@gmail.com</small>
+        </div>
+      </button>
+    </div>
+
+    <!-- Login Form -->
+    <form (submit)="handleLogin($event)" class="auth-form">
+      <div class="form-group">
+        <label for="auth-user">Email / Username</label>
+        <input id="auth-user" type="text" [value]="username()" (input)="username.set($any($event.target).value)"
+          required placeholder="Masukkan email atau username Anda" class="auth-input" />
+      </div>
+
+      <div class="form-group">
+        <label for="auth-pass">Kata Sandi</label>
+        <input id="auth-pass" type="password" [value]="password()" (input)="password.set($any($event.target).value)"
+          required placeholder="••••••••" class="auth-input" />
+      </div>
+
+      <!-- Detection Status Indicator -->
+      <!-- <div class="detection-indicator" [class.is-admin]="isDetectedAdmin()" [class.is-cust]="!isDetectedAdmin()">
+        @if (isDetectedAdmin()) {
+        <span class="indicator-icon">👑</span>
+        <div class="indicator-text">
+          <strong>Kredensial Admin Terdeteksi</strong>
+          <p>Anda akan masuk ke Dashboard Toko (Produk & Logistik).</p>
+        </div>
+        } @else {
+        <span class="indicator-icon">🌸</span>
+        <div class="indicator-text">
+          <strong>Kredensial Pelanggan Terdeteksi</strong>
+          <p>Anda akan masuk ke Profil Pelanggan & Riwayat Pesanan.</p>
+        </div>
+        }
+      </div> -->
+
+      @if (authService.loginError()) {
+      <div class="auth-error">
+        <span>⚠️</span> {{ authService.loginError() }}
+      </div>
+      }
+
+      <button type="submit" class="btn-auth-submit" [class.admin-btn]="isDetectedAdmin()"
+        [class.cust-btn]="!isDetectedAdmin()" [disabled]="authService.isAuthenticating()" id="btn-auth-submit">
+        @if (authService.isAuthenticating()) {
+        <span>Memverifikasi Akun...</span>
+        } @else if (isDetectedAdmin()) {
+        <span>👑 Masuk ke Shopify Admin →</span>
+        } @else {
+        <span>🌸 Masuk ke Profil Pelanggan →</span>
+        }
+      </button>
+    </form>
+  </div>
+</div>
+}

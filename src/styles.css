@@ -131,6 +131,29 @@ button {
   background: currentColor;
 }
 
+.eyebrow--light {
+  color: var(--white);
+}
+
+.live-dot {
+  position: relative;
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #3dff9a;
+  box-shadow: 0 0 10px #3dff9a;
+}
+
+.live-dot::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: inherit;
+  animation: pulse-ring 1.6s var(--ease-out) infinite;
+}
+
 .display {
   font-weight: 900;
   line-height: 0.88;
@@ -326,3 +349,4 @@ button {
     clip-path: none !important;
   }
 }
+.heart-burst{position:fixed;z-index:300;pointer-events:none;font-size:18px;color:var(--c,#ff0a6c);animation:heart-burst 0.9s cubic-bezier(0.16,1,0.3,1) forwards}@keyframes heart-burst{from{transform:translate(-50%,-50%) scale(0.4);opacity:1}to{transform:translate(calc(-50% + var(--tx)),calc(-50% + var(--ty))) scale(1.2);opacity:0}}  

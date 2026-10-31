@@ -1,0 +1,122 @@
+<main class="about-page" id="top">
+  <!-- ============================== HERO ============================== -->
+  <section class="about-hero" aria-labelledby="about-title">
+    <div class="about-hero__bg" aria-hidden="true"><span></span><span></span></div>
+
+    <div class="container about-hero__inner">
+      <div class="about-hero__head">
+        <p class="eyebrow" appReveal>Company Profile · SYB Official</p>
+        <h1 id="about-title" class="display about-hero__title" appReveal [revealDelay]="80">
+          Satu Misi.<br /><span class="gradient-text">Semua Bisa Glowing.</span>
+        </h1>
+        <p class="about-hero__lead" appReveal [revealDelay]="160">
+          Kami percaya cantik bukan soal mengubah diri menjadi orang lain — melainkan merawat dan merayakan kulit aslimu dengan nyaman, aman, dan penuh percaya diri.
+        </p>
+      </div>
+
+      <div class="about-hero__media" appReveal="scale" [revealDelay]="220">
+        <img src="images/hero.jpg" alt="SYB Official glowing community" />
+        <div class="media-badge">
+          <b>100%</b>
+          <span>Official & BPOM Certified</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================== STATS ============================== -->
+  <section class="about-stats container" aria-label="Statistik SYB">
+    @for (s of stats; track s.num; let i = $index) {
+      <div class="stat-card" appReveal [revealDelay]="i * 90" appTilt>
+        <b class="stat-card__num gradient-text">{{ s.num }}</b>
+        <h3 class="stat-card__label">{{ s.label }}</h3>
+        <p class="stat-card__note">{{ s.note }}</p>
+      </div>
+    }
+  </section>
+
+  <!-- ============================== STORY & VISION ============================== -->
+  <section class="about-story container" aria-labelledby="story-title">
+    <div class="story-grid">
+      <div class="story-card story-card--vision" appReveal>
+        <span class="pill-badge">Visi Kami</span>
+        <h2 id="story-title" class="display story-card__title">Menjadi brand kecantikan lokal kebanggaan Indonesia</h2>
+        <p>
+          Menghadirkan produk perawatan kulit inovatif dengan standar Cara Pembuatan Kosmetika yang Baik (CPKB),
+          yang aman, efektif, dan dapat diakses dengan mudah oleh seluruh lapisan masyarakat.
+        </p>
+      </div>
+
+      <div class="story-card story-card--mission" appReveal [revealDelay]="120">
+        <span class="pill-badge">Misi Kami</span>
+        <ul class="mission-list">
+          <li>
+            <b>Inovasi Berkelanjutan:</b> Meracik formulasi aktif mutakhir seperti Niacinamide, AHA, dan DNA Salmon yang terbukti klinis.
+          </li>
+          <li>
+            <b>Keamanan Tanpa Kompromi:</b> Seluruh produk wajib lulus uji laboratorium dan mengantongi izin edar resmi BPOM RI.
+          </li>
+          <li>
+            <b>Kemudahan Akses:</b> Menghadirkan harga terjangkau dan distribusi kilat langsung ke rumah pelanggan.
+          </li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================== VALUES ============================== -->
+  <section class="about-values container" aria-labelledby="values-title">
+    <div class="section-head" appReveal>
+      <p class="eyebrow">Nilai Utama</p>
+      <h2 id="values-title" class="display section-head__title">Kenapa Memilih <span class="gradient-text">SYB Official</span>?</h2>
+    </div>
+
+    <div class="values-grid">
+      @for (v of values; track v.title; let i = $index) {
+        <div class="value-card" appReveal [revealDelay]="i * 90" appTilt>
+          <div class="value-card__icon">{{ v.icon }}</div>
+          <h3 class="value-card__title">{{ v.title }}</h3>
+          <p class="value-card__desc">{{ v.desc }}</p>
+        </div>
+      }
+    </div>
+  </section>
+
+  <!-- ============================== TIMELINE ============================== -->
+  <section class="about-timeline container" aria-labelledby="timeline-title">
+    <div class="section-head" appReveal>
+      <p class="eyebrow">Perjalanan Kami</p>
+      <h2 id="timeline-title" class="display section-head__title">Langkah demi Langkah <span class="gradient-text">Bersamamu</span></h2>
+    </div>
+
+    <div class="timeline">
+      @for (m of milestones; track m.year; let i = $index) {
+        <div class="timeline__item" appReveal [revealDelay]="i * 100">
+          <span class="timeline__year">{{ m.year }}</span>
+          <div class="timeline__dot"></div>
+          <div class="timeline__content">
+            <h3>{{ m.title }}</h3>
+            <p>{{ m.desc }}</p>
+          </div>
+        </div>
+      }
+    </div>
+  </section>
+
+  <!-- ============================== CTA ============================== -->
+  <section class="about-cta container" appReveal>
+    <div class="about-cta__card">
+      <p class="eyebrow eyebrow--light">Temukan Solusi Kulitmu</p>
+      <h2 class="display about-cta__title">Siap memulai ritual glowing cantikmu?</h2>
+      <div class="about-cta__actions">
+        <a routerLink="/products" class="btn btn--light" appMagnetic>
+          Lihat Semua Produk
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M13 6l6 6-6 6" stroke-linecap="round" stroke-linejoin="round" /></svg>
+        </a>
+        <a routerLink="/cart" class="btn btn--ghost" appMagnetic>
+          Buka Keranjang
+        </a>
+      </div>
+    </div>
+  </section>
+</main>

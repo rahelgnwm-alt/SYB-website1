@@ -1,0 +1,9 @@
+<section class="trust container" aria-label="Kenapa belanja di SYB">
+  @for (t of trustItems; track t.metric; let i = $index) {
+    <div class="trust__item" appReveal [revealDelay]="i * 100">
+      <b class="gradient-text">{{ t.metric }}</b>
+      <p>{{ t.title }}</p>
+      <small>{{ t.desc }}</small>
+    </div>
+  }
+</section>

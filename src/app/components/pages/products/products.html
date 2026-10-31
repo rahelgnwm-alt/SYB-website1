@@ -1,0 +1,111 @@
+<section class="shop" aria-labelledby="shop-title">
+  <div class="shop__bg" aria-hidden="true"><span></span><span></span></div>
+
+  <div class="container">
+    <header class="shop__head">
+      <div>
+        <p class="eyebrow" appReveal>The SYB Collection</p>
+        <h1 id="shop-title" class="display shop__title" appReveal [revealDelay]="80">
+          Semua <span class="gradient-text">produk</span>
+        </h1>
+      </div>
+      <p class="shop__lead" appReveal [revealDelay]="160">
+        {{ visible().length }} produk dengan bahan aktif pilihan — Niacinamide, AHA, DNA Salmon &amp; Vitamin C.
+        Tambahkan ke keranjang, lalu checkout kapan pun.
+      </p>
+    </header>
+
+    <div class="shop__bar" appReveal [revealDelay]="200">
+      <div class="chips" role="tablist" aria-label="Filter produk">
+        @for (f of filters; track f.key) {
+          <button
+            type="button"
+            class="chip"
+            [class.active]="filter() === f.key"
+            (click)="filter.set(f.key)"
+            [id]="'filter-' + f.key.toLowerCase().replace(' ', '-')"
+          >{{ f.label }}</button>
+        }
+      </div>
+
+      <div class="tools">
+        <label class="search" for="shop-search">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="11" cy="11" r="7" /><path d="m20 20-3.5-3.5" stroke-linecap="round" /></svg>
+          <input
+            id="shop-search"
+            type="search"
+            placeholder="Cari produk…"
+            [value]="query()"
+            (input)="query.set($any($event.target).value)"
+          />
+        </label>
+        <label class="sort" for="shop-sort">
+          <span class="sr-only">Urutkan</span>
+          <select id="shop-sort" [value]="sort()" (change)="sort.set($any($event.target).value)">
+            <option value="featured">Pilihan kami</option>
+            <option value="price-asc">Harga terendah</option>
+            <option value="price-desc">Harga tertinggi</option>
+            <option value="discount">Diskon terbesar</option>
+          </select>
+        </label>
+      </div>
+    </div>
+
+    @if (visible().length) {
+      <div class="grid">
+        @for (p of visible(); track p.id; let i = $index) {
+          <a
+            class="p-card"
+            [routerLink]="['/products', p.id]"
+            [style.--tint]="p.tint"
+            appTilt
+            appReveal
+            [revealDelay]="(i % 4) * 90"
+            data-cursor="view"
+            draggable="false"
+            [id]="'product-' + p.id"
+          >
+            <div class="p-card__media">
+              <span class="p-card__glow"></span>
+              <img [src]="p.image" [alt]="p.name" loading="lazy" draggable="false" />
+              @if (p.badge) {
+                <span class="p-card__badge" [class.new]="p.badge === 'New'" [class.bundle]="p.badge === 'Bundling'">{{ p.badge }}</span>
+              }
+              <span class="p-card__off">-{{ discount(p) }}%</span>
+              @if (cart.qtyOf(p.id); as q) {
+                <span class="in-cart">♥ {{ q }} di keranjang</span>
+              }
+            </div>
+            <div class="p-card__info">
+              <p class="p-card__tag">{{ p.tagline }}</p>
+              <h3 class="p-card__name">{{ p.name }}</h3>
+              <div class="p-card__row">
+                <p class="p-card__price">
+                  {{ rupiah(p.price) }}
+                  <s>{{ rupiah(p.compareAt) }}</s>
+                </p>
+                <button class="p-card__add" (click)="add($event, p)" [attr.aria-label]="'Tambah ' + p.name + ' ke keranjang'" data-cursor="hover">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 5v14M5 12h14" stroke-linecap="round" /></svg>
+                </button>
+              </div>
+            </div>
+          </a>
+        }
+      </div>
+    } @else {
+      <div class="empty" appReveal>
+        <span class="empty__heart">♥</span>
+        <h2>Produk tidak ditemukan</h2>
+        <p>Coba kata kunci lain atau reset filternya.</p>
+        <button class="btn btn--primary" (click)="reset()" id="shop-reset">Reset filter</button>
+      </div>
+    }
+
+    <div class="shop__cta" appReveal>
+      <a class="btn btn--primary" routerLink="/cart" appMagnetic id="shop-go-cart">
+        Lihat keranjang ({{ cart.count() }})
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M13 6l6 6-6 6" stroke-linecap="round" stroke-linejoin="round" /></svg>
+      </a>
+    </div>
+  </div>
+</section>

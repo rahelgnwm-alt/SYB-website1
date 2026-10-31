@@ -1,0 +1,122 @@
+<section class="cartpage" aria-labelledby="cart-title">
+  <div class="cartpage__bg" aria-hidden="true"><span></span><span></span></div>
+
+  <div class="container">
+    <header class="cartpage__head">
+      <p class="eyebrow" appReveal>Checkout</p>
+      <h1 id="cart-title" class="display cartpage__title" appReveal [revealDelay]="80">
+        Keranjang <span class="gradient-text">kamu</span>
+      </h1>
+    </header>
+
+    @if (cart.lines().length) {
+      <div class="layout">
+        <!-- ---------------- Items ---------------- -->
+        <ul class="items" aria-label="Isi keranjang">
+          @for (l of cart.lines(); track l.product.id; let i = $index) {
+            <li class="item" [style.--tint]="l.product.tint" appReveal [revealDelay]="i * 70" [id]="'cart-item-' + l.product.id">
+              <a class="item__media" [href]="productUrl(l.product.handle)" target="_blank" rel="noopener">
+                <img [src]="l.product.image" [alt]="l.product.name" />
+              </a>
+
+              <div class="item__body">
+                <p class="item__tag">{{ l.product.tagline }}</p>
+                <h2 class="item__name">{{ l.product.name }}</h2>
+                <p class="item__price">
+                  {{ rupiah(l.product.price) }}
+                  <s>{{ rupiah(l.product.compareAt) }}</s>
+                  <b>-{{ discount(l.product) }}%</b>
+                </p>
+
+                <div class="item__row">
+                  <div class="qty" role="group" [attr.aria-label]="'Jumlah ' + l.product.name">
+                    <button type="button" (click)="cart.setQty(l.product.id, l.qty - 1)" aria-label="Kurangi" [id]="'dec-' + l.product.id">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M5 12h14" stroke-linecap="round" /></svg>
+                    </button>
+                    <span aria-live="polite">{{ l.qty }}</span>
+                    <button type="button" (click)="cart.setQty(l.product.id, l.qty + 1)" aria-label="Tambah" [id]="'inc-' + l.product.id">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 5v14M5 12h14" stroke-linecap="round" /></svg>
+                    </button>
+                  </div>
+
+                  <p class="item__total">{{ rupiah(l.product.price * l.qty) }}</p>
+
+                  <button type="button" class="item__remove" (click)="cart.remove(l.product.id)" [attr.aria-label]="'Hapus ' + l.product.name" [id]="'remove-' + l.product.id">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 12a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-12M9 7V4h6v3" stroke-linecap="round" stroke-linejoin="round" /></svg>
+                  </button>
+                </div>
+              </div>
+            </li>
+          }
+        </ul>
+
+        <!-- ---------------- Summary ---------------- -->
+        <aside class="summary" appReveal="scale" aria-label="Ringkasan pesanan">
+          <h2 class="summary__title">Ringkasan</h2>
+
+          <div class="ship">
+            @if (cart.remainingForFreeShipping() > 0) {
+              <p>Belanja <b>{{ rupiah(cart.remainingForFreeShipping()) }}</b> lagi untuk <b>gratis ongkir</b> 🚚</p>
+            } @else {
+              <p><b>Yay!</b> Kamu dapat gratis ongkir ✨</p>
+            }
+            <div class="ship__bar"><span [style.width.%]="cart.shippingProgress()"></span></div>
+          </div>
+
+          <dl class="rows">
+            <div><dt>Subtotal ({{ cart.count() }} item)</dt><dd>{{ rupiah(cart.subtotal()) }}</dd></div>
+            <div class="save"><dt>Kamu hemat</dt><dd>-{{ rupiah(cart.savings()) }}</dd></div>
+            <div><dt>Ongkir</dt><dd>Dihitung saat checkout</dd></div>
+          </dl>
+
+          <p class="total"><span>Total</span><b>{{ rupiah(cart.subtotal()) }}</b></p>
+
+          <a class="btn btn--primary btn--block" [href]="whatsappUrl()" target="_blank" rel="noopener" appMagnetic="0.2" id="cart-whatsapp">
+            Pesan via WhatsApp
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M13 6l6 6-6 6" stroke-linecap="round" stroke-linejoin="round" /></svg>
+          </a>
+          <a class="btn btn--outline btn--block" href="{{ shopUrl }}/cart" target="_blank" rel="noopener" id="cart-checkout">
+            Checkout di toko resmi
+          </a>
+          <button type="button" class="summary__clear" (click)="cart.clear()" id="cart-clear">Kosongkan keranjang</button>
+        </aside>
+      </div>
+    } @else {
+      <div class="empty" appReveal="scale">
+        <span class="empty__heart">♥</span>
+        <h2>Keranjangmu masih kosong</h2>
+        <p>Yuk pilih skincare &amp; make up favoritmu dulu.</p>
+        <a class="btn btn--primary" routerLink="/products" appMagnetic id="cart-empty-shop">
+          Belanja sekarang
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M13 6l6 6-6 6" stroke-linecap="round" stroke-linejoin="round" /></svg>
+        </a>
+      </div>
+    }
+
+    @if (suggestions().length) {
+      <section class="more" aria-labelledby="more-title">
+        <div class="more__head">
+          <p class="eyebrow" appReveal>Lengkapi ritualmu</p>
+          <h2 id="more-title" class="more__title" appReveal [revealDelay]="80">Kamu mungkin suka</h2>
+        </div>
+        <div class="more__grid">
+          @for (p of suggestions(); track p.id; let i = $index) {
+            <article class="mini" [style.--tint]="p.tint" appReveal [revealDelay]="i * 80">
+              <a class="mini__media" [href]="productUrl(p.handle)" target="_blank" rel="noopener">
+                <img [src]="p.image" [alt]="p.name" loading="lazy" />
+                <span class="mini__off">-{{ discount(p) }}%</span>
+              </a>
+              <h3 class="mini__name">{{ p.name }}</h3>
+              <div class="mini__row">
+                <p class="mini__price">{{ rupiah(p.price) }}</p>
+                <button type="button" class="mini__add" (click)="add($event, p)" [attr.aria-label]="'Tambah ' + p.name" [id]="'suggest-' + p.id">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 5v14M5 12h14" stroke-linecap="round" /></svg>
+                </button>
+              </div>
+            </article>
+          }
+        </div>
+      </section>
+    }
+  </div>
+</section>

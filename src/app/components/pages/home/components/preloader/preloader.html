@@ -1,0 +1,12 @@
+@if (loading()) {
+  <div class="loader" aria-hidden="true">
+    <div class="loader__blob"></div>
+    <img class="loader__logo" src="images/logo.png" alt="" />
+    <p class="loader__text">
+      @for (ch of 'glowing in progress'.split(''); track $index) {
+        <span [style.--i]="$index">{{ ch === ' ' ? '\u00a0' : ch }}</span>
+      }
+    </p>
+    <div class="loader__bar"><span></span></div>
+  </div>
+}

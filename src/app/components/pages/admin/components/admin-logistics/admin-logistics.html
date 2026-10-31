@@ -1,0 +1,779 @@
+<div class="admin-tab-content">
+  <!-- Page Header -->
+  <div class="page-header-row">
+    <div>
+      <div class="breadcrumb">Admin / Logistik &amp; Pengiriman</div>
+      <h1 class="page-title">Pusat Manajemen Pengiriman &amp; Logistik</h1>
+      <p class="page-desc">Kelola pesanan masuk, penerbitan resi AWB kurir resmi (J&amp;T, JNE, SiCepat), pelacakan live tracking, dan cetak thermal waybill 10x15.</p>
+    </div>
+    <div class="header-actions">
+      <button class="btn-primary-black" (click)="openNewShipmentModal()" id="btn-create-shipment">
+        <span class="btn-icon">🚚</span>
+        <span>+ Buat Resi Pengiriman Baru</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Logistics KPI Stats Bar -->
+  <div class="kpi-grid four-cols">
+    <div class="kpi-card interactive" (click)="shipmentStatusFilter.set('Unfulfilled')">
+      <div class="kpi-icon-wrap yellow">📦</div>
+      <div class="kpi-data">
+        <span class="kpi-label">Perlu Dikemas</span>
+        <strong class="kpi-val">{{ unfulfilledCount() }} Pesanan</strong>
+        <small class="kpi-sub">Menunggu cetak resi</small>
+      </div>
+    </div>
+
+    <div class="kpi-card interactive" (click)="shipmentStatusFilter.set('Ready to Ship')">
+      <div class="kpi-icon-wrap blue">⏳</div>
+      <div class="kpi-data">
+        <span class="kpi-label">Siap Dijemput Kurir</span>
+        <strong class="kpi-val">{{ readyToShipCount() }} Paket</strong>
+        <small class="kpi-sub">Jadwal pickup 15:00 WIB</small>
+      </div>
+    </div>
+
+    <div class="kpi-card interactive" (click)="shipmentStatusFilter.set('Shipped')">
+      <div class="kpi-icon-wrap purple">🚚</div>
+      <div class="kpi-data">
+        <span class="kpi-label">Sedang Dalam Pengiriman</span>
+        <strong class="kpi-val">{{ shippedInTransitCount() }} Paket</strong>
+        <small class="kpi-sub">Live tracking aktif</small>
+      </div>
+    </div>
+
+    <div class="kpi-card interactive" (click)="shipmentStatusFilter.set('Delivered')">
+      <div class="kpi-icon-wrap green">✅</div>
+      <div class="kpi-data">
+        <span class="kpi-label">Terkirim Selesai</span>
+        <strong class="kpi-val">{{ deliveredCount() }} Paket</strong>
+        <small class="kpi-sub">Diterima pelanggan</small>
+      </div>
+    </div>
+  </div>
+
+  <!-- Sub Tabs: Manifest & Orders vs Couriers vs Rate Simulator -->
+  <div class="sub-nav-tabs">
+    <button
+      class="sub-nav-btn"
+      [class.active]="shippingSubTab() === 'manifest'"
+      (click)="setShippingSubTab('manifest')"
+      id="btn-subtab-manifest"
+    >
+      📋 Daftar Manifest &amp; Pengiriman ({{ totalOrdersCount() }})
+    </button>
+    <button
+      class="sub-nav-btn"
+      [class.active]="shippingSubTab() === 'couriers'"
+      (click)="setShippingSubTab('couriers')"
+      id="btn-subtab-couriers"
+    >
+      🏢 Mitra Ekspedisi &amp; Gudang Pabrik
+    </button>
+    <button
+      class="sub-nav-btn"
+      [class.active]="shippingSubTab() === 'simulator'"
+      (click)="setShippingSubTab('simulator')"
+      id="btn-subtab-simulator"
+    >
+      ⚡ Kalkulator Ongkir Multi-Kota
+    </button>
+  </div>
+
+  <!-- SUB VIEW 1: MANIFEST & SHIPMENT ORDERS TABLE -->
+  @if (shippingSubTab() === 'manifest') {
+    <div class="shopify-card">
+      <!-- Filter & Search Toolbar -->
+      <div class="table-toolbar">
+        <div class="filter-group-left">
+          <!-- Status Filter Tabs -->
+          <div class="status-tabs">
+            <button
+              class="status-tab-btn"
+              [class.active]="shipmentStatusFilter() === 'All'"
+              (click)="shipmentStatusFilter.set('All')"
+            >
+              Semua ({{ totalOrdersCount() }})
+            </button>
+            <button
+              class="status-tab-btn"
+              [class.active]="shipmentStatusFilter() === 'Unfulfilled'"
+              (click)="shipmentStatusFilter.set('Unfulfilled')"
+            >
+              Perlu Dikemas ({{ unfulfilledCount() }})
+            </button>
+            <button
+              class="status-tab-btn"
+              [class.active]="shipmentStatusFilter() === 'Ready to Ship'"
+              (click)="shipmentStatusFilter.set('Ready to Ship')"
+            >
+              Siap Dijemput ({{ readyToShipCount() }})
+            </button>
+            <button
+              class="status-tab-btn"
+              [class.active]="shipmentStatusFilter() === 'Shipped'"
+              (click)="shipmentStatusFilter.set('Shipped')"
+            >
+              Dalam Pengiriman ({{ shippedInTransitCount() }})
+            </button>
+            <button
+              class="status-tab-btn"
+              [class.active]="shipmentStatusFilter() === 'Delivered'"
+              (click)="shipmentStatusFilter.set('Delivered')"
+            >
+              Terkirim ({{ deliveredCount() }})
+            </button>
+          </div>
+        </div>
+
+        <div class="filter-group-right">
+          <!-- Courier Filter -->
+          <select
+            class="filter-select"
+            [value]="shipmentCourierFilter()"
+            (change)="shipmentCourierFilter.set($any($event.target).value)"
+          >
+            <option value="All">Semua Ekspedisi</option>
+            <option value="J&amp;T">J&amp;T Express</option>
+            <option value="JNE">JNE Express</option>
+            <option value="SICEPAT">SiCepat Ekspres</option>
+            <option value="GOSEND">GoSend Instant</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Shipments Table -->
+      <div class="table-wrapper">
+        <table class="shopify-table">
+          <thead>
+            <tr>
+              <th>NO. ORDER &amp; TANGGAL</th>
+              <th>CUSTOMER &amp; TUJUAN</th>
+              <th>KURIR &amp; LAYANAN</th>
+              <th>NOMOR RESI (AWB)</th>
+              <th>ISI PAKET</th>
+              <th>STATUS PENGIRIMAN</th>
+              <th style="text-align: right;">AKSI LOGISTIK</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (ord of filteredShipmentOrders(); track ord.id) {
+              <tr class="shipment-row">
+                <!-- Order & Date -->
+                <td>
+                  <div class="order-id-cell">
+                    <strong class="order-num-text">{{ ord.orderNumber }}</strong>
+                    <span class="order-date-text">{{ ord.createdAt }}</span>
+                  </div>
+                </td>
+
+                <!-- Customer & Destination -->
+                <td>
+                  <div class="dest-cell">
+                    <strong class="cust-name-text">{{ ord.customerName }}</strong>
+                    <span class="cust-city-text">{{ ord.shippingAddress.city }} ({{ ord.shippingAddress.province }})</span>
+                    <small class="cust-phone-text">📞 {{ ord.customerPhone }}</small>
+                  </div>
+                </td>
+
+                <!-- Courier -->
+                <td>
+                  <div class="courier-cell">
+                    <span
+                      class="courier-badge-styled"
+                      [class.jnt]="ord.courier === 'J&T'"
+                      [class.jne]="ord.courier === 'JNE'"
+                      [class.sicepat]="ord.courier === 'SICEPAT'"
+                      [class.gosend]="ord.courier === 'GOSEND'"
+                    >
+                      {{ ord.courier }}
+                    </span>
+                    <span class="service-name-text">{{ ord.serviceName }}</span>
+                  </div>
+                </td>
+
+                <!-- Tracking Code -->
+                <td>
+                  <div class="tracking-code-cell">
+                    @if (ord.trackingNumber && !ord.trackingNumber.includes('PENDING')) {
+                      <div class="code-box">
+                        <code>{{ ord.trackingNumber }}</code>
+                        <button
+                          type="button"
+                          class="btn-copy-code"
+                          (click)="copyTrackingCode(ord.trackingNumber)"
+                          title="Salin No. Resi ke Clipboard"
+                        >
+                          📋
+                        </button>
+                      </div>
+                      <small class="verified-resi-text">✓ AWB Terverifikasi</small>
+                    } @else {
+                      <div class="pending-code-box">
+                        <span class="pending-resi-text">Menunggu Input Resi</span>
+                        <button
+                          type="button"
+                          class="btn-generate-resi"
+                          (click)="generateWaybillForOrder(ord)"
+                        >
+                          + Terbitkan AWB
+                        </button>
+                      </div>
+                    }
+                  </div>
+                </td>
+
+                <!-- Items & Weight -->
+                <td>
+                  <div class="items-cell">
+                    <span class="items-summary">
+                      {{ ord.items[0]?.quantity || 1 }}x {{ ord.items[0]?.title || 'Paket Skincare' }}
+                      @if (ord.items.length > 1) {
+                        <small class="more-items">+{{ ord.items.length - 1 }} item lain</small>
+                      }
+                    </span>
+                    <span class="weight-tag">📦 {{ ord.weightGrams || 500 }} gr</span>
+                  </div>
+                </td>
+
+                <!-- Fulfillment Status -->
+                <td>
+                  <span
+                    class="fulfillment-badge"
+                    [class.unfulfilled]="ord.fulfillmentStatus === 'Unfulfilled'"
+                    [class.ready]="ord.fulfillmentStatus === 'Ready to Ship'"
+                    [class.shipped]="ord.fulfillmentStatus === 'Shipped'"
+                    [class.delivered]="ord.fulfillmentStatus === 'Delivered'"
+                  >
+                    <span class="badge-dot"></span>
+                    @switch (ord.fulfillmentStatus) {
+                      @case ('Unfulfilled') { Perlu Dikemas }
+                      @case ('Ready to Ship') { Siap Dijemput }
+                      @case ('Shipped') { Sedang Dikirim }
+                      @case ('Delivered') { Selesai Sampai }
+                    }
+                  </span>
+                </td>
+
+                <!-- Actions -->
+                <td style="text-align: right;">
+                  <div class="action-buttons-group">
+                    <!-- Thermal Waybill Button -->
+                    <button
+                      class="btn-logistics-action thermal"
+                      (click)="openShippingLabel(ord)"
+                      title="Lihat & Cetak Resi Thermal 10x15"
+                    >
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9V2h12v7"></path><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>
+                      <span>Cetak Resi</span>
+                    </button>
+
+                    <!-- Live Milestone Tracker -->
+                    <button
+                      class="btn-logistics-action tracking"
+                      (click)="openTrackingModal(ord)"
+                      title="Buka Timeline Pelacakan Ekspedisi"
+                    >
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+                      <span>Lacak</span>
+                    </button>
+
+                    <!-- Status Quick-Advance -->
+                    @if (ord.fulfillmentStatus === 'Unfulfilled') {
+                      <button class="btn-advance ready" (click)="generateWaybillForOrder(ord)" title="Siap dijemput kurir">
+                        Siap Jemput
+                      </button>
+                    } @else if (ord.fulfillmentStatus === 'Ready to Ship') {
+                      <button class="btn-advance ship" (click)="markShipped(ord)" title="Tandai telah diambil kurir">
+                        Serahkan Kurir
+                      </button>
+                    } @else if (ord.fulfillmentStatus === 'Shipped') {
+                      <button class="btn-advance deliver" (click)="markDelivered(ord)" title="Tandai barang telah diterima">
+                        Diterima
+                      </button>
+                    }
+
+                    <button class="btn-action delete icon-only" (click)="deleteOrder(ord.id)" title="Hapus Pesanan">
+                      🗑️
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </div>
+  }
+
+  <!-- SUB VIEW 2: COURIERS INTEGRATION & WAREHOUSE HUBS -->
+  @if (shippingSubTab() === 'couriers') {
+    <div class="couriers-view-container">
+      <div class="warehouse-origin-banner">
+        <div class="banner-origin-left">
+          <span class="banner-badge">🏭 PUSAT DISTRIBUSI PABRIK RESMI</span>
+          <h3>Gudang Rungkut Industri E-Commerce Hub (Surabaya)</h3>
+          <p>Seluruh paket diproduksi, disortir, dan diberangkatkan dari origin Kota Surabaya ke 38 provinsi di Indonesia.</p>
+        </div>
+        <div class="banner-origin-stats">
+          <div class="origin-stat-box">
+            <span class="st-num">1-2 Jam</span>
+            <span class="st-lbl">Rata-rata Packing</span>
+          </div>
+          <div class="origin-stat-box">
+            <span class="st-num">15:00 WIB</span>
+            <span class="st-lbl">Jadwal Pickup Harian</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="couriers-grid">
+        @for (courier of shippingService.couriers; track courier.code) {
+          <div class="courier-card" [style.--c-color]="courier.color">
+            <div class="courier-card-header">
+              <div class="courier-brand">
+                <span class="courier-symbol">{{ courier.icon }}</span>
+                <div>
+                  <h4>{{ courier.name }}</h4>
+                  <span class="app-sub">{{ courier.appName }}</span>
+                </div>
+              </div>
+              <span class="api-status-pill online">
+                <span class="dot"></span>
+                Terhubung 100%
+              </span>
+            </div>
+
+            <div class="courier-details-list">
+              <div class="c-row">
+                <span>Default ETD:</span>
+                <strong>{{ courier.defaultEta }}</strong>
+              </div>
+              <div class="c-row">
+                <span>Format Resi:</span>
+                <code>{{ courier.code }}XXXXXXXXXID</code>
+              </div>
+              <div class="c-row">
+                <span>Coverage Nasional:</span>
+                <span>Seluruh Indonesia (99% Kecamatan)</span>
+              </div>
+              <div class="c-row">
+                <span>Pickup Armada:</span>
+                <span class="green-text">✓ Penjemputan Otomatis Aktif</span>
+              </div>
+            </div>
+
+            <div class="courier-card-actions">
+              <label class="toggle-switch">
+                <input type="checkbox" checked />
+                <span class="slider"></span>
+              </label>
+              <span class="toggle-label">Aktif di Checkout Toko</span>
+            </div>
+          </div>
+        }
+      </div>
+    </div>
+  }
+
+  <!-- SUB VIEW 3: LIVE MULTI-CITY ONGKIR SIMULATOR -->
+  @if (shippingSubTab() === 'simulator') {
+    <div class="shopify-card">
+      <div class="card-header-styled">
+        <div>
+          <h3 class="card-heading">Simulasi &amp; Kalkulator Tarif Ongkos Kirim Real-Time</h3>
+          <p class="card-subheading">Hitung estimasi biaya pengiriman resmi dari Surabaya ke seluruh kota di Indonesia berdasarkan berat gram paket.</p>
+        </div>
+      </div>
+
+      <div class="calc-form-container">
+        <div class="calc-inputs-row">
+          <div class="calc-group">
+            <label>Gudang Asal (Origin):</label>
+            <input type="text" value="Kota Surabaya (Pabrik SYB Official)" disabled class="input-disabled" />
+          </div>
+
+          <div class="calc-group">
+            <label>Kota Tujuan Pelanggan (Destination):</label>
+            <select
+              [value]="calcDestCity()"
+              (change)="calcDestCity.set($any($event.target).value)"
+              class="select-dest"
+            >
+              @for (z of shippingService.shippingDestinations; track z.city) {
+                <option [value]="z.city">{{ z.province }} — {{ z.city }}</option>
+              }
+            </select>
+          </div>
+
+          <div class="calc-group">
+            <label>Berat Total Paket (Gram):</label>
+            <div class="weight-input-wrap">
+              <input
+                type="number"
+                step="50"
+                min="100"
+                max="10000"
+                [ngModel]="calcWeightGrams()"
+                (ngModelChange)="calcWeightGrams.set($event)"
+                class="input-weight"
+              />
+              <span class="weight-unit">Gram ({{ (calcWeightGrams() / 1000) | number:'1.1-2' }} Kg)</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Rates calculation results -->
+        <div class="rates-results-box">
+          <div class="rates-header">
+            <h4>Hasil Pilihan Layanan Ekspedisi (Tujuan: {{ calcDestCity() }}):</h4>
+            <span class="rates-count">{{ calculatedRates().length }} Opsi Tersedia</span>
+          </div>
+
+          <div class="rates-grid">
+            @for (rate of calculatedRates(); track rate.id) {
+              <div class="rate-card-item">
+                <div class="rate-courier-tag" [class.badge-jnt]="rate.courier === 'J&T'" [class.badge-jne]="rate.courier === 'JNE'" [class.badge-sicepat]="rate.courier === 'SICEPAT'">
+                  {{ rate.courier }}
+                </div>
+                <div class="rate-main-info">
+                  <strong>{{ rate.serviceName }}</strong>
+                  <span class="rate-full-name">{{ rate.courierFullName }}</span>
+                  <div class="rate-meta">
+                    <span class="rate-etd">⏱️ {{ rate.etd }}</span>
+                    @if (rate.badge) {
+                      <span class="rate-badge-pill">{{ rate.badge }}</span>
+                    }
+                  </div>
+                </div>
+                <div class="rate-cost-col">
+                  <span class="rate-cost-label">Tarif Resmi:</span>
+                  <strong class="rate-price">Rp {{ rate.cost | number:'1.0-0' }}</strong>
+                </div>
+              </div>
+            }
+          </div>
+        </div>
+      </div>
+    </div>
+  }
+</div>
+
+<!-- ==================== MODAL: 10x15 THERMAL SHIPPING WAYBILL ==================== -->
+@if (isLabelModalOpen(); as order) {
+  <div class="modal-backdrop" (click)="closeShippingLabel()">
+    <div class="thermal-label-modal" (click)="$event.stopPropagation()">
+      <div class="thermal-modal-header">
+        <div class="thermal-title">
+          <span class="badge-thermal">Pratinjau Cetak Resi 10x15 cm</span>
+          <h3>Label Pengiriman Thermal Otomatis</h3>
+        </div>
+        <div class="thermal-actions">
+          <button class="btn-print-thermal" (click)="printShippingLabel()" id="btn-print-shipping-label">
+            🖨️ Cetak ke Printer Thermal
+          </button>
+          <button class="btn-close-modal" (click)="closeShippingLabel()">✕</button>
+        </div>
+      </div>
+
+      <div class="thermal-modal-body">
+        <div class="thermal-preview-container">
+          <!-- 10x15 Standard Thermal Label -->
+          <div class="thermal-label-sheet">
+            <!-- Header Courier & Routing -->
+            <div class="thermal-header-row">
+              <div class="thermal-courier-logo">
+                <span class="courier-name-huge">{{ activeLabelOrder()?.courier }}</span>
+                <span class="service-name-huge">{{ activeLabelOrder()?.serviceName }}</span>
+              </div>
+              <div class="thermal-routing-box">
+                <span class="route-code">SUB &rarr; {{ activeLabelOrder()?.shippingAddress?.city?.slice(0, 3)?.toUpperCase() }}</span>
+                <span class="route-hub">DC-{{ activeLabelOrder()?.shippingAddress?.postalCode }}</span>
+              </div>
+            </div>
+
+            <!-- Barcode Area -->
+            <div class="thermal-barcode-section">
+              <div class="barcode-graphic-stripes">
+                <div class="bar thin"></div><div class="bar thick"></div><div class="bar med"></div><div class="bar thin"></div>
+                <div class="bar ultra"></div><div class="bar thin"></div><div class="bar thick"></div><div class="bar thin"></div>
+                <div class="bar thick"></div><div class="bar thin"></div><div class="bar med"></div><div class="bar ultra"></div>
+                <div class="bar thin"></div><div class="bar thick"></div><div class="bar thin"></div><div class="bar thick"></div>
+                <div class="bar thin"></div><div class="bar ultra"></div><div class="bar med"></div><div class="bar thick"></div>
+              </div>
+              <span class="barcode-num-text">{{ activeLabelOrder()?.trackingNumber }}</span>
+            </div>
+
+            <!-- Sender & Receiver Row -->
+            <div class="thermal-address-grid">
+              <div class="address-col sender">
+                <span class="address-role">PENGIRIM (SENDER):</span>
+                <strong class="company-name">SYBofficial Store (Pusat)</strong>
+                <p class="addr-detail">Kawasan Rungkut Industri Blok C-12, Surabaya, Jawa Timur 60293</p>
+                <span class="phone-num">Telp: 0812-3333-6909</span>
+              </div>
+              <div class="address-col receiver">
+                <span class="address-role">PENERIMA (RECEIVER):</span>
+                <strong class="receiver-name">{{ activeLabelOrder()?.customerName }}</strong>
+                <p class="addr-detail">{{ activeLabelOrder()?.shippingAddress?.street }}, {{ activeLabelOrder()?.shippingAddress?.city }}, {{ activeLabelOrder()?.shippingAddress?.province }}</p>
+                <span class="postal-bold">KODE POS: {{ activeLabelOrder()?.shippingAddress?.postalCode }}</span>
+                <span class="phone-num">Telp: {{ activeLabelOrder()?.customerPhone }}</span>
+              </div>
+            </div>
+
+            <!-- Package & COD Specs -->
+            <div class="thermal-specs-row">
+              <div class="spec-cell">
+                <span class="sp-lbl">Berat Paket:</span>
+                <strong class="sp-val">{{ activeLabelOrder()?.weightGrams || 450 }} gr (0.5 Kg)</strong>
+              </div>
+              <div class="spec-cell">
+                <span class="sp-lbl">Metode Bayar:</span>
+                <strong class="sp-val green-text">{{ activeLabelOrder()?.paymentStatus }} (Non-COD)</strong>
+              </div>
+              <div class="spec-cell">
+                <span class="sp-lbl">No. Referensi:</span>
+                <strong class="sp-val">{{ activeLabelOrder()?.orderNumber }}</strong>
+              </div>
+            </div>
+
+            <!-- Goods Breakdown -->
+            <div class="thermal-goods-box">
+              <span class="goods-heading">Daftar Isi Paket Skincare:</span>
+              <ul class="goods-list">
+                @for (item of activeLabelOrder()?.items; track item.productId) {
+                  <li>
+                    <span class="item-name">• {{ item.title }} ({{ item.variantName }})</span>
+                    <strong class="item-qty">Qty: {{ item.quantity }}</strong>
+                  </li>
+                }
+              </ul>
+              @if (activeLabelOrder()?.notes) {
+                <div class="thermal-notes">
+                  <strong>Catatan Khusus:</strong> {{ activeLabelOrder()?.notes }}
+                </div>
+              }
+            </div>
+
+            <!-- Security Footer -->
+            <div class="thermal-footer">
+              <span>PT SYB INOVASI NUSANTARA • HAK CIPTA RESMI</span>
+              <span>Dicetak Otomatis via API Manifest SYB Logistics</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- ==================== MODAL: LIVE MILESTONE TRACKING ==================== -->
+@if (isTrackingModalOpen(); as order) {
+  <div class="modal-backdrop" (click)="closeTrackingModal()">
+    <div class="tracking-modal" (click)="$event.stopPropagation()">
+      <div class="tracking-modal-header">
+        <div class="tracking-header-info">
+          <span class="badge-courier-pill">{{ activeTrackingOrder()?.courier }} LIVE TRACKING</span>
+          <h3>Status Pengiriman Paket {{ activeTrackingOrder()?.orderNumber }}</h3>
+          <div class="tracking-sub-meta">
+            <span>No. Resi: <strong>{{ activeTrackingOrder()?.trackingNumber }}</strong></span>
+            <span>&bull;</span>
+            <span>Penerima: <strong>{{ activeTrackingOrder()?.customerName }} ({{ activeTrackingOrder()?.shippingAddress?.city }})</strong></span>
+          </div>
+        </div>
+        <button class="btn-close-modal" (click)="closeTrackingModal()">✕</button>
+      </div>
+
+      <div class="tracking-modal-body">
+        <div class="milestones-timeline-wrap">
+          @for (mile of activeTrackingMilestones(); track mile.title; let i = $index) {
+            <div class="milestone-entry" [class.completed]="mile.status === 'completed'" [class.active]="mile.status === 'active'" [class.upcoming]="mile.status === 'upcoming'">
+              <div class="milestone-indicator">
+                <div class="indicator-icon">
+                  @if (mile.status === 'completed') { ✓ }
+                  @else if (mile.status === 'active') { ⚡ }
+                  @else { ○ }
+                </div>
+                <div class="indicator-line"></div>
+              </div>
+
+              <div class="milestone-content">
+                <div class="milestone-title-row">
+                  <h4 class="mile-title">{{ mile.title }}</h4>
+                  <span class="mile-time">{{ mile.time }}</span>
+                </div>
+                <span class="mile-location">{{ mile.location }}</span>
+                <p class="mile-desc">{{ mile.description }}</p>
+              </div>
+            </div>
+          }
+        </div>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- ==================== MODAL: NEW MANUAL SHIPMENT CREATOR ==================== -->
+@if (isNewShipmentModalOpen()) {
+  <div class="modal-backdrop" (click)="closeNewShipmentModal()">
+    <div class="new-shipment-modal" (click)="$event.stopPropagation()">
+      <div class="studio-modal-header">
+        <div class="studio-title-box">
+          <span class="studio-badge">🚚 Buat Pengiriman Manual</span>
+          <h3>Terbitkan Resi AWB Paket Baru</h3>
+        </div>
+        <button class="btn-close-modal" (click)="closeNewShipmentModal()">✕</button>
+      </div>
+
+      <div class="new-ship-body">
+        <form (submit)="$event.preventDefault(); saveNewShipment()">
+          <div class="form-row-two">
+            <div class="form-group">
+              <label>Nama Customer Penerima *</label>
+              <input
+                type="text"
+                [ngModel]="newShipCustName()"
+                (ngModelChange)="newShipCustName.set($event)"
+                name="custName"
+                required
+                placeholder="Contoh: Aulia Rahmadani"
+              />
+            </div>
+            <div class="form-group">
+              <label>Nomor WhatsApp Customer *</label>
+              <input
+                type="text"
+                [ngModel]="newShipCustPhone()"
+                (ngModelChange)="newShipCustPhone.set($event)"
+                name="custPhone"
+                required
+                placeholder="081234567890"
+              />
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label>Alamat Lengkap Pengiriman (Jalan, RT/RW, Patokan) *</label>
+            <textarea
+              rows="2"
+              [ngModel]="newShipStreet()"
+              (ngModelChange)="newShipStreet.set($event)"
+              name="street"
+              required
+              placeholder="Jl. Senopati No. 42, Kebayoran Baru"
+            ></textarea>
+          </div>
+
+          <div class="form-row-three">
+            <div class="form-group">
+              <label>Kota Tujuan</label>
+              <select
+                [ngModel]="newShipCity()"
+                (ngModelChange)="newShipCity.set($event)"
+                name="city"
+              >
+                @for (z of shippingService.shippingDestinations; track z.city) {
+                  <option [value]="z.city">{{ z.city }}</option>
+                }
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Provinsi</label>
+              <input
+                type="text"
+                [ngModel]="newShipProvince()"
+                (ngModelChange)="newShipProvince.set($event)"
+                name="province"
+              />
+            </div>
+            <div class="form-group">
+              <label>Kode Pos</label>
+              <input
+                type="text"
+                [ngModel]="newShipPostal()"
+                (ngModelChange)="newShipPostal.set($event)"
+                name="postal"
+              />
+            </div>
+          </div>
+
+          <div class="form-row-three" style="margin-top: 0.5rem;">
+            <div class="form-group">
+              <label>Pilihan Ekspedisi Kurir *</label>
+              <select
+                [ngModel]="newShipCourier()"
+                (ngModelChange)="newShipCourier.set($event)"
+                name="courier"
+              >
+                <option value="J&amp;T">⚡ J&amp;T Express (EZ)</option>
+                <option value="JNE">📦 JNE Shipping (Reguler/YES)</option>
+                <option value="SICEPAT">🚀 SiCepat Ekspres (HALU)</option>
+                <option value="GOSEND">🛵 GoSend / Grab Instant</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Produk yang Dikirim</label>
+              <select
+                [ngModel]="selectedProductForShipment()"
+                (ngModelChange)="selectedProductForShipment.set($event)"
+                name="prodShip"
+              >
+                @for (p of productService.products(); track p.id) {
+                  <option [value]="p.id">{{ p.title }} (Rp {{ p.price | number:'1.0-0' }})</option>
+                }
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Jumlah (Qty)</label>
+              <input
+                type="number"
+                min="1"
+                [ngModel]="selectedQtyForShipment()"
+                (ngModelChange)="selectedQtyForShipment.set($event)"
+                name="qtyShip"
+              />
+            </div>
+          </div>
+
+          <div class="form-row-two" style="margin-top: 0.5rem;">
+            <div class="form-group">
+              <label>Berat Paket (Gram)</label>
+              <input
+                type="number"
+                step="50"
+                min="100"
+                [ngModel]="newShipWeightGrams()"
+                (ngModelChange)="newShipWeightGrams.set($event)"
+                name="weightGrams"
+              />
+            </div>
+            <div class="form-group">
+              <label>Catatan Pengiriman</label>
+              <input
+                type="text"
+                [ngModel]="newShipNotes()"
+                (ngModelChange)="newShipNotes.set($event)"
+                name="notes"
+              />
+            </div>
+          </div>
+
+          <div class="studio-form-bottom-bar">
+            <button type="button" class="btn-ghost" (click)="closeNewShipmentModal()">Batal</button>
+            <button type="submit" class="btn-submit-studio" id="btn-submit-new-ship">
+              🚚 Terbitkan Resi Otomatis
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- Toast -->
+@if (toastMessage(); as msg) {
+  <div class="admin-toast" role="alert">
+    {{ msg }}
+  </div>
+}

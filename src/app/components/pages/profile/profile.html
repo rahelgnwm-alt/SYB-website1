@@ -1,0 +1,577 @@
+<main class="profile-page">
+  <div class="profile-container">
+    <!-- Breadcrumb -->
+    <nav class="breadcrumb" aria-label="Breadcrumb">
+      <a routerLink="/" class="crumb-link">Beranda</a>
+      <span class="crumb-sep">/</span>
+      <span class="crumb-current">Akun & Profil Saya</span>
+    </nav>
+
+    <!-- Admin Fast-Switch Banner if logged in user is admin -->
+    @if (auth.isAdmin()) {
+      <div class="admin-notice-banner">
+        <div class="admin-notice-content">
+          <span class="admin-crown-icon">👑</span>
+          <div>
+            <strong>Mode Admin Terdeteksi</strong>
+            <p>Akun ini memiliki hak akses penuh ke Manajemen Produk dan Logistik Hub.</p>
+          </div>
+        </div>
+        <a routerLink="/admin/products" class="btn-goto-admin">Buka Portal Admin SYB &rarr;</a>
+      </div>
+    }
+
+    <!-- Profile Hero Card -->
+    <section class="profile-hero">
+      <div class="profile-hero__left">
+        <div class="profile-avatar">
+          <span class="avatar-initial">{{ auth.currentUser()?.fullName?.[0] || 'S' }}</span>
+          <span class="vip-badge-icon" title="Member Tier">{{ auth.currentUser()?.memberTier === 'VIP' ? '💎' : '👑' }}</span>
+        </div>
+        <div class="profile-info">
+          <div class="profile-name-row">
+            <h1 class="profile-name">{{ auth.currentUser()?.fullName || 'Pelanggan Setia SYB' }}</h1>
+            <span class="tier-pill" [class.tier-vip]="auth.currentUser()?.memberTier === 'VIP'">
+              ✨ SYB Glow {{ auth.currentUser()?.memberTier || 'Gold' }} Member
+            </span>
+          </div>
+          <div class="profile-contacts">
+            <span class="contact-item">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+              {{ auth.currentUser()?.email }}
+            </span>
+            <span class="contact-item">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+              {{ auth.currentUser()?.phone || '0812-9841-2933' }}
+            </span>
+            <span class="contact-item">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+              {{ auth.currentUser()?.address?.city || 'Jakarta Selatan' }}
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <div class="profile-hero__actions">
+        <button class="btn-outline-sm" (click)="openEditAddressModal()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+          Ubah Profil
+        </button>
+        <button class="btn-logout-sm" (click)="handleLogout()" title="Keluar dari akun">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+          Keluar
+        </button>
+      </div>
+    </section>
+
+    <!-- Stats Matrix -->
+    <div class="profile-stats-grid">
+      <div class="stat-card stat-points">
+        <div class="stat-icon-wrap">💎</div>
+        <div class="stat-content">
+          <span class="stat-label">Glow Loyalty Points</span>
+          <div class="stat-val-group">
+            <span class="stat-number">{{ auth.currentUser()?.glowPoints || 520 }}</span>
+            <span class="stat-unit">Poin</span>
+          </div>
+          <span class="stat-sub">Setara potongan {{ rupiah((auth.currentUser()?.glowPoints || 520) * 100) }}</span>
+        </div>
+      </div>
+
+      <div class="stat-card stat-orders">
+        <div class="stat-icon-wrap">🛍️</div>
+        <div class="stat-content">
+          <span class="stat-label">Total Pesanan</span>
+          <div class="stat-val-group">
+            <span class="stat-number">{{ userOrders().length }}</span>
+            <span class="stat-unit">Order</span>
+          </div>
+          <span class="stat-sub">Diperbarui real-time</span>
+        </div>
+      </div>
+
+      <div class="stat-card stat-vouchers">
+        <div class="stat-icon-wrap">🎟️</div>
+        <div class="stat-content">
+          <span class="stat-label">Voucher Member</span>
+          <div class="stat-val-group">
+            <span class="stat-number">{{ memberVouchers.length }}</span>
+            <span class="stat-unit">Voucher</span>
+          </div>
+          <span class="stat-sub">Siap digunakan saat checkout</span>
+        </div>
+      </div>
+
+      <div class="stat-card stat-shipping">
+        <div class="stat-icon-wrap">🚚</div>
+        <div class="stat-content">
+          <span class="stat-label">Tujuan Pengiriman</span>
+          <div class="stat-val-group">
+            <span class="stat-city">{{ auth.currentUser()?.address?.city || 'Jakarta Selatan' }}</span>
+          </div>
+          <span class="stat-sub">1 Alamat Tersimpan Aktif</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Navigation Tabs -->
+    <div class="profile-tabs-nav">
+      <button
+        class="profile-tab-btn"
+        [class.active]="activeTab() === 'orders'"
+        (click)="activeTab.set('orders')"
+        id="tab-orders"
+      >
+        <span class="tab-icon">📦</span>
+        Pesanan Saya
+        <span class="tab-badge">{{ userOrders().length }}</span>
+      </button>
+
+      <button
+        class="profile-tab-btn"
+        [class.active]="activeTab() === 'address'"
+        (click)="activeTab.set('address')"
+        id="tab-address"
+      >
+        <span class="tab-icon">📍</span>
+        Buku Alamat Pengiriman
+      </button>
+
+      <button
+        class="profile-tab-btn"
+        [class.active]="activeTab() === 'vouchers'"
+        (click)="activeTab.set('vouchers')"
+        id="tab-vouchers"
+      >
+        <span class="tab-icon">🎟️</span>
+        Voucher & Diskon Saya
+      </button>
+
+      <button
+        class="profile-tab-btn"
+        [class.active]="activeTab() === 'glow-club'"
+        (click)="activeTab.set('glow-club')"
+        id="tab-glow-club"
+      >
+        <span class="tab-icon">✨</span>
+        Glow VIP Club
+      </button>
+    </div>
+
+    <!-- TAB 1: PESANAN SAYA -->
+    @if (activeTab() === 'orders') {
+      <div class="tab-pane">
+        @if (userOrders().length === 0) {
+          <div class="empty-state">
+            <div class="empty-icon">🛍️</div>
+            <h3>Belum Ada Riwayat Pesanan</h3>
+            <p>Yuk mulai rawat kulit glowing-mu dengan produk perawatan wajah dan tubuh terbaik dari SYB Official.</p>
+            <a routerLink="/products" class="btn-primary-glow">Belanja Produk Sekarang &rarr;</a>
+          </div>
+        } @else {
+          <div class="orders-list">
+            @for (order of userOrders(); track order.id) {
+              <article class="order-card">
+                <!-- Order Header -->
+                <header class="order-card__header">
+                  <div class="order-header-left">
+                    <span class="order-number">{{ order.orderNumber }}</span>
+                    <span class="order-date">{{ order.createdAt }}</span>
+                    <span class="courier-badge">
+                      <span class="courier-dot"></span>
+                      {{ order.courier }} ({{ order.serviceName }})
+                    </span>
+                  </div>
+
+                  <div class="order-header-right">
+                    <span
+                      class="status-pill"
+                      [class.status-ready]="order.fulfillmentStatus === 'Ready to Ship'"
+                      [class.status-shipped]="order.fulfillmentStatus === 'Shipped'"
+                      [class.status-delivered]="order.fulfillmentStatus === 'Delivered'"
+                      [class.status-unfulfilled]="order.fulfillmentStatus === 'Unfulfilled'"
+                    >
+                      @switch (order.fulfillmentStatus) {
+                        @case ('Ready to Ship') { Siap Dikirim }
+                        @case ('Shipped') { Sedang Dikirim }
+                        @case ('Delivered') { Selesai Diterima }
+                        @default { Diproses Gudang }
+                      }
+                    </span>
+                  </div>
+                </header>
+
+                <!-- Order Items -->
+                <div class="order-items-list">
+                  @for (item of order.items; track item.productId) {
+                    <div class="order-item-row">
+                      <img [src]="getImgUrl(item.image)" [alt]="item.title" class="item-thumb" />
+                      <div class="item-info">
+                        <h4 class="item-title">{{ item.title }}</h4>
+                        <span class="item-variant">{{ item.variantName }}</span>
+                        <div class="item-qty-price">
+                          <span class="item-qty">{{ item.quantity }} pcs &times;</span>
+                          <span class="item-price">{{ rupiah(item.price) }}</span>
+                        </div>
+                      </div>
+                      <div class="item-line-total">
+                        {{ rupiah(item.price * item.quantity) }}
+                      </div>
+                    </div>
+                  }
+                </div>
+
+                <!-- Order Footer / Pricing & Actions -->
+                <footer class="order-card__footer">
+                  <div class="shipping-info-block">
+                    <div class="awb-row">
+                      <span class="awb-label">Nomor Resi:</span>
+                      <code class="awb-code">{{ order.trackingNumber || 'Dalam Proses' }}</code>
+                      @if (order.trackingNumber && !order.trackingNumber.includes('PENDING')) {
+                        <button class="btn-copy-icon" (click)="copyTrackingNumber(order.trackingNumber)" title="Salin Nomor Resi">
+                          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                        </button>
+                      }
+                    </div>
+                    <div class="address-preview">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+                      <span>{{ order.shippingAddress.street }}, {{ order.shippingAddress.city }} ({{ order.shippingAddress.postalCode }})</span>
+                    </div>
+                  </div>
+
+                  <div class="order-summary-block">
+                    <div class="order-cost-breakdown">
+                      <span class="cost-label">Total Pesanan:</span>
+                      <strong class="cost-total">{{ rupiah(order.total) }}</strong>
+                    </div>
+
+                    <div class="order-actions-row">
+                      <button class="btn-track-order" (click)="openTrackingModal(order)" id="btn-track-{{ order.id }}">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                        Lacak Paket Real-Time
+                      </button>
+                    </div>
+                  </div>
+                </footer>
+              </article>
+            }
+          </div>
+        }
+      </div>
+    }
+
+    <!-- TAB 2: BUKU ALAMAT PENGIRIMAN -->
+    @if (activeTab() === 'address') {
+      <div class="tab-pane">
+        <div class="address-pane-header">
+          <div>
+            <h3 class="pane-title">Buku Alamat Pengiriman Saya</h3>
+            <p class="pane-subtitle">Alamat ini digunakan otomatis untuk perhitungan ongkir akurat dan tujuan pengiriman pesanan Anda.</p>
+          </div>
+          <button class="btn-primary-sm" (click)="openEditAddressModal()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            Ubah Alamat Utama
+          </button>
+        </div>
+
+        <div class="address-cards-grid">
+          <div class="address-card is-primary">
+            <div class="address-card__tag">
+              <span class="tag-badge">Alamat Utama / Default</span>
+              <span class="tag-origin">Origin Gudang: Surabaya</span>
+            </div>
+
+            <div class="address-card__body">
+              <h4 class="recipient-name">{{ auth.currentUser()?.fullName || 'Aulia Rahmadani' }}</h4>
+              <p class="recipient-phone">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+                {{ auth.currentUser()?.phone || '0812-9841-2933' }}
+              </p>
+              <p class="recipient-street">
+                {{ auth.currentUser()?.address?.street || 'Jl. Senopati No. 42, Kebayoran Baru' }}
+              </p>
+              <p class="recipient-city-prov">
+                {{ auth.currentUser()?.address?.city || 'Jakarta Selatan' }}, {{ auth.currentUser()?.address?.province || 'DKI Jakarta' }} {{ auth.currentUser()?.address?.postalCode || '12190' }}
+              </p>
+            </div>
+
+            <div class="address-card__footer">
+              <button class="btn-link" (click)="openEditAddressModal()">Edit Alamat Ini</button>
+              <span class="courier-covered">Didukung kurir: J&T, JNE, SiCepat, GoSend</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    }
+
+    <!-- TAB 3: VOUCHER & DISKON SAYA -->
+    @if (activeTab() === 'vouchers') {
+      <div class="tab-pane">
+        <div class="voucher-pane-header">
+          <h3 class="pane-title">Voucher & Diskon Eksklusif Member</h3>
+          <p class="pane-subtitle">Salin kode voucher di bawah dan gunakan pada kolom promo saat melakukan transaksi.</p>
+        </div>
+
+        <div class="vouchers-grid">
+          @for (v of memberVouchers; track v.code) {
+            <div class="voucher-ticket">
+              <div class="voucher-ticket__strip" [style.background]="v.bgGradient">
+                <span class="ticket-tag">{{ v.badge }}</span>
+                <span class="ticket-discount">{{ v.discount }}</span>
+              </div>
+
+              <div class="voucher-ticket__body">
+                <h4 class="ticket-title">{{ v.title }}</h4>
+                <p class="ticket-min-spend">{{ v.minSpend }}</p>
+                <div class="ticket-expiry">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                  Berlaku s/d {{ v.validUntil }}
+                </div>
+
+                <div class="ticket-code-action">
+                  <div class="ticket-code-box">
+                    <code>{{ v.code }}</code>
+                  </div>
+                  <button class="btn-copy-code" (click)="copyVoucherCode(v.code)">
+                    Salin
+                  </button>
+                </div>
+              </div>
+            </div>
+          }
+        </div>
+      </div>
+    }
+
+    <!-- TAB 4: GLOW VIP CLUB -->
+    @if (activeTab() === 'glow-club') {
+      <div class="tab-pane">
+        <div class="glow-club-hero">
+          <div class="glow-club-hero-content">
+            <span class="club-badge">✨ SYB LOYALTY REWARDS</span>
+            <h3 class="club-title">Dapatkan Kulit Glowing Impian + Poin di Setiap Belanja!</h3>
+            <p class="club-desc">
+              Kumpulkan 1 Glow Point untuk setiap pembelanjaan Rp 1.000 di SYB Official. Poin dapat ditukar langsung menjadi potongan belanja tanpa batas minimal!
+            </p>
+
+            <div class="tier-progress-card">
+              <div class="tier-level-row">
+                <span class="current-tier">Level Saat Ini: <strong>{{ auth.currentUser()?.memberTier || 'Gold' }}</strong></span>
+                <span class="points-balance">{{ auth.currentUser()?.glowPoints || 520 }} Poin Terkumpul</span>
+              </div>
+              <div class="progress-bar-bg">
+                <div class="progress-bar-fill" [style.width.%]="75"></div>
+              </div>
+              <span class="tier-hint">Kumpulkan 80 poin lagi untuk membuka reward eksklusif Diamond VIP! 💎</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="club-perks-grid">
+          <div class="perk-card">
+            <div class="perk-icon">🎁</div>
+            <h4>Hadiah Ulang Tahun</h4>
+            <p>Dapatkan kado spesial produk mini serum SYB gratis di bulan ulang tahun Anda.</p>
+          </div>
+          <div class="perk-card">
+            <div class="perk-icon">🚀</div>
+            <h4>Prioritas Antrean Resi</h4>
+            <p>Pesanan member dikemas dan diterbitkan nomor resi otomatis dalam tempo 1-2 jam kerja.</p>
+          </div>
+          <div class="perk-card">
+            <div class="perk-icon">💄</div>
+            <h4>Early Access Launch</h4>
+            <p>Uji coba inovasi produk terbaru SYB Official sebelum diluncurkan ke pasar luas.</p>
+          </div>
+          <div class="perk-card">
+            <div class="perk-icon">🚚</div>
+            <h4>Subsidi Ongkos Kirim</h4>
+            <p>Voucher gratis ongkir bulanan yang langsung masuk ke akun tanpa klaim manual.</p>
+          </div>
+        </div>
+      </div>
+    }
+  </div>
+
+  <!-- ==================== TRACKING MODAL ==================== -->
+  @if (activeTrackingOrder(); as order) {
+    <div class="tracking-modal-backdrop" (click)="closeTrackingModal()">
+      <div class="tracking-modal-content" (click)="$event.stopPropagation()">
+        <!-- Header -->
+        <header class="tracking-modal-header">
+          <div class="tracking-header-info">
+            <div class="tracking-courier-tag">
+              <span class="courier-badge-circle">{{ order.courier }}</span>
+              <span class="tracking-header-title">Lacak Pengiriman Pesanan</span>
+            </div>
+            <div class="tracking-awb-box">
+              <span class="awb-title">Nomor Resi:</span>
+              <code class="awb-number">{{ order.trackingNumber }}</code>
+              <button class="btn-copy-mini" (click)="copyTrackingNumber(order.trackingNumber)">Salin</button>
+            </div>
+          </div>
+          <button class="modal-close-btn" (click)="closeTrackingModal()" aria-label="Tutup modal">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          </button>
+        </header>
+
+        <!-- Destination & Courier Summary -->
+        <div class="tracking-meta-summary">
+          <div class="meta-item">
+            <span class="meta-label">Nomor Order:</span>
+            <strong>{{ order.orderNumber }}</strong>
+          </div>
+          <div class="meta-item">
+            <span class="meta-label">Layanan Ekspedisi:</span>
+            <strong>{{ order.serviceName }}</strong>
+          </div>
+          <div class="meta-item">
+            <span class="meta-label">Tujuan Penerima:</span>
+            <strong>{{ order.customerName }} &bull; {{ order.shippingAddress.city }}</strong>
+          </div>
+          <div class="meta-item">
+            <span class="meta-label">Status Terkini:</span>
+            <span class="badge-status-now">{{ order.fulfillmentStatus }}</span>
+          </div>
+        </div>
+
+        <!-- Milestones Timeline -->
+        <div class="tracking-timeline">
+          <h4 class="timeline-heading">Riwayat Perjalanan Paket</h4>
+          <ol class="milestone-steps">
+            @for (step of shippingService.getTrackingMilestones(order); track step.title) {
+              <li class="milestone-item" [class.is-completed]="step.status === 'completed'" [class.is-active]="step.status === 'active'">
+                <div class="milestone-icon-col">
+                  <div class="milestone-dot">
+                    @if (step.status === 'completed') {
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
+                    } @else if (step.status === 'active') {
+                      <span class="active-pulse-dot"></span>
+                    }
+                  </div>
+                  <div class="milestone-line"></div>
+                </div>
+
+                <div class="milestone-text-col">
+                  <div class="milestone-title-row">
+                    <span class="milestone-title">{{ step.title }}</span>
+                    <time class="milestone-time">{{ step.time }}</time>
+                  </div>
+                  <div class="milestone-location">{{ step.location }}</div>
+                  <p class="milestone-desc">{{ step.description }}</p>
+                </div>
+              </li>
+            }
+          </ol>
+        </div>
+
+        <!-- Footer -->
+        <footer class="tracking-modal-footer">
+          <span class="sync-info">⚡ Terhubung dengan API Manifest Resmi {{ order.courier }}</span>
+          <button class="btn-close-tracking" (click)="closeTrackingModal()">Tutup</button>
+        </footer>
+      </div>
+    </div>
+  }
+
+  <!-- ==================== EDIT ADDRESS MODAL ==================== -->
+  @if (isEditAddressModalOpen()) {
+    <div class="tracking-modal-backdrop" (click)="closeEditAddressModal()">
+      <div class="edit-modal-content" (click)="$event.stopPropagation()">
+        <header class="edit-modal-header">
+          <h3>Ubah Alamat Pengiriman Utama</h3>
+          <button class="modal-close-btn" (click)="closeEditAddressModal()" aria-label="Tutup modal">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          </button>
+        </header>
+
+        <form (submit)="saveAddress($event)" class="edit-address-form">
+          <div class="form-row-2">
+            <div class="form-group">
+              <label class="form-label" for="edit-name">Nama Penerima</label>
+              <input
+                id="edit-name"
+                type="text"
+                class="form-input"
+                [value]="editName()"
+                (input)="editName.set($any($event.target).value)"
+                required
+              />
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="edit-phone">No. Handphone / WhatsApp</label>
+              <input
+                id="edit-phone"
+                type="text"
+                class="form-input"
+                [value]="editPhone()"
+                (input)="editPhone.set($any($event.target).value)"
+                required
+              />
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="edit-street">Alamat Lengkap (Jalan, RT/RW, No. Rumah / Patokan)</label>
+            <textarea
+              id="edit-street"
+              class="form-textarea"
+              rows="2"
+              [value]="editStreet()"
+              (input)="editStreet.set($any($event.target).value)"
+              required
+            ></textarea>
+          </div>
+
+          <div class="form-row-3">
+            <div class="form-group">
+              <label class="form-label" for="edit-city">Kota / Kabupaten</label>
+              <input
+                id="edit-city"
+                type="text"
+                class="form-input"
+                [value]="editCity()"
+                (input)="editCity.set($any($event.target).value)"
+                required
+              />
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="edit-province">Provinsi</label>
+              <input
+                id="edit-province"
+                type="text"
+                class="form-input"
+                [value]="editProvince()"
+                (input)="editProvince.set($any($event.target).value)"
+                required
+              />
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="edit-postal">Kode Pos</label>
+              <input
+                id="edit-postal"
+                type="text"
+                class="form-input"
+                [value]="editPostalCode()"
+                (input)="editPostalCode.set($any($event.target).value)"
+                required
+              />
+            </div>
+          </div>
+
+          <div class="edit-modal-actions">
+            <button type="button" class="btn-cancel" (click)="closeEditAddressModal()">Batal</button>
+            <button type="submit" class="btn-save-address">Simpan Perubahan</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  }
+
+  <!-- Toast Notification -->
+  @if (toastMessage(); as msg) {
+    <div class="profile-toast" role="alert">
+      {{ msg }}
+    </div>
+  }
+</main>

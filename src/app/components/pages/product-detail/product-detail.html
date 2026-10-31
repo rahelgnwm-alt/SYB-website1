@@ -1,0 +1,341 @@
+@if (product(); as p) {
+  <main class="pdp" id="top">
+    <!-- Background glow blobs -->
+    <div class="pdp__bg" aria-hidden="true">
+      <span [style.background]="p.accentColor || 'var(--grad-brand)'"></span>
+      <span></span>
+    </div>
+
+    <div class="container">
+      <!-- ============================== BREADCRUMB ============================== -->
+      <nav class="breadcrumb" aria-label="Breadcrumb" appReveal>
+        <a routerLink="/">Beranda</a>
+        <span>/</span>
+        <a routerLink="/products">Semua Produk</a>
+        <span>/</span>
+        <span class="active">{{ p.title }}</span>
+      </nav>
+
+      <!-- ============================== MAIN HERO STAGE ============================== -->
+      <div class="pdp__hero">
+        <!-- Media Showcase -->
+        <div class="pdp__media-col" appReveal>
+          <div class="pdp__card" appTilt>
+            <!-- Badge Overlay -->
+            <div class="pdp__badges">
+              @if (p.badge) {
+                <span class="pdp__badge">{{ p.badge }}</span>
+              }
+              @if (discountPct() > 0) {
+                <span class="pdp__badge pdp__badge--off">-{{ discountPct() }}%</span>
+              }
+            </div>
+
+            <!-- Main Image -->
+            <div class="pdp__img-wrap">
+              <img [src]="p.image" [alt]="p.title" fetchpriority="high" />
+            </div>
+
+            <!-- BPOM Verified Pill -->
+            <div class="bpom-pill">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" /><path d="m9 12 2 2 4-4" /></svg>
+              <span>BPOM RI: <b>{{ p.bpomNumber }}</b></span>
+            </div>
+          </div>
+
+          <!-- Trust Guarantees -->
+          <div class="guarantees" appReveal [revealDelay]="100">
+            <div class="guarantee-item">
+              <span class="guarantee-icon">🚚</span>
+              <div>
+                <b>Bebas Ongkir</b>
+                <small>Min. belanja 150rb</small>
+              </div>
+            </div>
+            <div class="guarantee-item">
+              <span class="guarantee-icon">🛡️</span>
+              <div>
+                <b>100% Original</b>
+                <small>Langsung Official Store</small>
+              </div>
+            </div>
+            <div class="guarantee-item">
+              <span class="guarantee-icon">🧪</span>
+              <div>
+                <b>Aman & Halal</b>
+                <small>Lulus uji dermatologi</small>
+              </div>
+            </div>
+            <div class="guarantee-item">
+              <span class="guarantee-icon">⚡</span>
+              <div>
+                <b>Kirim 24 Jam</b>
+                <small>Packing bubble wrap tebal</small>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Buy Box & Information -->
+        <div class="pdp__info-col" appReveal [revealDelay]="120">
+          <div class="pdp__meta">
+            <span class="eyebrow">{{ p.categoryLabel }} · {{ p.productType }}</span>
+            <div class="rating-badge">
+              <span class="stars">★★★★★</span>
+              <b>{{ p.rating }}</b>
+              <small>({{ p.reviewsCount | number }} ulasan pembeli)</small>
+            </div>
+          </div>
+
+          <h1 class="display pdp__title">{{ p.title }}</h1>
+          <p class="pdp__tagline">{{ p.heroTagline || p.subtitle }}</p>
+
+          <!-- Price Section -->
+          <div class="price-box">
+            <div class="price-box__row">
+              <span class="price-box__current">{{ rupiah(currentPrice()) }}</span>
+              @if (originalPrice() > currentPrice()) {
+                <s class="price-box__orig">{{ rupiah(originalPrice()) }}</s>
+                <span class="price-box__save">Hemat {{ rupiah(originalPrice() - currentPrice()) }}</span>
+              }
+            </div>
+
+            <!-- Flash Sale Countdown if active -->
+            @if (p.isFlashSale) {
+              <div class="flash-alert">
+                <span class="flash-alert__dot"></span>
+                <span><b>Flash Sale Aktif:</b> Berakhir dalam <b>{{ time.countdown().h }}:{{ time.countdown().m }}:{{ time.countdown().s }}</b></span>
+              </div>
+            }
+          </div>
+
+          <!-- Variant Selector -->
+          @if (p.variants && p.variants.length > 0) {
+            <div class="variant-section">
+              <label class="variant-label">
+                Pilih Varian: <b>{{ selectedVariant()?.name || 'Default' }}</b>
+              </label>
+              <div class="variant-chips" role="radiogroup">
+                @for (v of p.variants; track v.id) {
+                  <button
+                    type="button"
+                    class="variant-chip"
+                    [class.active]="selectedVariant()?.id === v.id"
+                    (click)="selectVariant(v)"
+                  >
+                    <span>{{ v.name }}</span>
+                    <small>{{ rupiah(v.price) }}</small>
+                  </button>
+                }
+              </div>
+            </div>
+          }
+
+          <!-- Quantity & Stock -->
+          <div class="qty-section">
+            <div class="qty-picker">
+              <button type="button" (click)="changeQty(-1)" aria-label="Kurang satu" [disabled]="qty() <= 1">−</button>
+              <span aria-live="polite">{{ qty() }}</span>
+              <button type="button" (click)="changeQty(1)" aria-label="Tambah satu">+</button>
+            </div>
+            <span class="stock-status">
+              <i class="stock-dot"></i> Stok Tersedia (Siap Kirim)
+            </span>
+          </div>
+
+          <!-- Action CTAs -->
+          <div class="action-buttons">
+            <button
+              type="button"
+              class="btn btn--primary btn--add"
+              (click)="addToCart($event)"
+              appMagnetic
+              id="pdp-add-cart"
+            >
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M5 8h14l-1.2 11.2a2 2 0 0 1-2 1.8H8.2a2 2 0 0 1-2-1.8L5 8Z" /><path d="M9 8V6a3 3 0 0 1 6 0v2" stroke-linecap="round" /></svg>
+              Tambah ke Keranjang
+            </button>
+
+            <a
+              [href]="waUrl()"
+              target="_blank"
+              rel="noopener"
+              class="btn btn--whatsapp"
+              appMagnetic
+              id="pdp-wa-order"
+            >
+              <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12.04 2c-5.46 0-9.91 4.45-9.91 9.91 0 1.75.46 3.45 1.32 4.95L2.05 22l5.25-1.38c1.45.79 3.08 1.21 4.74 1.21 5.46 0 9.91-4.45 9.91-9.91 0-2.65-1.03-5.14-2.9-7.01A9.816 9.816 0 0 0 12.04 2m.01 1.67c2.2 0 4.26.86 5.82 2.42a8.225 8.225 0 0 1 2.41 5.83c0 4.54-3.7 8.24-8.24 8.24-1.48 0-2.93-.4-4.2-1.15l-.3-.18-3.12.82.83-3.04-.2-.31a8.196 8.196 0 0 1-1.26-4.38c0-4.54 3.7-8.24 8.24-8.24m4.52 11.66c-.25-.13-1.47-.72-1.7-.81-.23-.08-.39-.13-.56.13-.17.25-.64.81-.79.97-.14.17-.29.19-.54.06-.25-.13-1.06-.39-2.01-1.24-.74-.66-1.24-1.48-1.39-1.73-.14-.25-.02-.39.11-.51.11-.11.25-.29.37-.43.13-.14.17-.25.25-.42.08-.17.04-.31-.02-.44-.06-.13-.56-1.35-.77-1.85-.2-.49-.41-.42-.56-.43h-.48c-.17 0-.44.06-.66.31-.23.25-.87.85-.87 2.08s.89 2.41 1.01 2.58c.13.17 1.75 2.67 4.23 3.74.59.26 1.05.41 1.41.53.59.19 1.13.16 1.56.1.47-.07 1.47-.6 1.67-1.18.21-.58.21-1.07.15-1.18-.06-.1-.21-.17-.46-.29Z"/></svg>
+              Beli via WhatsApp
+            </a>
+          </div>
+
+          <!-- Tabs Deep Dive -->
+          <div class="tabs-box">
+            <div class="tabs-nav" role="tablist">
+              <button
+                type="button"
+                class="tab-btn"
+                [class.active]="activeTab() === 'desc'"
+                (click)="activeTab.set('desc')"
+              >Deskripsi</button>
+              <button
+                type="button"
+                class="tab-btn"
+                [class.active]="activeTab() === 'benefits'"
+                (click)="activeTab.set('benefits')"
+              >Manfaat</button>
+              <button
+                type="button"
+                class="tab-btn"
+                [class.active]="activeTab() === 'ingredients'"
+                (click)="activeTab.set('ingredients')"
+              >Bahan Aktif</button>
+              <button
+                type="button"
+                class="tab-btn"
+                [class.active]="activeTab() === 'how-to'"
+                (click)="activeTab.set('how-to')"
+              >Cara Pakai</button>
+            </div>
+
+            <div class="tab-content">
+              @if (activeTab() === 'desc') {
+                <div class="tab-pane">
+                  <p>{{ p.description }}</p>
+                  <p class="tab-note"><b>Netto / Ukuran:</b> {{ p.subtitle }}</p>
+                  <p class="tab-note"><b>Keamanan:</b> Terdaftar resmi BPOM RI &amp; CPKB Halal Indonesia.</p>
+                </div>
+              }
+
+              @if (activeTab() === 'benefits') {
+                <div class="tab-pane">
+                  <ul class="benefit-list">
+                    @for (b of p.benefits; track b) {
+                      <li>
+                        <span class="check-icon">✓</span>
+                        <span>{{ b }}</span>
+                      </li>
+                    }
+                  </ul>
+                </div>
+              }
+
+              @if (activeTab() === 'ingredients') {
+                <div class="tab-pane">
+                  <p class="mb-3">Kandungan utama berstandar dermatologis:</p>
+                  <div class="chips-wrap">
+                    @for (ing of p.keyIngredients; track ing) {
+                      <span class="ing-chip">✦ {{ ing }}</span>
+                    }
+                  </div>
+                </div>
+              }
+
+              @if (activeTab() === 'how-to') {
+                <div class="tab-pane">
+                  <ol class="steps-list">
+                    @for (s of p.howToUse; track s; let j = $index) {
+                      <li>
+                        <span class="step-num">0{{ j + 1 }}</span>
+                        <span>{{ s }}</span>
+                      </li>
+                    }
+                  </ol>
+                </div>
+              }
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ============================== CUSTOMER REVIEWS ============================== -->
+      <section class="reviews-section" aria-labelledby="reviews-title">
+        <div class="section-head" appReveal>
+          <p class="eyebrow">Ulasan Pembeli Terverifikasi</p>
+          <h2 id="reviews-title" class="display section-head__title">Cerita Kulit <span class="gradient-text">Glowing Mereka</span></h2>
+        </div>
+
+        <div class="reviews-grid">
+          @for (r of reviews(); track r.id; let i = $index) {
+            <div class="review-card" appReveal [revealDelay]="i * 80">
+              <div class="review-card__top">
+                <div class="review-card__user">
+                  <div class="user-avatar">{{ r.author.charAt(0) }}</div>
+                  <div>
+                    <b>{{ r.author }}</b>
+                    <small>{{ r.city }} · {{ r.skinType }}</small>
+                  </div>
+                </div>
+                <span class="verified-pill">✓ Terverifikasi</span>
+              </div>
+              <div class="review-card__stars">★★★★★</div>
+              <p class="review-card__text">“{{ r.comment }}”</p>
+              <span class="review-card__time">{{ r.timeAgo }}</span>
+            </div>
+          }
+        </div>
+      </section>
+
+      <!-- ============================== RELATED PRODUCTS ============================== -->
+      <section class="related-section" aria-labelledby="related-title">
+        <div class="section-head" appReveal>
+          <p class="eyebrow">Rekomendasi Terbaik</p>
+          <h2 id="related-title" class="display section-head__title">Lengkapi <span class="gradient-text">Ritual Glowingmu</span></h2>
+        </div>
+
+        <div class="related-grid">
+          @for (rel of related(); track rel.id; let i = $index) {
+            <a
+              class="p-card"
+              [routerLink]="['/products', rel.id]"
+              [style.--tint]="rel.tint"
+              appTilt
+              appReveal
+              [revealDelay]="i * 90"
+              [id]="'rel-product-' + rel.id"
+            >
+              <div class="p-card__media">
+                <span class="p-card__glow"></span>
+                <img [src]="rel.image" [alt]="rel.name" loading="lazy" />
+                @if (rel.badge) {
+                  <span class="p-card__badge">{{ rel.badge }}</span>
+                }
+                <span class="p-card__off">-{{ discount(rel) }}%</span>
+              </div>
+              <div class="p-card__info">
+                <p class="p-card__tag">{{ rel.tagline }}</p>
+                <h3 class="p-card__name">{{ rel.name }}</h3>
+                <div class="p-card__row">
+                  <p class="p-card__price">
+                    {{ rupiah(rel.price) }}
+                    <s>{{ rupiah(rel.compareAt) }}</s>
+                  </p>
+                  <button
+                    class="p-card__add"
+                    (click)="addRelatedToCart($event, rel)"
+                    [attr.aria-label]="'Tambah ' + rel.name + ' ke keranjang'"
+                  >
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 5v14M5 12h14" stroke-linecap="round" /></svg>
+                  </button>
+                </div>
+              </div>
+            </a>
+          }
+        </div>
+      </section>
+    </div>
+  </main>
+} @else {
+  <!-- Fallback if product not found -->
+  <main class="not-found container">
+    <div class="not-found__card" appReveal>
+      <span class="not-found__icon">🔍</span>
+      <h1 class="display not-found__title">Produk Tidak Ditemukan</h1>
+      <p>Produk yang kamu cari mungkin telah berganti nama atau sedang tidak tersedia di etalase kami.</p>
+      <a routerLink="/products" class="btn btn--primary" appMagnetic>
+        Kembali ke Semua Produk
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M13 6l6 6-6 6" stroke-linecap="round" stroke-linejoin="round" /></svg>
+      </a>
+    </div>
+  </main>
+}

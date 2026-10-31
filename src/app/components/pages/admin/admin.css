@@ -1,0 +1,395 @@
+/* ==========================================================================
+   SYBOFFICIAL SHOPIFY PLUS ADMIN - MAIN SHELL LAYOUT
+   ========================================================================== */
+
+:host {
+  display: block;
+}
+
+/* Layout Container */
+.shopify-layout {
+  display: flex;
+  min-height: 100vh;
+  background-color: #f6f7f9;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  color: #1a1a1a;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ==================== SIDEBAR ==================== */
+.shopify-sidebar {
+  width: 260px;
+  background-color: #111213;
+  color: #e3e5e8;
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+  border-right: 1px solid #222426;
+  height: 100vh;
+  position: sticky;
+  top: 0;
+  overflow-y: auto;
+  z-index: 50;
+}
+
+.sidebar-header {
+  padding: 1.25rem 1.15rem;
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  border-bottom: 1px solid #222426;
+  background: #0d0e0f;
+}
+
+.store-avatar {
+  width: 38px;
+  height: 38px;
+  background: linear-gradient(135deg, #ff0a6c 0%, #ff528c 100%);
+  color: #ffffff;
+  border-radius: 9px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  font-size: 0.9rem;
+  letter-spacing: -0.02em;
+  box-shadow: 0 4px 12px rgba(255, 10, 108, 0.35);
+}
+
+.store-meta {
+  display: flex;
+  flex-direction: column;
+}
+
+.store-name {
+  font-size: 0.95rem;
+  font-weight: 800;
+  color: #ffffff;
+  margin: 0;
+  letter-spacing: -0.01em;
+}
+
+.store-plan {
+  font-size: 0.7rem;
+  color: #9ca3af;
+}
+
+.sidebar-nav {
+  padding: 1rem 0.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  flex: 1;
+}
+
+.nav-section-title {
+  font-size: 0.68rem;
+  font-weight: 700;
+  color: #6b7280;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 0.75rem 0.75rem 0.35rem;
+}
+
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.6rem 0.85rem;
+  border-radius: 8px;
+  color: #c9cccf;
+  text-decoration: none;
+  font-size: 0.85rem;
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+  width: 100%;
+  text-align: left;
+  transition: all 0.15s ease;
+  position: relative;
+  box-sizing: border-box;
+}
+
+.nav-item:hover {
+  background: #202224;
+  color: #ffffff;
+}
+
+.nav-item.active {
+  background: #2b2e31;
+  color: #ffffff;
+  font-weight: 700;
+  box-shadow: inset 3px 0 0 #ff0a6c;
+}
+
+.nav-icon {
+  font-size: 1.1rem;
+}
+
+.nav-text {
+  flex: 1;
+}
+
+.nav-counter {
+  font-size: 0.72rem;
+  background: #26292b;
+  color: #c9cccf;
+  padding: 0.15rem 0.55rem;
+  border-radius: 999px;
+  font-weight: 700;
+}
+
+.nav-counter.shipping-badge {
+  background: #183c5c;
+  color: #63b3ed;
+}
+
+.nav-counter.alert {
+  background: #e27d00;
+  color: #ffffff;
+  font-weight: 800;
+}
+
+.nav-quick-btn {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.55rem 0.85rem;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px dashed rgba(255, 255, 255, 0.15);
+  border-radius: 7px;
+  color: #d1d5db;
+  text-decoration: none;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  margin-top: 0.2rem;
+}
+
+.nav-quick-btn:hover {
+  background: rgba(255, 10, 108, 0.12);
+  border-color: #ff0a6c;
+  color: #ff85b3;
+}
+
+.nav-quick-btn kbd {
+  background: #222426;
+  color: #9ca3af;
+  font-size: 0.68rem;
+  padding: 0.1rem 0.35rem;
+  border-radius: 4px;
+  border: 1px solid #333;
+}
+
+.online-store-link {
+  color: #93c5fd;
+  text-decoration: none;
+}
+
+.online-store-link:hover {
+  color: #bfdbfe;
+}
+
+.link-ext {
+  margin-left: auto;
+  font-size: 0.8rem;
+  opacity: 0.7;
+}
+
+.sidebar-footer {
+  padding: 1rem 1.15rem;
+  border-top: 1px solid #222426;
+  background: #0d0e0f;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.admin-profile {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.user-avatar {
+  width: 32px;
+  height: 32px;
+  background: #374151;
+  color: #ffffff;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.75rem;
+  font-weight: 700;
+  border: 2px solid #4b5563;
+}
+
+.user-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.user-name {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: #ffffff;
+}
+
+.user-role {
+  font-size: 0.68rem;
+  color: #9ca3af;
+}
+
+.btn-logout {
+  background: #202224;
+  border: 1px solid #333;
+  color: #d1d5db;
+  border-radius: 6px;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: all 0.15s;
+}
+
+.btn-logout:hover {
+  background: #ef4444;
+  color: #ffffff;
+  border-color: #ef4444;
+}
+
+/* ==================== MAIN CONTENT ==================== */
+.shopify-main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  background: #f6f7f9;
+}
+
+/* Topbar */
+.shopify-topbar {
+  height: 56px;
+  background: #ffffff;
+  border-bottom: 1px solid #e1e3e5;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 1.75rem;
+  position: sticky;
+  top: 0;
+  z-index: 40;
+}
+
+.topbar-warehouse-status {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.82rem;
+  background: #f0fdf4;
+  color: #166534;
+  border: 1px solid #bbf7d0;
+  padding: 0.35rem 0.85rem;
+  border-radius: 20px;
+}
+
+.warehouse-pulse-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #16a34a;
+  animation: pulseGreen 1.5s infinite;
+}
+
+.warehouse-title {
+  font-weight: 700;
+}
+
+.warehouse-sep {
+  opacity: 0.5;
+}
+
+.warehouse-hub-name {
+  font-size: 0.75rem;
+  color: #15803d;
+}
+
+.topbar-right-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.topbar-quick-link {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #202223;
+  text-decoration: none;
+  padding: 0.4rem 0.85rem;
+  border-radius: 6px;
+  background: #f1f2f3;
+  border: 1px solid #e1e3e5;
+  transition: all 0.15s;
+}
+
+.topbar-quick-link:hover {
+  background: #e4e5e7;
+}
+
+.topbar-quick-link.pink {
+  background: #fff0f6;
+  color: #ff0a6c;
+  border-color: #fbcfe8;
+}
+
+.topbar-quick-link.pink:hover {
+  background: #ff0a6c;
+  color: #ffffff;
+}
+
+.topbar-store-link {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #2563eb;
+  text-decoration: none;
+  padding: 0.4rem 0.85rem;
+  border-radius: 6px;
+  transition: all 0.15s;
+}
+
+.topbar-store-link:hover {
+  background: #eff6ff;
+}
+
+/* Canvas where routed children render */
+.shopify-canvas {
+  padding: 1.75rem;
+  flex: 1;
+}
+
+@keyframes pulseGreen {
+  0% { transform: scale(0.9); opacity: 0.8; }
+  50% { transform: scale(1.2); opacity: 1; }
+  100% { transform: scale(0.9); opacity: 0.8; }
+}
+
+@media (max-width: 900px) {
+  .shopify-sidebar {
+    width: 70px;
+  }
+  .store-meta, .nav-text, .nav-counter, .nav-section-title, .user-info, .link-ext, .nav-quick-btn span, .nav-quick-btn kbd {
+    display: none;
+  }
+  .nav-item {
+    justify-content: center;
+    padding: 0.75rem;
+  }
+  .warehouse-hub-name, .warehouse-sep {
+    display: none;
+  }
+}

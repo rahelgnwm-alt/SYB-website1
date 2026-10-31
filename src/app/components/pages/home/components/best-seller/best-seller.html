@@ -1,0 +1,70 @@
+<section class="products" aria-labelledby="products-title">
+  <div class="container products__head">
+    <div appReveal>
+      <p class="eyebrow">Best Seller & Favorit</p>
+      <h2 id="products-title" class="display products__title">Diracik untuk<br /><span class="gradient-text">glow-up kamu</span></h2>
+    </div>
+    <div class="products__intro" appReveal [revealDelay]="120">
+      <p>Bahan aktif pilihan seperti Niacinamide, AHA, DNA Salmon & Vitamin C — diformulasikan lembut untuk kulit sehat dan terawat setiap hari.</p>
+      <div class="rail-nav">
+        <button (click)="scrollRail(-1)" aria-label="Sebelumnya" id="rail-prev">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 6l-6 6 6 6" stroke-linecap="round" stroke-linejoin="round" /></svg>
+        </button>
+        <button (click)="scrollRail(1)" aria-label="Berikutnya" id="rail-next">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 6l6 6-6 6" stroke-linecap="round" stroke-linejoin="round" /></svg>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div
+    #rail
+    class="rail"
+    (pointerdown)="railDown($event)"
+    (pointermove)="railMove($event)"
+    (pointerup)="railUp()"
+    (pointerleave)="railUp()"
+    (click)="railClick($event)"
+  >
+    @for (p of products; track p.id; let i = $index) {
+      <a
+        class="p-card"
+        [routerLink]="['/products', p.id]"
+        [style.--tint]="p.tint"
+        [style.--i]="i"
+        appTilt
+        appReveal
+        [revealDelay]="(i % 5) * 90"
+        data-cursor="view"
+        draggable="false"
+        [id]="'product-' + p.id"
+      >
+        <div class="p-card__media">
+          <span class="p-card__glow"></span>
+          <img [src]="p.image" [alt]="p.name" loading="lazy" draggable="false" />
+          @if (p.badge) {
+            <span class="p-card__badge" [class.new]="p.badge === 'New'" [class.bundle]="p.badge === 'Bundling'">{{ p.badge }}</span>
+          }
+          <span class="p-card__off">-{{ discount(p) }}%</span>
+        </div>
+        <div class="p-card__info">
+          <p class="p-card__tag">{{ p.tagline }}</p>
+          <h3 class="p-card__name">{{ p.name }}</h3>
+          <div class="p-card__row">
+            <p class="p-card__price">
+              {{ rupiah(p.price) }}
+              <s>{{ rupiah(p.compareAt) }}</s>
+            </p>
+            <button class="p-card__add" (click)="addToCart($event, p)" [attr.aria-label]="'Tambah ' + p.name + ' ke keranjang'" data-cursor="hover">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 5v14M5 12h14" stroke-linecap="round" /></svg>
+            </button>
+          </div>
+        </div>
+      </a>
+    }
+    <a class="p-card p-card--more" routerLink="/products" draggable="false" id="product-see-all">
+      <span>Lihat<br />semua<br />produk</span>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M5 12h14M13 6l6 6-6 6" stroke-linecap="round" stroke-linejoin="round" /></svg>
+    </a>
+  </div>
+</section>
