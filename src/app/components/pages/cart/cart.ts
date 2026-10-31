@@ -4,8 +4,6 @@ import { MagneticDirective, RevealDirective } from '../../../directives';
 import { PRODUCTS, Product, SHOP_URL, productUrl } from '../../../data';
 import { CartService } from '../../../services/cart.service';
 
-const WHATSAPP = '6281333369909';
-
 /** Cart page (route: "/cart"). */
 @Component({
   selector: 'app-cart',
@@ -23,12 +21,6 @@ export class Cart {
   protected readonly suggestions = computed(() => {
     const inCart = new Set(this.cart.lines().map((l) => l.product.id));
     return PRODUCTS.filter((p) => !inCart.has(p.id)).slice(0, 4);
-  });
-
-  protected readonly whatsappUrl = computed(() => {
-    const rows = this.cart.lines().map((l) => `• ${l.qty}x ${l.product.name} — ${this.rupiah(l.product.price * l.qty)}`);
-    const text = `Halo SYB Official 💗, aku mau pesan:\n${rows.join('\n')}\n\nTotal: ${this.rupiah(this.cart.subtotal())}`;
-    return `https://wa.me/${WHATSAPP}?text=${encodeURIComponent(text)}`;
   });
 
   protected add(e: MouseEvent, p: Product) {

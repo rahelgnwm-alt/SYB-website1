@@ -71,12 +71,9 @@
 
           <p class="total"><span>Total</span><b>{{ rupiah(cart.subtotal()) }}</b></p>
 
-          <a class="btn btn--primary btn--block" [href]="whatsappUrl()" target="_blank" rel="noopener" appMagnetic="0.2" id="cart-whatsapp">
-            Pesan via WhatsApp
+          <a class="btn btn--primary btn--block" href="{{ shopUrl }}/cart" target="_blank" rel="noopener" appMagnetic="0.2" id="cart-checkout">
+            Checkout Sekarang
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M13 6l6 6-6 6" stroke-linecap="round" stroke-linejoin="round" /></svg>
-          </a>
-          <a class="btn btn--outline btn--block" href="{{ shopUrl }}/cart" target="_blank" rel="noopener" id="cart-checkout">
-            Checkout di toko resmi
           </a>
           <button type="button" class="summary__clear" (click)="cart.clear()" id="cart-clear">Kosongkan keranjang</button>
         </aside>

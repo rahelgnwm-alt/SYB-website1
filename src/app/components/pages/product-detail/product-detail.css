@@ -403,38 +403,58 @@
 /* Action CTAs */
 .action-buttons {
   display: grid;
-  grid-template-columns: 1.4fr 1fr;
+  grid-template-columns: 1fr 1fr;
   gap: 14px;
   margin-bottom: 36px;
 }
 
 .btn--add {
-  padding: 20px 28px;
-  font-size: 16px;
+  padding: 18px 24px;
+  font-size: 15px;
   justify-content: center;
 }
 
-.btn--whatsapp {
+.btn--secondary {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 10px;
-  padding: 20px 24px;
+  padding: 18px 24px;
   border-radius: var(--radius-pill);
-  background: #25d366;
-  color: var(--white);
+  background: var(--pink-100);
+  color: var(--pink-900);
+  border: 1.5px solid var(--pink-400);
   font-weight: 700;
   font-size: 15px;
-  box-shadow: 0 12px 30px -10px rgba(37, 211, 102, 0.5);
-  transition: transform 0.4s var(--ease-jelly), box-shadow 0.3s;
+  cursor: pointer;
+  box-shadow: 0 4px 14px rgba(255, 107, 176, 0.15);
+  transition: all 0.3s var(--ease-out);
 }
 
-.btn--whatsapp:hover {
+.btn--secondary:hover {
+  background: var(--pink-200);
+  border-color: var(--pink-900);
   transform: translateY(-2px);
-  box-shadow: 0 16px 36px -10px rgba(37, 211, 102, 0.7);
+  box-shadow: 0 10px 24px -8px rgba(255, 10, 108, 0.35);
 }
 
-.btn--whatsapp svg {
+.btn--secondary svg {
+  width: 20px;
+  height: 20px;
+}
+
+.btn--buy-now {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 18px 24px;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.btn--buy-now svg {
   width: 20px;
   height: 20px;
 }

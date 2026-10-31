@@ -6,7 +6,7 @@ import {
   signal,
 } from '@angular/core';
 import { DecimalPipe } from '@angular/common';
-import { ActivatedRoute, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { map } from 'rxjs';
 import { PRODUCTS, Product as DataProduct } from '../../../data';
@@ -15,8 +15,6 @@ import { ProductService } from '../../../services/product.service';
 import { CartService } from '../../../services/cart.service';
 import { TimeService } from '../../../services/time.service';
 import { MagneticDirective, RevealDirective, TiltDirective } from '../../../directives';
-
-const WHATSAPP_NUMBER = '6281333369909';
 
 @Component({
   selector: 'app-product-detail',
@@ -27,6 +25,7 @@ const WHATSAPP_NUMBER = '6281333369909';
 })
 export class ProductDetail {
   private readonly route = inject(ActivatedRoute);
+  private readonly router = inject(Router);
   private readonly productService = inject(ProductService);
   protected readonly cart = inject(CartService);
   protected readonly time = inject(TimeService);
@@ -81,15 +80,6 @@ export class ProductDetail {
     return PRODUCTS.filter((p) => p.id !== curr?.id).slice(0, 4);
   });
 
-  /** WhatsApp order link */
-  protected readonly waUrl = computed(() => {
-    const p = this.product();
-    if (!p) return `https://wa.me/${WHATSAPP_NUMBER}`;
-    const variantName = this.selectedVariant()?.name ? ` (${this.selectedVariant()?.name})` : '';
-    const text = `Halo SYB Official 💗, saya mau pesan:\n• ${this.qty()}x ${p.title}${variantName} — ${this.rupiah(this.currentPrice() * this.qty())}\n\nApakah stok masih tersedia?`;
-    return `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(text)}`;
-  });
-
   constructor() {
     // When product changes, reset variant and qty
     this.route.paramMap.subscribe(() => {
@@ -132,6 +122,11 @@ export class ProductDetail {
     for (let i = 0; i < this.qty(); i++) {
       this.cart.add(dataProd, i === 0 ? (e.currentTarget as HTMLElement) : undefined);
     }
+  }
+
+  protected buyNow(e: MouseEvent) {
+    this.addToCart(e);
+    this.router.navigate(['/cart']);
   }
 
   protected addRelatedToCart(e: MouseEvent, p: DataProduct) {
