@@ -74,6 +74,31 @@ export class ProductDetail {
   /** Real customer reviews */
   protected readonly reviews = this.productService.reviews;
 
+  /** Animation and transition states for ultra-smooth product switching */
+  protected readonly isTransitioning = signal<boolean>(false);
+  protected readonly animKey = signal<number>(0);
+  protected readonly variantChanging = signal<boolean>(false);
+
+  /** Previous product in catalog for smooth browsing */
+  protected readonly prevProduct = computed<Product | null>(() => {
+    const curr = this.product();
+    if (!curr) return null;
+    const all = this.productService.products();
+    const idx = all.findIndex((p) => p.id === curr.id || p.handle === curr.id);
+    if (idx <= 0) return all[all.length - 1] ?? null;
+    return all[idx - 1] ?? null;
+  });
+
+  /** Next product in catalog for smooth browsing */
+  protected readonly nextProduct = computed<Product | null>(() => {
+    const curr = this.product();
+    if (!curr) return null;
+    const all = this.productService.products();
+    const idx = all.findIndex((p) => p.id === curr.id || p.handle === curr.id);
+    if (idx < 0 || idx >= all.length - 1) return all[0] ?? null;
+    return all[idx + 1] ?? null;
+  });
+
   /** Related products recommendations */
   protected readonly related = computed<DataProduct[]>(() => {
     const curr = this.product();
@@ -81,8 +106,14 @@ export class ProductDetail {
   });
 
   constructor() {
-    // When product changes, reset variant and qty
+    // When product changes, smooth scroll to top and trigger silky-smooth transition
     this.route.paramMap.subscribe(() => {
+      if (typeof window !== 'undefined') {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+      this.isTransitioning.set(true);
+      this.animKey.update((k) => k + 1);
+
       const p = this.product();
       if (p?.variants && p.variants.length > 0) {
         this.selectedVariant.set(p.variants[0]);
@@ -90,11 +121,20 @@ export class ProductDetail {
         this.selectedVariant.set(null);
       }
       this.qty.set(1);
+
+      setTimeout(() => {
+        this.isTransitioning.set(false);
+      }, 550);
     });
   }
 
   protected selectVariant(v: ProductVariant) {
+    if (this.selectedVariant()?.id === v.id) return;
+    this.variantChanging.set(true);
     this.selectedVariant.set(v);
+    setTimeout(() => {
+      this.variantChanging.set(false);
+    }, 350);
   }
 
   protected changeQty(delta: number) {

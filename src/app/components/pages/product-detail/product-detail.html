@@ -7,20 +7,38 @@
     </div>
 
     <div class="container">
-      <!-- ============================== BREADCRUMB ============================== -->
-      <nav class="breadcrumb" aria-label="Breadcrumb" appReveal>
-        <a routerLink="/">Beranda</a>
-        <span>/</span>
-        <a routerLink="/products">Semua Produk</a>
-        <span>/</span>
-        <span class="active">{{ p.title }}</span>
-      </nav>
+      <!-- ============================== TOP NAV BAR ============================== -->
+      <div class="pdp__top-row" appReveal>
+        <nav class="breadcrumb" aria-label="Breadcrumb">
+          <a routerLink="/">Beranda</a>
+          <span>/</span>
+          <a routerLink="/products">Semua Produk</a>
+          <span>/</span>
+          <span class="active">{{ p.title }}</span>
+        </nav>
+
+        <div class="product-nav-pager" aria-label="Navigasi antar produk">
+          @if (prevProduct(); as prev) {
+            <a [routerLink]="['/products', prev.id]" class="product-nav-btn prev" [title]="'Produk Sebelumnya: ' + prev.title">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M15 19l-7-7 7-7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              <span class="nav-label">Sebelumnya</span>
+            </a>
+          }
+          <span class="product-nav-sep">•</span>
+          @if (nextProduct(); as next) {
+            <a [routerLink]="['/products', next.id]" class="product-nav-btn next" [title]="'Produk Selanjutnya: ' + next.title">
+              <span class="nav-label">Selanjutnya</span>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M9 5l7 7-7 7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </a>
+          }
+        </div>
+      </div>
 
       <!-- ============================== MAIN HERO STAGE ============================== -->
-      <div class="pdp__hero">
+      <div class="pdp__hero" [class.is-switching]="isTransitioning()">
         <!-- Media Showcase -->
         <div class="pdp__media-col" appReveal>
-          <div class="pdp__card" appTilt>
+          <div class="pdp__card" appTilt [class.pulse-transition]="isTransitioning()" [class.variant-pulse]="variantChanging()">
             <!-- Badge Overlay -->
             <div class="pdp__badges">
               @if (p.badge) {
@@ -31,9 +49,9 @@
               }
             </div>
 
-            <!-- Main Image -->
+            <!-- Main Image with Cross-Fade Transition -->
             <div class="pdp__img-wrap">
-              <img [src]="p.image" [alt]="p.title" fetchpriority="high" />
+              <img [src]="p.image" [alt]="p.title" fetchpriority="high" class="pdp__main-img" [class.img-swap]="isTransitioning() || variantChanging()" />
             </div>
 
             <!-- BPOM Verified Pill -->
@@ -77,7 +95,7 @@
         </div>
 
         <!-- Buy Box & Information -->
-        <div class="pdp__info-col" appReveal [revealDelay]="120">
+        <div class="pdp__info-col" appReveal [revealDelay]="120" [class.info-swap]="isTransitioning()">
           <div class="pdp__meta">
             <span class="eyebrow">{{ p.categoryLabel }} · {{ p.productType }}</span>
             <div class="rating-badge">
@@ -91,7 +109,7 @@
           <p class="pdp__tagline">{{ p.heroTagline || p.subtitle }}</p>
 
           <!-- Price Section -->
-          <div class="price-box">
+          <div class="price-box" [class.price-pulse]="variantChanging() || isTransitioning()">
             <div class="price-box__row">
               <span class="price-box__current">{{ rupiah(currentPrice()) }}</span>
               @if (originalPrice() > currentPrice()) {

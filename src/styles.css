@@ -349,4 +349,37 @@ button {
     clip-path: none !important;
   }
 }
-.heart-burst{position:fixed;z-index:300;pointer-events:none;font-size:18px;color:var(--c,#ff0a6c);animation:heart-burst 0.9s cubic-bezier(0.16,1,0.3,1) forwards}@keyframes heart-burst{from{transform:translate(-50%,-50%) scale(0.4);opacity:1}to{transform:translate(calc(-50% + var(--tx)),calc(-50% + var(--ty))) scale(1.2);opacity:0}}  
+
+.heart-burst{position:fixed;z-index:300;pointer-events:none;font-size:18px;color:var(--c,#ff0a6c);animation:heart-burst 0.9s cubic-bezier(0.16,1,0.3,1) forwards}@keyframes heart-burst{from{transform:translate(-50%,-50%) scale(0.4);opacity:1}to{transform:translate(calc(-50% + var(--tx)),calc(-50% + var(--ty))) scale(1.2);opacity:0}}
+
+/* Smooth View Transitions for seamless product and route navigation */
+@supports (view-transition-name: none) {
+  ::view-transition-old(root) {
+    animation: 0.35s cubic-bezier(0.16, 1, 0.3, 1) both fadeOutScale;
+  }
+  ::view-transition-new(root) {
+    animation: 0.35s cubic-bezier(0.16, 1, 0.3, 1) both fadeInScale;
+  }
+}
+
+@keyframes fadeOutScale {
+  0% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(0.985);
+  }
+}
+
+@keyframes fadeInScale {
+  0% {
+    opacity: 0;
+    transform: scale(1.015);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
