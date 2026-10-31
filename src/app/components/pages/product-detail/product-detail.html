@@ -341,6 +341,35 @@
         </div>
       </section>
     </div>
+
+    <!-- ============================== MOBILE STICKY CTA BAR ============================== -->
+    <div class="mobile-sticky-bar" [class.is-visible]="scrolledPastHero()" aria-label="Aksi Cepat Pembelian">
+      <div class="mobile-sticky-info">
+        <img [src]="p.image" [alt]="p.title" class="mobile-sticky-thumb" />
+        <div class="mobile-sticky-text">
+          <span class="mobile-sticky-name">{{ p.title }}</span>
+          <span class="mobile-sticky-price">{{ rupiah(currentPrice()) }}</span>
+        </div>
+      </div>
+      <div class="mobile-sticky-btns">
+        <button
+          type="button"
+          class="btn-sticky-add"
+          (click)="addToCart($event)"
+          title="Tambah ke Keranjang"
+          aria-label="Tambah ke Keranjang"
+        >
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M5 8h14l-1.2 11.2a2 2 0 0 1-2 1.8H8.2a2 2 0 0 1-2-1.8L5 8Z"/><path d="M9 8V6a3 3 0 0 1 6 0v2"/></svg>
+        </button>
+        <button
+          type="button"
+          class="btn-sticky-buy"
+          (click)="buyNow($event)"
+        >
+          <span>Beli Sekarang</span>
+        </button>
+      </div>
+    </div>
   </main>
 } @else {
   <!-- Fallback if product not found -->

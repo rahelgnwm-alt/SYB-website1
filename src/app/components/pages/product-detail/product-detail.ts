@@ -2,6 +2,7 @@ import {
   ChangeDetectionStrategy,
   Component,
   computed,
+  HostListener,
   inject,
   signal,
 } from '@angular/core';
@@ -78,6 +79,14 @@ export class ProductDetail {
   protected readonly isTransitioning = signal<boolean>(false);
   protected readonly animKey = signal<number>(0);
   protected readonly variantChanging = signal<boolean>(false);
+  protected readonly scrolledPastHero = signal<boolean>(false);
+
+  @HostListener('window:scroll')
+  onWindowScroll(): void {
+    if (typeof window !== 'undefined') {
+      this.scrolledPastHero.set(window.scrollY > 420);
+    }
+  }
 
   /** Previous product in catalog for smooth browsing */
   protected readonly prevProduct = computed<Product | null>(() => {

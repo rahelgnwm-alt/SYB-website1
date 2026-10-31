@@ -378,18 +378,176 @@
   100% { transform: scale(0.9); opacity: 0.8; }
 }
 
-@media (max-width: 900px) {
+/* ==================== RESPONSIVE DESIGN (TABLET & PHONE) ==================== */
+
+/* Tablet View (700px - 1024px) */
+@media (min-width: 700px) and (max-width: 1024px) {
   .shopify-sidebar {
-    width: 70px;
+    width: 72px;
   }
   .store-meta, .nav-text, .nav-counter, .nav-section-title, .user-info, .link-ext, .nav-quick-btn span, .nav-quick-btn kbd {
     display: none;
   }
   .nav-item {
     justify-content: center;
-    padding: 0.75rem;
+    padding: 0.85rem 0.5rem;
   }
   .warehouse-hub-name, .warehouse-sep {
     display: none;
+  }
+  .shopify-canvas {
+    padding: 1.25rem 1rem;
+  }
+}
+
+/* Phone View (< 700px) */
+@media (max-width: 699px) {
+  .shopify-layout {
+    flex-direction: column !important;
+    min-height: 100vh;
+    padding-bottom: 64px !important;
+  }
+
+  /* Transform sidebar into high-end mobile bottom nav */
+  .shopify-sidebar {
+    position: fixed !important;
+    bottom: 0 !important;
+    top: auto !important;
+    left: 0 !important;
+    right: 0 !important;
+    width: 100% !important;
+    height: 60px !important;
+    flex-direction: row !important;
+    align-items: center !important;
+    justify-content: space-around !important;
+    padding: 0 4px env(safe-area-inset-bottom, 0) !important;
+    z-index: 1000 !important;
+    border-right: none !important;
+    border-top: 1px solid #282a2d !important;
+    background: #111213 !important;
+    box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.4) !important;
+    overflow: hidden !important;
+  }
+
+  .sidebar-header,
+  .nav-section-title,
+  .nav-quick-btn,
+  .sidebar-footer,
+  .online-store-link,
+  .nav-counter {
+    display: none !important;
+  }
+
+  .sidebar-nav {
+    flex-direction: row;
+    justify-content: space-around;
+    align-items: center;
+    width: 100%;
+    padding: 0;
+    gap: 4px;
+    margin: 0;
+  }
+
+  .nav-item {
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+    padding: 6px 12px;
+    font-size: 11px;
+    border-radius: 8px;
+    flex: 1;
+  }
+
+  .nav-item .nav-icon {
+    font-size: 18px;
+  }
+
+  .nav-item .nav-text {
+    display: block !important;
+    font-size: 10px;
+    font-weight: 700;
+    color: #9ca3af;
+  }
+
+  .nav-item.active .nav-text {
+    color: #ff0a6c;
+  }
+
+  /* Topbar on phone */
+  .shopify-topbar {
+    padding: 10px 12px;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  .warehouse-hub-name,
+  .warehouse-sep {
+    display: none;
+  }
+
+  .warehouse-title {
+    font-size: 0.75rem;
+  }
+
+  .topbar-right-actions {
+    gap: 6px;
+  }
+
+  .topbar-quick-link {
+    font-size: 0.72rem;
+    padding: 0.35rem 0.65rem;
+  }
+
+  .topbar-store-link {
+    font-size: 0.72rem;
+    padding: 0.35rem 0.65rem;
+  }
+
+  /* Canvas on phone */
+  .shopify-canvas {
+    padding: 12px 10px;
+  }
+}
+
+/* Global Table & Card Responsiveness for Admin Views */
+.orders-table-card,
+.products-table-card,
+.shipments-table-card,
+.card-content-table {
+  overflow-x: auto !important;
+  -webkit-overflow-scrolling: touch;
+  width: 100%;
+}
+
+.orders-table-card table,
+.products-table-card table,
+.shipments-table-card table {
+  min-width: 680px;
+}
+
+@media (max-width: 900px) {
+  .kpi-grid.four-cols {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 10px !important;
+  }
+}
+
+@media (max-width: 540px) {
+  .kpi-grid.four-cols {
+    grid-template-columns: 1fr !important;
+  }
+  .page-header-row {
+    flex-direction: column;
+    align-items: stretch !important;
+    gap: 12px !important;
+  }
+  .header-actions {
+    width: 100%;
+  }
+  .header-actions button,
+  .header-actions .btn-primary-black {
+    width: 100%;
+    justify-content: center;
   }
 }

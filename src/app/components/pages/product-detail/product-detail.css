@@ -1003,15 +1003,329 @@
   line-height: 1.6;
 }
 
-@media (max-width: 1100px) {
-  .pdp__hero { grid-template-columns: 1fr; }
-  .related-grid { grid-template-columns: repeat(2, 1fr); }
+/* ============================== RESPONSIVE DESIGN (TABLET & PHONE) ============================== */
+
+/* Mobile Sticky Floating CTA Bar (hidden on desktop, active on phone) */
+.mobile-sticky-bar {
+  display: none;
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 100;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  padding: 10px 16px env(safe-area-inset-bottom, 12px);
+  border-top: 1px solid rgba(255, 139, 198, 0.35);
+  box-shadow: 0 -10px 30px rgba(61, 15, 48, 0.12);
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  transform: translateY(120%);
+  transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-@media (max-width: 720px) {
-  .action-buttons { grid-template-columns: 1fr; }
-  .guarantees { grid-template-columns: 1fr; }
-  .related-grid { grid-template-columns: 1fr; }
-  .tabs-nav { flex-wrap: wrap; }
-  .tab-btn { flex: 1 1 50%; }
+.mobile-sticky-bar.is-visible {
+  transform: translateY(0);
+}
+
+.mobile-sticky-info {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+  flex: 1;
+}
+
+.mobile-sticky-thumb {
+  width: 44px;
+  height: 44px;
+  border-radius: 10px;
+  object-fit: cover;
+  flex-shrink: 0;
+  border: 1px solid rgba(255, 139, 198, 0.3);
+}
+
+.mobile-sticky-text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.mobile-sticky-name {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--plum);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.mobile-sticky-price {
+  font-size: 14px;
+  font-weight: 800;
+  color: var(--pink-900);
+}
+
+.mobile-sticky-btns {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.btn-sticky-add {
+  width: 44px;
+  height: 44px;
+  border-radius: var(--radius-pill);
+  background: var(--pink-100);
+  color: var(--pink-900);
+  border: 1px solid var(--pink-400);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-sticky-add:active {
+  transform: scale(0.92);
+}
+
+.btn-sticky-add svg {
+  width: 20px;
+  height: 20px;
+}
+
+.btn-sticky-buy {
+  padding: 0 18px;
+  height: 44px;
+  border-radius: var(--radius-pill);
+  background: var(--grad-brand);
+  color: var(--white);
+  font-weight: 700;
+  font-size: 13.5px;
+  border: none;
+  cursor: pointer;
+  box-shadow: 0 4px 14px rgba(255, 10, 108, 0.35);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  white-space: nowrap;
+}
+
+.btn-sticky-buy:active {
+  transform: scale(0.95);
+}
+
+/* Tablet View (700px - 1024px) */
+@media (min-width: 700px) and (max-width: 1024px) {
+  .pdp__hero {
+    grid-template-columns: 1fr 1fr;
+    gap: 28px;
+    margin-bottom: 64px;
+  }
+
+  .pdp__card {
+    border-radius: 24px;
+  }
+
+  .pdp__title {
+    font-size: clamp(28px, 3.8vw, 38px);
+  }
+
+  .price-box__current {
+    font-size: 36px;
+  }
+
+  .action-buttons {
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+
+  .btn--add, .btn--buy-now {
+    padding: 16px 14px;
+    font-size: 14px;
+  }
+
+  .related-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+  }
+}
+
+/* Phone View (< 700px) */
+@media (max-width: 699px) {
+  .mobile-sticky-bar {
+    display: flex;
+  }
+
+  .pdp {
+    padding-bottom: 120px;
+  }
+
+  .pdp__top-row {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+    margin-bottom: 20px;
+  }
+
+  .breadcrumb {
+    overflow-x: auto;
+    white-space: nowrap;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    padding-bottom: 4px;
+  }
+
+  .breadcrumb::-webkit-scrollbar { display: none; }
+
+  .product-nav-pager {
+    width: 100%;
+    justify-content: space-between;
+    padding: 6px 14px;
+  }
+
+  .pdp__hero {
+    grid-template-columns: 1fr;
+    gap: 24px;
+    margin-bottom: 50px;
+  }
+
+  .pdp__media-col {
+    max-width: 440px;
+    margin-inline: auto;
+    width: 100%;
+  }
+
+  .pdp__card {
+    border-radius: 20px;
+  }
+
+  .pdp__title {
+    font-size: 26px;
+    line-height: 1.22;
+  }
+
+  .pdp__tagline {
+    font-size: 14.5px;
+  }
+
+  .price-box {
+    padding: 16px 18px;
+  }
+
+  .price-box__current {
+    font-size: 32px;
+  }
+
+  .variant-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .variant-chip {
+    padding: 8px 14px;
+    font-size: 13px;
+    min-height: 42px;
+  }
+
+  .action-buttons {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    margin-bottom: 24px;
+  }
+
+  .btn--add, .btn--buy-now {
+    padding: 14px 10px;
+    font-size: 13.5px;
+    gap: 6px;
+    border-radius: 14px;
+    justify-content: center;
+  }
+
+  .btn--add svg, .btn--buy-now svg {
+    width: 18px;
+    height: 18px;
+  }
+
+  .guarantees {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+  }
+
+  .guarantee-item {
+    padding: 12px 10px;
+    font-size: 12px;
+  }
+
+  /* Horizontal swipeable tabs on phone */
+  .tabs-nav {
+    display: flex;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    padding: 6px;
+    gap: 6px;
+    background: #fbf2f7;
+    border-bottom: 1px solid rgba(255, 139, 198, 0.25);
+  }
+
+  .tabs-nav::-webkit-scrollbar { display: none; }
+
+  .tab-btn {
+    flex: 0 0 auto;
+    padding: 10px 16px;
+    font-size: 13px;
+    border-radius: var(--radius-pill);
+    white-space: nowrap;
+    border: none;
+  }
+
+  .tab-btn.active {
+    background: var(--white);
+    color: var(--pink-900);
+    box-shadow: 0 4px 12px rgba(255, 10, 108, 0.15);
+  }
+
+  .tab-pane {
+    padding: 22px 18px;
+  }
+
+  .reviews-grid {
+    grid-template-columns: 1fr;
+    gap: 14px;
+  }
+
+  .related-grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+
+  .p-card__media {
+    border-radius: 20px;
+  }
+
+  .p-card__info {
+    padding: 12px 2px 0;
+  }
+
+  .p-card__name {
+    font-size: 14.5px;
+    margin: 4px 0 8px;
+  }
+
+  .p-card__price {
+    font-size: 16px;
+  }
+
+  .p-card__add {
+    width: 36px;
+    height: 36px;
+  }
 }

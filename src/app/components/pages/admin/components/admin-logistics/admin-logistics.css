@@ -1363,3 +1363,41 @@ input:checked + .slider:before { transform: translateX(16px); }
 
 @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 @keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+
+/* Tablet & Phone View for Logistics */
+@media (max-width: 768px) {
+  .modal-box.wide {
+    width: 100vw !important;
+    height: 100vh !important;
+    max-height: 100vh !important;
+    border-radius: 0 !important;
+    padding: 16px !important;
+    overflow-y: auto !important;
+  }
+  .form-grid.two-cols {
+    grid-template-columns: 1fr !important;
+  }
+  .warehouse-origin-banner {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .banner-origin-stats {
+    width: 100%;
+    justify-content: space-between;
+  }
+  .table-filters-bar {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+  }
+  .filter-tabs {
+    overflow-x: auto;
+    flex-wrap: nowrap;
+    padding-bottom: 4px;
+    scrollbar-width: none;
+  }
+  .filter-tabs::-webkit-scrollbar { display: none; }
+  .table-tools {
+    flex-direction: column;
+  }
+}
