@@ -1,0 +1,446 @@
+<div class="flash-sale-view">
+  <!-- Toast Notification -->
+  @if (toastMessage()) {
+    <div class="flash-toast" role="status" aria-live="polite">
+      <span class="toast-bolt">⚡</span>
+      <span class="toast-text">{{ toastMessage() }}</span>
+    </div>
+  }
+
+  <!-- Header -->
+  <header class="fs-header">
+    <div class="header-titles">
+      <div class="header-badge-row">
+        <span class="badge-tag-flash">⚡ Manajemen Flash Sale</span>
+        @if (time.flashSaleConfig().isActive) {
+          <span class="badge-status-live">
+            <span class="pulse-dot"></span> LIVE AKTIF DI WEB
+          </span>
+        } @else {
+          <span class="badge-status-paused">⏸️ NON-AKTIF (PAUSED)</span>
+        }
+      </div>
+      <h1 class="header-main-title">Pengaturan Jam &amp; Produk Flash Sale</h1>
+      <p class="header-desc">
+        Tentukan jam berakhir atau durasi countdown Flash Sale, pilih produk mana saja yang ingin diikutsertakan, dan atur harga diskon spesial per produk.
+      </p>
+    </div>
+
+    <div class="header-actions">
+      <!-- Master Switch -->
+      <button
+        type="button"
+        class="btn-master-switch"
+        [class.btn-active]="time.flashSaleConfig().isActive"
+        (click)="toggleMasterSwitch()"
+      >
+        <span class="switch-bullet"></span>
+        <span>{{ time.flashSaleConfig().isActive ? 'Flash Sale: AKTIF' : 'Flash Sale: NON-AKTIF' }}</span>
+      </button>
+
+      <a routerLink="/" fragment="flash-title" target="_blank" class="btn-preview-store" title="Lihat banner di homepage">
+        <span>Lihat di Toko ↗</span>
+      </a>
+    </div>
+  </header>
+
+  <!-- ==================== SECTION 1: SETTING JAM & LIVE PREVIEW ==================== -->
+  <section class="fs-schedule-grid">
+    <!-- Schedule Settings Box -->
+    <div class="schedule-settings-card">
+      <div class="card-head">
+        <div class="card-title-group">
+          <span class="icon-clock">🕒</span>
+          <div>
+            <h2 class="card-title">1. Atur Jam Berakhir Flash Sale (WIB)</h2>
+            <p class="card-subtitle">Pilih jam target countdown atau tambah durasi waktu live.</p>
+          </div>
+        </div>
+        <span class="wib-current-pill">
+          Waktu WIB Sekarang: <b>{{ time.clockLabel() }}</b>
+        </span>
+      </div>
+
+      <!-- Hour Presets -->
+      <div class="schedule-presets-block">
+        <span class="block-label">Pilih Jam Target Selesai (WIB):</span>
+        <div class="hour-presets-row">
+          @for (preset of hourPresets; track preset.label) {
+            <button
+              type="button"
+              class="btn-hour-preset"
+              [class.active]="selectedEndHour() === preset.hour && selectedEndMinute() === preset.min"
+              (click)="applyHourPreset(preset.hour, preset.min)"
+            >
+              {{ preset.label }}
+            </button>
+          }
+        </div>
+      </div>
+
+      <!-- Custom Hour Picker & Save -->
+      <div class="custom-hour-row">
+        <div class="hour-inputs-wrap">
+          <div class="picker-group">
+            <label for="hour-picker">Jam (00 - 24):</label>
+            <input
+              id="hour-picker"
+              type="number"
+              min="0"
+              max="24"
+              [ngModel]="selectedEndHour()"
+              (ngModelChange)="selectedEndHour.set($event)"
+            />
+          </div>
+          <span class="time-colon">:</span>
+          <div class="picker-group">
+            <label for="min-picker">Menit (00 - 59):</label>
+            <input
+              id="min-picker"
+              type="number"
+              min="0"
+              max="59"
+              [ngModel]="selectedEndMinute()"
+              (ngModelChange)="selectedEndMinute.set($event)"
+            />
+          </div>
+          <span class="wib-label">WIB</span>
+        </div>
+
+        <button type="button" class="btn-save-schedule" (click)="saveScheduleByHour()">
+          <span>✓ Terapkan Jam Ini</span>
+        </button>
+      </div>
+
+      <!-- Duration Quick Add Buttons -->
+      <div class="duration-block">
+        <span class="block-label">Atau Tambah Durasi dari Sekarang:</span>
+        <div class="duration-btns-row">
+          @for (hrs of durationPresets; track hrs) {
+            <button type="button" class="btn-duration" (click)="applyDurationPreset(hrs)">
+              +{{ hrs }} Jam
+            </button>
+          }
+        </div>
+      </div>
+
+      <!-- Banner Text Customization -->
+      <div class="banner-texts-block">
+        <div class="text-inputs-row">
+          <div class="text-input-item">
+            <label for="event-title">Judul Banner:</label>
+            <input
+              id="event-title"
+              type="text"
+              [ngModel]="eventTitle()"
+              (ngModelChange)="eventTitle.set($event)"
+              placeholder="Contoh: Flash sale berakhir dalam"
+            />
+          </div>
+          <div class="text-input-item">
+            <label for="event-subtitle">Teks Eyebrow:</label>
+            <input
+              id="event-subtitle"
+              type="text"
+              [ngModel]="eventSubtitle()"
+              (ngModelChange)="eventSubtitle.set($event)"
+              placeholder="Contoh: Limited time offer"
+            />
+          </div>
+          <button type="button" class="btn-save-titles" (click)="saveTitles()">
+            Simpan Teks
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Live Website Simulation Preview Card -->
+    <div class="live-preview-card">
+      <div class="preview-badge-row">
+        <span class="preview-tag">👁️ Live Website Preview</span>
+        <span class="preview-status" [class.is-live]="time.flashSaleConfig().isActive">
+          {{ time.flashSaleConfig().isActive ? 'LIVE TICKING' : 'PAUSED' }}
+        </span>
+      </div>
+
+      <div class="preview-banner-mockup">
+        <p class="mockup-eyebrow">{{ time.flashSaleConfig().subtitle }}</p>
+        <h3 class="mockup-title">{{ time.flashSaleConfig().title }}</h3>
+
+        <!-- Actual Responsive 3-Box Ticker -->
+        <div class="mockup-countdown">
+          <div class="mockup-box">
+            <b>{{ time.countdown().h }}</b>
+            <small>Jam</small>
+          </div>
+          <span class="mockup-colon">:</span>
+          <div class="mockup-box">
+            <b>{{ time.countdown().m }}</b>
+            <small>Menit</small>
+          </div>
+          <span class="mockup-colon">:</span>
+          <div class="mockup-box">
+            <b>{{ time.countdown().s }}</b>
+            <small>Detik</small>
+          </div>
+        </div>
+
+        <div class="mockup-btn-demo">
+          <span>Ambil Promonya &rarr;</span>
+        </div>
+      </div>
+
+      <div class="preview-meta-footer">
+        <span>Target Selesai: <b>{{ selectedEndHour() === 24 ? '23:59 (Midnight)' : (selectedEndHour() + ':' + (selectedEndMinute() < 10 ? '0' : '') + selectedEndMinute()) }} WIB</b></span>
+        <span>Total Produk Aktif: <b>{{ enrolledCount() }} Produk</b></span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==================== SECTION 2: PRODUCT ENROLLMENT & FLASH PRICING ==================== -->
+  <section class="fs-products-section">
+    <!-- Navigation Tabs -->
+    <div class="section-tabs-bar">
+      <div class="tab-buttons">
+        <button
+          type="button"
+          class="fs-tab"
+          [class.active]="activeTab() === 'enrolled'"
+          (click)="activeTab.set('enrolled')"
+        >
+          <span class="tab-icon">⚡</span>
+          <span>Produk Terpilih Flash Sale</span>
+          <span class="tab-counter">{{ enrolledCount() }}</span>
+        </button>
+
+        <button
+          type="button"
+          class="fs-tab"
+          [class.active]="activeTab() === 'catalog'"
+          (click)="activeTab.set('catalog')"
+        >
+          <span class="tab-icon">➕</span>
+          <span>Pilih &amp; Tambah dari Katalog</span>
+          <span class="tab-counter-sub">{{ productService.products().length }}</span>
+        </button>
+      </div>
+
+      <!-- Quick Batch Actions for Enrolled -->
+      @if (activeTab() === 'enrolled') {
+        <div class="enrolled-quick-actions">
+          <button type="button" class="btn-enroll-best" (click)="enrollAllBestSellers()">
+            + Masukkan Semua Best Seller
+          </button>
+          <button type="button" class="btn-enroll-bulk-disc" (click)="applyBulkDiscountToEnrolled(50)">
+            Set 50% Semua Flash Sale
+          </button>
+          @if (enrolledCount() > 0) {
+            <button type="button" class="btn-clear-fs" (click)="removeAllFromFlashSale()">
+              ✕ Kosongkan
+            </button>
+          }
+        </div>
+      }
+    </div>
+
+    <!-- TAB 1: ENROLLED PRODUCTS LIST & SPECIAL DISCOUNTS -->
+    @if (activeTab() === 'enrolled') {
+      <div class="enrolled-container">
+        @if (enrolledCount() === 0) {
+          <div class="empty-enrolled-state">
+            <span class="empty-bolt">⚡</span>
+            <h3>Belum Ada Produk yang Masuk Flash Sale</h3>
+            <p>Pilih produk dari katalog untuk diikutsertakan dalam event Flash Sale ini.</p>
+            <button type="button" class="btn-go-catalog" (click)="activeTab.set('catalog')">
+              + Pilih Produk dari Katalog Sekarang
+            </button>
+          </div>
+        } @else {
+          <div class="enrolled-table-wrap">
+            <table class="fs-table">
+              <thead>
+                <tr>
+                  <th class="col-fs-prod">Produk Flash Sale</th>
+                  <th class="col-fs-orig">Harga Coret</th>
+                  <th class="col-fs-disc">Diskon Flash Sale (%)</th>
+                  <th class="col-fs-price">Harga Flash Sale (Rp)</th>
+                  <th class="col-fs-quota">Alokasi Kuota</th>
+                  <th class="col-fs-action">Aksi</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (product of enrolledProducts(); track product.id) {
+                  @let disc = calcDiscountPercent(product);
+                  <tr>
+                    <!-- Product Info -->
+                    <td class="col-fs-prod">
+                      <div class="fs-prod-cell">
+                        <img [src]="product.image" [alt]="product.title" class="fs-thumb" />
+                        <div>
+                          <div class="fs-prod-title">{{ product.title }}</div>
+                          <div class="fs-prod-cat">
+                            <span class="pill-cat-mini">{{ product.categoryLabel }}</span>
+                            <span class="badge-fs-tag">⚡ FLASH SALE</span>
+                          </div>
+                        </div>
+                      </div>
+                    </td>
+
+                    <!-- Original Price -->
+                    <td class="col-fs-orig">
+                      <span class="orig-price-label">Rp {{ product.originalPrice.toLocaleString('id-ID') }}</span>
+                    </td>
+
+                    <!-- Special Discount -->
+                    <td class="col-fs-disc">
+                      <div class="fs-disc-stepper">
+                        <div class="disc-input-box">
+                          <input
+                            type="number"
+                            min="1"
+                            max="99"
+                            [value]="disc"
+                            (change)="onDiscountChange(product, $any($event.target).value)"
+                          />
+                          <span class="disc-pct-symbol">%</span>
+                        </div>
+
+                        <!-- Quick Presets -->
+                        <div class="mini-disc-presets">
+                          <button type="button" (click)="setQuickDiscount(product, 40)">40%</button>
+                          <button type="button" (click)="setQuickDiscount(product, 50)">50%</button>
+                          <button type="button" (click)="setQuickDiscount(product, 70)">70%</button>
+                        </div>
+                      </div>
+                    </td>
+
+                    <!-- Flash Sale Price -->
+                    <td class="col-fs-price">
+                      <div class="fs-price-input-box">
+                        <span class="rp-tag">Rp</span>
+                        <input
+                          type="number"
+                          step="500"
+                          min="0"
+                          [value]="product.price"
+                          (change)="onPriceChange(product, $any($event.target).value)"
+                        />
+                      </div>
+                      <span class="fs-savings-note">Hemat Rp {{ (product.originalPrice - product.price).toLocaleString('id-ID') }}</span>
+                    </td>
+
+                    <!-- Quota Limit -->
+                    <td class="col-fs-quota">
+                      <div class="quota-input-box">
+                        <input
+                          type="number"
+                          min="1"
+                          [value]="product.flashSaleQuota || 50"
+                          (change)="onQuotaChange(product, $any($event.target).value)"
+                        />
+                        <span class="quota-unit">pcs</span>
+                      </div>
+                    </td>
+
+                    <!-- Remove Button -->
+                    <td class="col-fs-action">
+                      <button
+                        type="button"
+                        class="btn-remove-from-fs"
+                        (click)="toggleProductEnrollment(product)"
+                        title="Keluarkan dari Flash Sale"
+                      >
+                        ✕ Keluarkan
+                      </button>
+                    </td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        }
+      </div>
+    }
+
+    <!-- TAB 2: CATALOG SELECTION (PICK ANY PRODUCT) -->
+    @if (activeTab() === 'catalog') {
+      <div class="catalog-picker-container">
+        <!-- Search & Filter Bar -->
+        <div class="catalog-filter-bar">
+          <div class="search-wrap">
+            <span class="search-ico">🔍</span>
+            <input
+              type="text"
+              placeholder="Cari produk untuk dimasukkan ke Flash Sale..."
+              [ngModel]="catalogSearchQuery()"
+              (ngModelChange)="catalogSearchQuery.set($event)"
+            />
+          </div>
+
+          <div class="category-filter-pills">
+            @for (cat of ['Semua', 'Wajah', 'Tubuh', 'Makeup', 'Paket Ritual']; track cat) {
+              <button
+                type="button"
+                class="pill-filter"
+                [class.active]="catalogCategory() === cat"
+                (click)="catalogCategory.set(cat)"
+              >
+                {{ cat }}
+              </button>
+            }
+          </div>
+        </div>
+
+        <!-- Product Cards Grid -->
+        <div class="catalog-grid">
+          @for (prod of availableProducts(); track prod.id) {
+            @let isEnrolled = prod.isFlashSale;
+            @let disc = calcDiscountPercent(prod);
+
+            <div class="catalog-item-card" [class.is-enrolled]="isEnrolled">
+              <div class="card-thumb-wrap">
+                <img [src]="prod.image" [alt]="prod.title" class="card-thumb" />
+                @if (isEnrolled) {
+                  <span class="badge-enrolled-bolt">⚡ AKTIF FLASH SALE</span>
+                }
+              </div>
+
+              <div class="card-content">
+                <div class="card-category-tag">{{ prod.categoryLabel }}</div>
+                <h4 class="card-prod-title">{{ prod.title }}</h4>
+
+                <div class="card-price-row">
+                  <div class="price-stack">
+                    <span class="current-price">Rp {{ prod.price.toLocaleString('id-ID') }}</span>
+                    @if (prod.originalPrice > prod.price) {
+                      <span class="strikethrough-price">Rp {{ prod.originalPrice.toLocaleString('id-ID') }}</span>
+                    }
+                  </div>
+                  @if (disc > 0) {
+                    <span class="discount-pill-green">{{ disc }}% OFF</span>
+                  }
+                </div>
+
+                <div class="card-action-bar">
+                  <button
+                    type="button"
+                    class="btn-toggle-enroll"
+                    [class.btn-enrolled]="isEnrolled"
+                    (click)="toggleProductEnrollment(prod)"
+                  >
+                    @if (isEnrolled) {
+                      <span>✓ Masuk Flash Sale (Klik utk Keluarkan)</span>
+                    } @else {
+                      <span>⚡ + Masukkan ke Flash Sale</span>
+                    }
+                  </button>
+                </div>
+              </div>
+            </div>
+          }
+        </div>
+      </div>
+    }
+  </section>
+</div>
+

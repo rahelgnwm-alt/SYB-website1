@@ -36,6 +36,18 @@ export interface Product {
   isFeatured?: boolean;
   isFlashSale?: boolean;
   costPrice?: number;
+  flashSalePrice?: number;
+  flashSaleDiscount?: number;
+  flashSaleQuota?: number;
+}
+
+export interface FlashSaleConfig {
+  isActive: boolean;
+  endHour: number; // 0-23 in WIB
+  endMinute: number; // 0-59
+  title: string;
+  subtitle: string;
+  targetTimestamp?: number | null;
 }
 
 export interface ReviewItem {

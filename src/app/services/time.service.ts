@@ -1,4 +1,5 @@
 import { Injectable, computed, signal } from '@angular/core';
+import { FlashSaleConfig } from '../models/product.model';
 
 const WIB_FORMATTER = new Intl.DateTimeFormat('en-GB', {
   timeZone: 'Asia/Jakarta',
@@ -8,6 +9,17 @@ const WIB_FORMATTER = new Intl.DateTimeFormat('en-GB', {
   hour12: false,
 });
 
+const FLASH_SALE_STORAGE_KEY = 'syb_flash_sale_config';
+
+const DEFAULT_FLASH_SALE_CONFIG: FlashSaleConfig = {
+  isActive: true,
+  endHour: 24, // 24 = midnight WIB
+  endMinute: 0,
+  title: 'Flash sale berakhir dalam',
+  subtitle: 'Limited time offer',
+  targetTimestamp: null,
+};
+
 /**
  * Reactive Jakarta (WIB) time service.
  * Drives live clocks, greetings, and flash-sale countdowns across the app.
@@ -15,6 +27,7 @@ const WIB_FORMATTER = new Intl.DateTimeFormat('en-GB', {
 @Injectable({ providedIn: 'root' })
 export class TimeService {
   readonly now = signal(new Date());
+  readonly flashSaleConfig = signal<FlashSaleConfig>(this.loadFlashSaleConfig());
 
   /** Current time in Jakarta (WIB), independent of visitor's local timezone. */
   readonly wib = computed(() => {
@@ -51,11 +64,37 @@ export class TimeService {
     return 'Malam ini, saatnya me-time 🌙';
   });
 
-  /** Flash sale countdown to next midnight WIB. */
+  /** Flash sale countdown matching the admin-configured end hour or duration. */
   readonly countdown = computed(() => {
+    const config = this.flashSaleConfig();
+    const pad = (n: number) => String(Math.max(0, n)).padStart(2, '0');
+
+    if (!config.isActive) {
+      return { h: '00', m: '00', s: '00' };
+    }
+
+    // 1. Duration / specific target timestamp mode
+    if (config.targetTimestamp) {
+      const diffSec = Math.max(0, Math.floor((config.targetTimestamp - this.now().getTime()) / 1000));
+      return {
+        h: pad(Math.floor(diffSec / 3600)),
+        m: pad(Math.floor((diffSec % 3600) / 60)),
+        s: pad(diffSec % 60),
+      };
+    }
+
+    // 2. Fixed End Hour WIB mode (e.g. 18:00 WIB, 21:00 WIB, or 24:00 WIB midnight)
     const { h, m, s } = this.wib();
-    const left = 24 * 3600 - (h * 3600 + m * 60 + s);
-    const pad = (n: number) => String(n).padStart(2, '0');
+    const nowSec = h * 3600 + m * 60 + s;
+    const targetHour = config.endHour === 0 ? 24 : config.endHour;
+    const targetSec = targetHour * 3600 + config.endMinute * 60;
+
+    let left = targetSec - nowSec;
+    if (left <= 0) {
+      // If end hour has passed today, roll over to the same end hour tomorrow
+      left += 24 * 3600;
+    }
+
     return {
       h: pad(Math.floor(left / 3600)),
       m: pad(Math.floor((left % 3600) / 60)),
@@ -67,5 +106,54 @@ export class TimeService {
     if (typeof window !== 'undefined') {
       setInterval(() => this.now.set(new Date()), 1000);
     }
+  }
+
+  private loadFlashSaleConfig(): FlashSaleConfig {
+    try {
+      if (typeof localStorage !== 'undefined') {
+        const saved = localStorage.getItem(FLASH_SALE_STORAGE_KEY);
+        if (saved) {
+          const parsed = JSON.parse(saved);
+          return { ...DEFAULT_FLASH_SALE_CONFIG, ...parsed };
+        }
+      }
+    } catch {}
+    return { ...DEFAULT_FLASH_SALE_CONFIG };
+  }
+
+  private persistFlashSaleConfig(cfg: FlashSaleConfig): void {
+    try {
+      if (typeof localStorage !== 'undefined') {
+        localStorage.setItem(FLASH_SALE_STORAGE_KEY, JSON.stringify(cfg));
+      }
+    } catch {}
+  }
+
+  updateFlashSaleConfig(partial: Partial<FlashSaleConfig>): void {
+    const updated = { ...this.flashSaleConfig(), ...partial };
+    this.flashSaleConfig.set(updated);
+    this.persistFlashSaleConfig(updated);
+  }
+
+  setFlashSaleEndHour(hour: number, minute = 0): void {
+    this.updateFlashSaleConfig({
+      endHour: Math.max(0, Math.min(24, hour)),
+      endMinute: Math.max(0, Math.min(59, minute)),
+      targetTimestamp: null,
+      isActive: true,
+    });
+  }
+
+  setFlashSaleDuration(hours: number): void {
+    const targetTimestamp = Date.now() + Math.max(0.1, hours) * 3600 * 1000;
+    this.updateFlashSaleConfig({
+      targetTimestamp,
+      isActive: true,
+    });
+  }
+
+  resetFlashSaleToDefault(): void {
+    this.flashSaleConfig.set({ ...DEFAULT_FLASH_SALE_CONFIG });
+    this.persistFlashSaleConfig(DEFAULT_FLASH_SALE_CONFIG);
   }
 }

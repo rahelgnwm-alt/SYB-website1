@@ -623,6 +623,147 @@ export class ProductService {
     this.persist();
   }
 
+  // Discount Management Methods
+  setProductDiscount(productId: string, discountPercent: number): void {
+    this.products.update((current) =>
+      current.map((p) => {
+        if (p.id !== productId) return p;
+        const orig = p.originalPrice || p.price;
+        const pct = Math.max(0, Math.min(99, discountPercent));
+        const newPrice = pct === 0 ? orig : Math.round(orig * (1 - pct / 100));
+        return {
+          ...p,
+          originalPrice: orig,
+          price: newPrice,
+        };
+      })
+    );
+    this.persist();
+  }
+
+  setProductPrices(productId: string, salePrice: number, originalPrice?: number): void {
+    this.products.update((current) =>
+      current.map((p) => {
+        if (p.id !== productId) return p;
+        const newOrig = originalPrice !== undefined ? originalPrice : (p.originalPrice || p.price);
+        return {
+          ...p,
+          price: Math.max(0, salePrice),
+          originalPrice: Math.max(salePrice, newOrig),
+        };
+      })
+    );
+    this.persist();
+  }
+
+  applyBulkDiscount(discountPercent: number, categoryLabel?: string): void {
+    const pct = Math.max(0, Math.min(99, discountPercent));
+    this.products.update((current) =>
+      current.map((p) => {
+        if (categoryLabel && categoryLabel !== 'Semua' && p.categoryLabel !== categoryLabel) {
+          return p;
+        }
+        const orig = p.originalPrice || p.price;
+        const newPrice = pct === 0 ? orig : Math.round(orig * (1 - pct / 100));
+        return {
+          ...p,
+          originalPrice: orig,
+          price: newPrice,
+        };
+      })
+    );
+    this.persist();
+  }
+
+  resetDiscounts(categoryLabel?: string): void {
+    this.products.update((current) =>
+      current.map((p) => {
+        if (categoryLabel && categoryLabel !== 'Semua' && p.categoryLabel !== categoryLabel) {
+          return p;
+        }
+        const orig = p.originalPrice || p.price;
+        return {
+          ...p,
+          price: orig,
+          originalPrice: orig,
+        };
+      })
+    );
+    this.persist();
+  }
+
+  // Flash Sale Management Methods
+  toggleProductFlashSale(productId: string, isFlashSale?: boolean): void {
+    this.products.update((current) =>
+      current.map((p) => {
+        if (p.id !== productId) return p;
+        const nextState = isFlashSale !== undefined ? isFlashSale : !p.isFlashSale;
+        return {
+          ...p,
+          isFlashSale: nextState,
+          flashSaleQuota: nextState ? (p.flashSaleQuota || 50) : undefined,
+        };
+      })
+    );
+    this.persist();
+  }
+
+  setProductFlashSale(
+    productId: string,
+    isFlashSale: boolean,
+    discountPercent?: number,
+    flashSalePrice?: number,
+    quota?: number
+  ): void {
+    this.products.update((current) =>
+      current.map((p) => {
+        if (p.id !== productId) return p;
+        const orig = p.originalPrice || p.price;
+        let finalPrice = p.price;
+        let finalDiscount = p.flashSaleDiscount;
+
+        if (discountPercent !== undefined) {
+          finalDiscount = Math.max(1, Math.min(99, discountPercent));
+          finalPrice = Math.round(orig * (1 - finalDiscount / 100));
+        } else if (flashSalePrice !== undefined) {
+          finalPrice = Math.max(0, flashSalePrice);
+          finalDiscount = Math.round((1 - finalPrice / orig) * 100);
+        }
+
+        return {
+          ...p,
+          isFlashSale,
+          price: isFlashSale ? finalPrice : p.price,
+          flashSalePrice: isFlashSale ? finalPrice : undefined,
+          flashSaleDiscount: isFlashSale ? finalDiscount : undefined,
+          flashSaleQuota: quota !== undefined ? quota : (p.flashSaleQuota || 50),
+        };
+      })
+    );
+    this.persist();
+  }
+
+  bulkSetFlashSale(productIds: string[], isFlashSale: boolean, discountPercent?: number): void {
+    const idSet = new Set(productIds);
+    this.products.update((current) =>
+      current.map((p) => {
+        if (!idSet.has(p.id)) return p;
+        const orig = p.originalPrice || p.price;
+        const disc = discountPercent !== undefined ? Math.max(1, Math.min(99, discountPercent)) : 50;
+        const newPrice = Math.round(orig * (1 - disc / 100));
+        return {
+          ...p,
+          isFlashSale,
+          price: isFlashSale ? newPrice : p.price,
+          flashSalePrice: isFlashSale ? newPrice : undefined,
+          flashSaleDiscount: isFlashSale ? disc : undefined,
+          flashSaleQuota: isFlashSale ? (p.flashSaleQuota || 50) : undefined,
+        };
+      })
+    );
+    this.persist();
+  }
+
   resetProductsToDefault(): void {
     this.products.set(this.initialProducts);
     this.persist();

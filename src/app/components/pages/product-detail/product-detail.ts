@@ -52,7 +52,10 @@ export class ProductDetail {
   protected readonly qty = signal<number>(1);
 
   /** Active accordion tab */
+  protected readonly tabKeys = ['desc', 'benefits', 'ingredients', 'how-to'] as const;
   protected readonly activeTab = signal<'desc' | 'benefits' | 'ingredients' | 'how-to'>('desc');
+  private touchStartX = 0;
+  private touchStartY = 0;
 
   /** Live calculated price based on variant selection */
   protected readonly currentPrice = computed<number>(() => {
@@ -193,5 +196,25 @@ export class ProductDetail {
 
   protected discount(p: DataProduct) {
     return Math.round((1 - p.price / p.compareAt) * 100);
+  }
+
+  protected onTabTouchStart(e: TouchEvent) {
+    if (e.touches.length !== 1) return;
+    this.touchStartX = e.touches[0].clientX;
+    this.touchStartY = e.touches[0].clientY;
+  }
+
+  protected onTabTouchEnd(e: TouchEvent) {
+    if (e.changedTouches.length !== 1) return;
+    const dx = e.changedTouches[0].clientX - this.touchStartX;
+    const dy = e.changedTouches[0].clientY - this.touchStartY;
+    if (Math.abs(dx) > 42 && Math.abs(dx) > Math.abs(dy) * 1.3) {
+      const idx = this.tabKeys.indexOf(this.activeTab());
+      if (dx < 0 && idx < this.tabKeys.length - 1) {
+        this.activeTab.set(this.tabKeys[idx + 1]);
+      } else if (dx > 0 && idx > 0) {
+        this.activeTab.set(this.tabKeys[idx - 1]);
+      }
+    }
   }
 }

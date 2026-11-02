@@ -3,9 +3,10 @@ import { RouterLink } from '@angular/router';
 import { MagneticDirective, RevealDirective, TiltDirective } from '../../../directives';
 import { PRODUCTS, Product, SHOP_URL, productUrl } from '../../../data';
 import { CartService } from '../../../services/cart.service';
+import { ProductService } from '../../../services/product.service';
 
 type Sort = 'featured' | 'price-asc' | 'price-desc' | 'discount';
-type Filter = 'all' | 'Best Seller' | 'New' | 'Bundling';
+type Filter = 'all' | 'Flash Sale' | 'Best Seller' | 'New' | 'Bundling';
 
 /** All products (route: "/products"). */
 @Component({
@@ -16,12 +17,14 @@ type Filter = 'all' | 'Best Seller' | 'New' | 'Bundling';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class Products {
+  private readonly productService = inject(ProductService);
   protected readonly cart = inject(CartService);
   protected readonly productUrl = productUrl;
   protected readonly shopUrl = SHOP_URL;
 
   protected readonly filters: { key: Filter; label: string }[] = [
     { key: 'all', label: 'Semua' },
+    { key: 'Flash Sale', label: '⚡ Flash Sale' },
     { key: 'Best Seller', label: 'Best Seller' },
     { key: 'New', label: 'New' },
     { key: 'Bundling', label: 'Bundling' },
@@ -34,9 +37,20 @@ export class Products {
   protected readonly visible = computed(() => {
     const q = this.query().trim().toLowerCase();
     const f = this.filter();
-    let list = PRODUCTS.filter(
-      (p) =>
-        (f === 'all' || p.badge === f) &&
+    const liveMap = new Map(this.productService.products().map((p) => [p.id, p]));
+
+    let list = PRODUCTS.map((p) => {
+      const live = liveMap.get(p.id);
+      if (!live) return p;
+      return {
+        ...p,
+        price: live.price,
+        compareAt: live.originalPrice,
+        isFlashSale: live.isFlashSale,
+      };
+    }).filter(
+      (p: any) =>
+        (f === 'all' || (f === 'Flash Sale' ? p.isFlashSale : p.badge === f)) &&
         (!q || p.name.toLowerCase().includes(q) || p.tagline.toLowerCase().includes(q)),
     );
     switch (this.sort()) {

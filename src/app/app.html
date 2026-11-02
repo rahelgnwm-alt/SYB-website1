@@ -14,5 +14,6 @@
 
 <!-- ============================== TOAST ============================== -->
 <div class="toast" [class.show]="cart.toast()" role="status" aria-live="polite">
-  <span class="toast__icon">♥</span> {{ cart.toast() }}
+  <span class="toast__icon" aria-hidden="true">♥</span>
+  <span class="toast__text">{{ cart.toast() }}</span>
 </div>

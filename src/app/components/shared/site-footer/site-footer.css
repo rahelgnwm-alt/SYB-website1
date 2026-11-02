@@ -28,6 +28,7 @@
 
 .newsletter {
   display: flex;
+  align-items: center;
   max-width: 420px;
   padding: 6px;
   border-radius: var(--radius-pill);
@@ -44,6 +45,7 @@
 .newsletter input {
   flex: 1;
   min-width: 0;
+  height: 48px;
   padding: 0 18px;
   border: 0;
   outline: 0;
@@ -51,6 +53,8 @@
   font-size: 15px;
   color: var(--white);
   background: transparent;
+  display: flex;
+  align-items: center;
 }
 
 .newsletter input::placeholder {
@@ -60,6 +64,7 @@
 .newsletter button {
   width: 48px;
   height: 48px;
+  flex-shrink: 0;
   display: grid;
   place-items: center;
   border-radius: 50%;

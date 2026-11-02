@@ -7,19 +7,43 @@
     </div>
   </div>
   <div class="container flash__inner">
-    <div appReveal>
-      <p class="eyebrow eyebrow--light">Limited time offer</p>
-      <h2 id="flash-title" class="flash__title">Flash sale berakhir dalam</h2>
+    <div class="flash__header" appReveal>
+      <p class="eyebrow eyebrow--light eyebrow--center">{{ time.flashSaleConfig().subtitle }}</p>
+      <h2 id="flash-title" class="flash__title">{{ time.flashSaleConfig().title }}</h2>
     </div>
-    <div class="countdown" appReveal="scale" [revealDelay]="120" aria-live="off">
-      <div><b>{{ time.countdown().h }}</b><small>Jam</small></div>
-      <i>:</i>
-      <div><b>{{ time.countdown().m }}</b><small>Menit</small></div>
-      <i>:</i>
-      <div><b>{{ time.countdown().s }}</b><small>Detik</small></div>
+    <div
+      class="countdown"
+      appReveal="scale"
+      [revealDelay]="120"
+      aria-live="off"
+      [attr.aria-label]="time.countdown().h + ' Jam ' + time.countdown().m + ' Menit ' + time.countdown().s + ' Detik'"
+    >
+      <div class="countdown__box">
+        <b class="countdown__digits">
+          <span aria-hidden="true">{{ time.countdown().h[0] }}</span><span aria-hidden="true">{{ time.countdown().h[1] }}</span>
+          <span class="sr-only">{{ time.countdown().h }}</span>
+        </b>
+        <small class="countdown__label">Jam</small>
+      </div>
+      <i class="countdown__sep" aria-hidden="true">:</i>
+      <div class="countdown__box">
+        <b class="countdown__digits">
+          <span aria-hidden="true">{{ time.countdown().m[0] }}</span><span aria-hidden="true">{{ time.countdown().m[1] }}</span>
+          <span class="sr-only">{{ time.countdown().m }}</span>
+        </b>
+        <small class="countdown__label">Menit</small>
+      </div>
+      <i class="countdown__sep" aria-hidden="true">:</i>
+      <div class="countdown__box">
+        <b class="countdown__digits">
+          <span aria-hidden="true">{{ time.countdown().s[0] }}</span><span aria-hidden="true">{{ time.countdown().s[1] }}</span>
+          <span class="sr-only">{{ time.countdown().s }}</span>
+        </b>
+        <small class="countdown__label">Detik</small>
+      </div>
     </div>
-    <a class="btn btn--light" routerLink="/products" appMagnetic appReveal [revealDelay]="240" id="flash-shop">
-      Ambil Promonya
+    <a class="btn btn--light flash__cta" routerLink="/products" appReveal [revealDelay]="240" id="flash-shop">
+      <span>Ambil Promonya</span>
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M13 6l6 6-6 6" stroke-linecap="round" stroke-linejoin="round" /></svg>
     </a>
   </div>

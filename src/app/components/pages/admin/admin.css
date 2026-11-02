@@ -144,6 +144,22 @@
   color: #63b3ed;
 }
 
+.nav-counter.discount-badge {
+  background: #3c1428;
+  color: #f472b6;
+}
+
+.nav-counter.flash-badge {
+  background: #451a03;
+  color: #fbbf24;
+}
+
+.nav-counter.flash-badge.alert {
+  background: #ff0a6c;
+  color: #ffffff;
+  box-shadow: 0 0 8px rgba(255, 10, 108, 0.45);
+}
+
 .nav-counter.alert {
   background: #e27d00;
   color: #ffffff;
@@ -274,6 +290,7 @@
 
 /* Topbar */
 .shopify-topbar {
+  min-height: 56px;
   height: 56px;
   background: #ffffff;
   border-bottom: 1px solid #e1e3e5;
@@ -284,10 +301,25 @@
   position: sticky;
   top: 0;
   z-index: 40;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
+}
+
+.topbar-left-meta {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.mobile-only {
+  display: none !important;
+}
+
+.desktop-only {
+  display: inline-flex !important;
 }
 
 .topbar-warehouse-status {
-  display: flex;
+  display: inline-flex;
   align-items: center;
   gap: 0.5rem;
   font-size: 0.82rem;
@@ -304,6 +336,7 @@
   border-radius: 50%;
   background: #16a34a;
   animation: pulseGreen 1.5s infinite;
+  flex-shrink: 0;
 }
 
 .warehouse-title {
@@ -330,15 +363,19 @@
   font-weight: 700;
   color: #202223;
   text-decoration: none;
-  padding: 0.4rem 0.85rem;
+  padding: 0.38rem 0.85rem;
   border-radius: 6px;
   background: #f1f2f3;
   border: 1px solid #e1e3e5;
-  transition: all 0.15s;
+  transition: all 0.15s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
 }
 
 .topbar-quick-link:hover {
   background: #e4e5e7;
+  color: #111213;
 }
 
 .topbar-quick-link.pink {
@@ -350,20 +387,36 @@
 .topbar-quick-link.pink:hover {
   background: #ff0a6c;
   color: #ffffff;
+  border-color: #ff0a6c;
 }
 
 .topbar-store-link {
   font-size: 0.8rem;
   font-weight: 700;
-  color: #2563eb;
+  color: #1d4ed8;
+  background: #eff6ff;
+  border: 1px solid #bfdbfe;
   text-decoration: none;
-  padding: 0.4rem 0.85rem;
+  padding: 0.38rem 0.85rem;
   border-radius: 6px;
-  transition: all 0.15s;
+  transition: all 0.15s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
 }
 
 .topbar-store-link:hover {
-  background: #eff6ff;
+  background: #dbeafe;
+  color: #1e40af;
+  border-color: #93c5fd;
+}
+
+.store-arrow {
+  transition: transform 0.15s ease;
+}
+
+.topbar-store-link:hover .store-arrow {
+  transform: translateX(2px);
 }
 
 /* Canvas where routed children render */
@@ -476,37 +529,78 @@
 
   /* Topbar on phone */
   .shopify-topbar {
-    padding: 10px 12px;
+    height: auto !important;
+    min-height: unset;
+    padding: 10px 14px 10px;
     gap: 8px;
-    flex-wrap: wrap;
+    flex-direction: column;
+    align-items: stretch;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
+  }
+
+  .topbar-left-meta {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
   }
 
   .warehouse-hub-name,
   .warehouse-sep {
-    display: none;
+    display: none !important;
   }
 
   .warehouse-title {
-    font-size: 0.75rem;
+    font-size: 0.74rem;
+  }
+
+  .topbar-warehouse-status {
+    padding: 0.28rem 0.65rem;
+    font-size: 0.74rem;
+    gap: 6px;
+    border-radius: 999px;
+  }
+
+  .mobile-only {
+    display: inline-flex !important;
+  }
+
+  .desktop-only {
+    display: none !important;
+  }
+
+  .topbar-store-link.mobile-only {
+    font-size: 0.74rem;
+    padding: 0.28rem 0.75rem;
+    border-radius: 999px;
+    gap: 4px;
+    background: #eff6ff;
+    color: #1d4ed8;
+    border: 1px solid #bfdbfe;
+    font-weight: 700;
   }
 
   .topbar-right-actions {
-    gap: 6px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
   }
 
   .topbar-quick-link {
-    font-size: 0.72rem;
-    padding: 0.35rem 0.65rem;
-  }
-
-  .topbar-store-link {
-    font-size: 0.72rem;
-    padding: 0.35rem 0.65rem;
+    flex: 1;
+    min-height: 38px;
+    justify-content: center;
+    text-align: center;
+    font-size: 0.78rem;
+    padding: 0.45rem 0.65rem;
+    border-radius: 8px;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
   }
 
   /* Canvas on phone */
   .shopify-canvas {
-    padding: 12px 10px;
+    padding: 16px 14px 24px;
   }
 }
 

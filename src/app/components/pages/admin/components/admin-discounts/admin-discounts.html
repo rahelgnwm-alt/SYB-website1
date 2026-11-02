@@ -1,0 +1,445 @@
+<div class="discounts-view">
+  <!-- Toast Feedback -->
+  @if (toastMessage()) {
+    <div class="discount-toast" role="status" aria-live="polite">
+      <span class="toast-icon">✨</span>
+      <span class="toast-text">{{ toastMessage() }}</span>
+    </div>
+  }
+
+  <!-- Header & Breadcrumbs -->
+  <header class="discounts-header">
+    <div class="header-titles">
+      <div class="header-badge-row">
+        <span class="badge-tag">🏷️ Manajemen Promo &amp; Harga</span>
+        <span class="badge-live-pulse">Sinkron Langsung ke Web Publik</span>
+      </div>
+      <h1 class="header-main-title">Kelola Diskon &amp; Penyesuaian Harga Produk</h1>
+      <p class="header-desc">
+        Atur persentase diskon, harga coret promo, atau terapkan diskon massal sekaligus untuk seluruh katalog atau kategori tertentu.
+      </p>
+    </div>
+
+    <div class="header-actions">
+      <a routerLink="/admin/flash-sale" class="btn-action-flash">
+        <span class="flash-icon">⚡</span>
+        <span>Atur Flash Sale &amp; Jam &rarr;</span>
+      </a>
+      <a routerLink="/products" target="_blank" class="btn-action-preview">
+        <span>Lihat Toko Publik ↗</span>
+      </a>
+    </div>
+  </header>
+
+  <!-- Metric KPI Cards -->
+  <section class="kpi-grid">
+    <div class="kpi-card">
+      <span class="kpi-label">Total Produk Katalog</span>
+      <div class="kpi-value-row">
+        <span class="kpi-num">{{ totalProducts() }}</span>
+        <span class="kpi-unit">SKU</span>
+      </div>
+      <span class="kpi-hint">Seluruh item di etalase SYB</span>
+    </div>
+
+    <div class="kpi-card highlight-pink">
+      <span class="kpi-label">Produk Aktif Diskon</span>
+      <div class="kpi-value-row">
+        <span class="kpi-num">{{ discountedCount() }}</span>
+        <span class="kpi-subtext">dari {{ totalProducts() }} produk</span>
+      </div>
+      <div class="kpi-bar-track">
+        <div class="kpi-bar-fill" [style.width.%]="(discountedCount() / totalProducts()) * 100"></div>
+      </div>
+    </div>
+
+    <div class="kpi-card highlight-purple">
+      <span class="kpi-label">Rata-rata Diskon Toko</span>
+      <div class="kpi-value-row">
+        <span class="kpi-num">{{ averageDiscount() }}%</span>
+        <span class="kpi-badge-pill">OFF</span>
+      </div>
+      <span class="kpi-hint">Daya tarik harga rata-rata</span>
+    </div>
+
+    <div class="kpi-card highlight-green">
+      <span class="kpi-label">Total Penghematan Pembeli</span>
+      <div class="kpi-value-row">
+        <span class="kpi-num-small">Rp {{ totalSavings().toLocaleString('id-ID') }}</span>
+      </div>
+      <span class="kpi-hint">Akumulasi selisih harga coret per pcs</span>
+    </div>
+  </section>
+
+  <!-- Bulk Discount Control Panel -->
+  <section class="bulk-discount-panel">
+    <div class="bulk-panel-header">
+      <div class="bulk-title-group">
+        <span class="bulk-panel-icon">⚡</span>
+        <div>
+          <h2 class="bulk-panel-title">Aksi Cepat Diskon Massal</h2>
+          <p class="bulk-panel-desc">Terapkan diskon instan ke seluruh katalog atau kelompok kategori dalam 1 kali klik.</p>
+        </div>
+      </div>
+      <button type="button" class="btn-bulk-reset" (click)="resetBulk()" title="Kembalikan ke harga asli">
+        ↺ Reset Diskon Kategori Ini
+      </button>
+    </div>
+
+    <div class="bulk-controls-row">
+      <!-- Preset Buttons -->
+      <div class="preset-group">
+        <span class="control-label">Pilihan Cepat Diskon:</span>
+        <div class="preset-pills">
+          @for (pct of [10, 20, 30, 40, 50, 70]; track pct) {
+            <button
+              type="button"
+              class="preset-btn"
+              [class.active]="bulkDiscountPercent() === pct"
+              (click)="bulkDiscountPercent.set(pct)"
+            >
+              {{ pct }}% OFF
+            </button>
+          }
+        </div>
+      </div>
+
+      <!-- Custom Percent & Target Category -->
+      <div class="bulk-inputs-wrap">
+        <div class="input-field-group">
+          <label for="bulk-pct-input">Persentase Diskon (%):</label>
+          <div class="input-with-suffix">
+            <input
+              id="bulk-pct-input"
+              type="number"
+              min="0"
+              max="99"
+              [ngModel]="bulkDiscountPercent()"
+              (ngModelChange)="bulkDiscountPercent.set($event)"
+            />
+            <span class="suffix">%</span>
+          </div>
+        </div>
+
+        <div class="input-field-group">
+          <label for="bulk-category-select">Target Kategori:</label>
+          <select
+            id="bulk-category-select"
+            [ngModel]="bulkTargetCategory()"
+            (ngModelChange)="bulkTargetCategory.set($event)"
+          >
+            @for (cat of categories; track cat) {
+              <option [value]="cat">{{ cat === 'Semua' ? '🌟 Semua Kategori' : cat }}</option>
+            }
+          </select>
+        </div>
+
+        <button type="button" class="btn-apply-bulk" (click)="applyBulk()">
+          <span>✓ Terapkan ke {{ bulkTargetCategory() }}</span>
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <!-- Filter & Search Bar -->
+  <section class="filter-toolbar">
+    <div class="search-box">
+      <span class="search-icon">🔍</span>
+      <input
+        type="text"
+        placeholder="Cari nama produk, SKU, atau kategori..."
+        [ngModel]="searchQuery()"
+        (ngModelChange)="searchQuery.set($event)"
+      />
+      @if (searchQuery()) {
+        <button type="button" class="clear-search" (click)="searchQuery.set('')">✕</button>
+      }
+    </div>
+
+    <!-- Category Tabs -->
+    <div class="category-tabs">
+      @for (cat of categories; track cat) {
+        <button
+          type="button"
+          class="cat-tab"
+          [class.active]="selectedCategory() === cat"
+          (click)="selectedCategory.set(cat)"
+        >
+          {{ cat }}
+        </button>
+      }
+    </div>
+
+    <!-- Filters & Sort -->
+    <div class="toolbar-dropdowns">
+      <select [ngModel]="discountFilter()" (ngModelChange)="discountFilter.set($event)">
+        <option value="all">Semua Status Diskon</option>
+        <option value="discounted">Sedang Diskon (&gt; 0%)</option>
+        <option value="no-discount">Harga Normal (Tanpa Diskon)</option>
+      </select>
+
+      <select [ngModel]="sortBy()" (ngModelChange)="sortBy.set($event)">
+        <option value="discount-desc">Diskon: Tertinggi ke Terendah</option>
+        <option value="discount-asc">Diskon: Terendah ke Tertinggi</option>
+        <option value="price-asc">Harga: Termurah</option>
+        <option value="price-desc">Harga: Termahal</option>
+        <option value="name-asc">Nama Produk A-Z</option>
+      </select>
+    </div>
+  </section>
+
+  <!-- Product Discount Table (Desktop) -->
+  <section class="products-table-card desktop-table-wrap">
+    <table class="discounts-table">
+      <thead>
+        <tr>
+          <th class="col-checkbox">
+            <input
+              type="checkbox"
+              [checked]="isAllSelected()"
+              (change)="toggleSelectAll()"
+              title="Pilih semua produk di halaman ini"
+            />
+          </th>
+          <th class="col-product">Produk &amp; Kategori</th>
+          <th class="col-original-price">Harga Coret (Asli)</th>
+          <th class="col-discount-pct">Diskon (%)</th>
+          <th class="col-sale-price">Harga Jual Promo</th>
+          <th class="col-profitability">Margin &amp; Profit</th>
+          <th class="col-actions">Aksi Cepat</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (product of filteredProducts(); track product.id) {
+          @let discPct = calcDiscountPercent(product);
+          @let margin = calcMarginPercent(product);
+          @let profit = calcProfitRupiah(product);
+          @let isSelected = selectedProductIds().has(product.id);
+
+          <tr [class.row-selected]="isSelected" [class.row-discounted]="discPct > 0">
+            <!-- Checkbox -->
+            <td class="col-checkbox">
+              <input
+                type="checkbox"
+                [checked]="isSelected"
+                (change)="toggleSelect(product.id)"
+              />
+            </td>
+
+            <!-- Product Info -->
+            <td class="col-product">
+              <div class="product-cell">
+                <img [src]="product.image" [alt]="product.title" class="product-thumb" />
+                <div class="product-info-texts">
+                  <div class="product-title-row">
+                    <span class="product-name">{{ product.title }}</span>
+                    @if (product.isFlashSale) {
+                      <span class="pill-flash" title="Produk ini masuk Flash Sale">⚡ Flash Sale</span>
+                    }
+                  </div>
+                  <div class="product-meta-row">
+                    <span class="pill-cat">{{ product.categoryLabel }}</span>
+                    <span class="meta-dot">&bull;</span>
+                    <span class="sku-text">{{ product.bpomNumber || 'BPOM Resmi' }}</span>
+                  </div>
+                </div>
+              </div>
+            </td>
+
+            <!-- Original Price (Harga Coret) -->
+            <td class="col-original-price">
+              <div class="price-input-cell">
+                <span class="currency-tag">Rp</span>
+                <input
+                  type="number"
+                  step="500"
+                  min="0"
+                  class="input-price"
+                  [value]="product.originalPrice"
+                  (change)="onOriginalPriceChange(product, $any($event.target).value)"
+                  title="Ubah harga coret resmi"
+                />
+              </div>
+            </td>
+
+            <!-- Discount Percent -->
+            <td class="col-discount-pct">
+              <div class="discount-stepper-cell">
+                <div class="stepper-input-wrap">
+                  <input
+                    type="number"
+                    min="0"
+                    max="99"
+                    class="input-pct"
+                    [value]="discPct"
+                    (change)="onDiscountPercentChange(product, $any($event.target).value)"
+                  />
+                  <span class="pct-sign">%</span>
+                </div>
+
+                <!-- Mini Presets -->
+                <div class="mini-presets">
+                  <button type="button" (click)="applyPreset(product, 20)">20%</button>
+                  <button type="button" (click)="applyPreset(product, 50)">50%</button>
+                </div>
+              </div>
+            </td>
+
+            <!-- Sale Price (Harga Jual Promo) -->
+            <td class="col-sale-price">
+              <div class="sale-price-cell">
+                <div class="price-input-cell highlight-sale">
+                  <span class="currency-tag">Rp</span>
+                  <input
+                    type="number"
+                    step="500"
+                    min="0"
+                    class="input-price sale-bold"
+                    [value]="product.price"
+                    (change)="onSalePriceChange(product, $any($event.target).value)"
+                    title="Ubah harga jual promo langsung"
+                  />
+                </div>
+                @if (discPct > 0) {
+                  <span class="savings-text">Hemat Rp {{ (product.originalPrice - product.price).toLocaleString('id-ID') }}</span>
+                }
+              </div>
+            </td>
+
+            <!-- Profitability Margin -->
+            <td class="col-profitability">
+              <div class="margin-cell">
+                <div class="margin-badge" [class.healthy]="margin >= 40" [class.warning]="margin < 40 && margin >= 20" [class.danger]="margin < 20">
+                  <span class="margin-pct">{{ margin }}% Margin</span>
+                </div>
+                <span class="profit-rp">+Rp {{ profit.toLocaleString('id-ID') }} /pcs</span>
+              </div>
+            </td>
+
+            <!-- Actions -->
+            <td class="col-actions">
+              <div class="action-btn-cell">
+                @if (discPct > 0) {
+                  <button
+                    type="button"
+                    class="btn-reset-item"
+                    (click)="resetSingle(product)"
+                    title="Hapus diskon, kembalikan ke harga normal"
+                  >
+                    Reset
+                  </button>
+                } @else {
+                  <button
+                    type="button"
+                    class="btn-quick-disc"
+                    (click)="applyPreset(product, 25)"
+                    title="Beri diskon standar 25%"
+                  >
+                    +25%
+                  </button>
+                }
+              </div>
+            </td>
+          </tr>
+        } @empty {
+          <tr>
+            <td colspan="7" class="empty-cell">
+              <div class="empty-state">
+                <span class="empty-icon">🏷️</span>
+                <h3>Tidak ada produk yang sesuai filter</h3>
+                <p>Coba gunakan kata kunci lain atau ubah kategori filter.</p>
+              </div>
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </section>
+
+  <!-- Mobile Adaptive Cards Layout -->
+  <section class="mobile-cards-wrap">
+    @for (product of filteredProducts(); track product.id) {
+      @let discPct = calcDiscountPercent(product);
+      @let margin = calcMarginPercent(product);
+      @let profit = calcProfitRupiah(product);
+
+      <div class="mobile-disc-card" [class.card-discounted]="discPct > 0">
+        <div class="card-top-row">
+          <img [src]="product.image" [alt]="product.title" class="mobile-thumb" />
+          <div class="mobile-meta">
+            <h3 class="mobile-title">{{ product.title }}</h3>
+            <div class="mobile-badge-line">
+              <span class="pill-cat">{{ product.categoryLabel }}</span>
+              @if (product.isFlashSale) {
+                <span class="pill-flash">⚡ Flash Sale</span>
+              }
+              @if (discPct > 0) {
+                <span class="pill-disc-active">{{ discPct }}% OFF</span>
+              }
+            </div>
+          </div>
+        </div>
+
+        <div class="mobile-pricing-inputs">
+          <div class="mobile-input-item">
+            <label>Harga Coret (Rp):</label>
+            <input
+              type="number"
+              [value]="product.originalPrice"
+              (change)="onOriginalPriceChange(product, $any($event.target).value)"
+            />
+          </div>
+
+          <div class="mobile-input-item">
+            <label>Diskon (%):</label>
+            <input
+              type="number"
+              min="0"
+              max="99"
+              [value]="discPct"
+              (change)="onDiscountPercentChange(product, $any($event.target).value)"
+            />
+          </div>
+
+          <div class="mobile-input-item full-width">
+            <label>Harga Jual Konsumen (Rp):</label>
+            <input
+              type="number"
+              class="mobile-sale-highlight"
+              [value]="product.price"
+              (change)="onSalePriceChange(product, $any($event.target).value)"
+            />
+          </div>
+        </div>
+
+        <div class="mobile-card-footer">
+          <div class="margin-chip">
+            <span>Margin: <b>{{ margin }}%</b> (+Rp {{ profit.toLocaleString('id-ID') }})</span>
+          </div>
+          <div class="mobile-card-btns">
+            @if (discPct > 0) {
+              <button type="button" class="btn-mobile-reset" (click)="resetSingle(product)">Reset Normal</button>
+            } @else {
+              <button type="button" class="btn-mobile-quick" (click)="applyPreset(product, 30)">Beri Diskon 30%</button>
+            }
+          </div>
+        </div>
+      </div>
+    }
+  </section>
+
+  <!-- Floating Multi-Select Action Bar -->
+  @if (selectedProductIds().size > 0) {
+    <aside class="floating-batch-bar" role="region" aria-label="Aksi Massal Produk Terpilih">
+      <div class="batch-bar-left">
+        <span class="batch-count">{{ selectedProductIds().size }} produk dipilih</span>
+      </div>
+      <div class="batch-bar-actions">
+        <button type="button" class="batch-btn" (click)="applyDiscountToSelected(20)">Set 20% OFF</button>
+        <button type="button" class="batch-btn" (click)="applyDiscountToSelected(50)">Set 50% OFF</button>
+        <button type="button" class="batch-btn danger" (click)="resetSelected()">Hapus Diskon</button>
+        <button type="button" class="batch-btn-close" (click)="clearSelection()">Batal</button>
+      </div>
+    </aside>
+  }
+</div>

@@ -35,59 +35,131 @@
 
 .flash__inner {
   position: relative;
-  display: grid;
-  justify-items: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
   text-align: center;
-  gap: 32px;
+  gap: clamp(24px, 4vw, 36px);
+  width: 100%;
+  max-width: 680px;
+  margin-inline: auto;
+}
+
+.flash__header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  width: 100%;
 }
 
 .flash__title {
   margin: 14px 0 0;
-  font-size: clamp(28px, 3.4vw, 52px);
-  font-weight: 700;
+  font-size: clamp(26px, 4.2vw, 52px);
+  font-weight: 800;
   letter-spacing: -0.02em;
+  text-align: center;
+  width: 100%;
 }
 
 .countdown {
   display: flex;
-  align-items: flex-start;
-  gap: clamp(10px, 2vw, 28px);
+  align-items: center;
+  justify-content: center;
+  gap: clamp(8px, 2vw, 18px);
+  width: 100%;
+  max-width: 580px;
+  margin-inline: auto;
+  box-sizing: border-box;
 }
 
+.countdown__box,
 .countdown div {
-  display: grid;
-  justify-items: center;
-  min-width: clamp(96px, 13vw, 200px);
-  padding: clamp(18px, 2vw, 28px) clamp(14px, 2vw, 24px);
-  border-radius: 32px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  flex: 1 1 0px;
+  width: 0;
+  min-width: 0;
+  padding: clamp(16px, 2.6vw, 30px) clamp(8px, 1.5vw, 18px);
+  border-radius: clamp(18px, 3.2vw, 28px);
   background: rgba(255, 255, 255, 0.16);
   backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
   border: 1px solid rgba(255, 255, 255, 0.35);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.4);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.4), 0 12px 30px -10px rgba(61, 15, 48, 0.18);
+  box-sizing: border-box;
 }
 
-.countdown b {
-  font-size: clamp(56px, 9vw, 150px);
+.countdown b,
+.countdown__digits {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  width: 100%;
+  font-size: clamp(38px, 6vw, 68px);
   font-weight: 900;
   line-height: 1;
-  letter-spacing: -0.04em;
+  letter-spacing: 0;
   font-variant-numeric: tabular-nums;
+  font-feature-settings: 'tnum';
+  font-family: inherit;
+  margin: 0;
+  padding: 0;
 }
 
-.countdown small {
-  font-size: 12px;
+.countdown b span,
+.countdown__digits span:not(.sr-only) {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 0.65em;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: 'tnum';
+  box-sizing: border-box;
+}
+
+.countdown small,
+.countdown__label {
+  display: block;
+  text-align: center;
+  width: 100%;
+  font-size: clamp(10px, 1.4vw, 12px);
   font-weight: 700;
-  letter-spacing: 0.2em;
+  letter-spacing: 0.16em;
+  text-indent: 0.16em;
   text-transform: uppercase;
-  opacity: 0.85;
+  opacity: 0.9;
+  margin-top: 6px;
 }
 
+.countdown__sep,
 .countdown i {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: clamp(14px, 2vw, 22px);
   font-style: normal;
-  font-size: clamp(48px, 7vw, 110px);
+  font-size: clamp(26px, 4vw, 48px);
   font-weight: 300;
-  line-height: 1.3;
+  line-height: 1;
+  margin-top: -6px;
   animation: blink 1s steps(1) infinite;
+  opacity: 0.75;
+  flex-shrink: 0;
+  text-align: center;
+  user-select: none;
+  box-sizing: border-box;
+}
+
+.flash__cta {
+  margin-inline: auto;
+  justify-content: center;
+  box-shadow: 0 10px 28px -6px rgba(61, 15, 48, 0.28);
 }
 
 @keyframes blink {
@@ -95,11 +167,30 @@
 }
 
 @media (max-width: 720px) {
-  .countdown div {
-    min-width: 0;
-    flex: 1;
+  .countdown {
+    max-width: 100%;
+    gap: 8px;
   }
 
+  .countdown__box,
+  .countdown div {
+    min-width: 0;
+    flex: 1 1 0px;
+    width: 0;
+    padding: 14px 6px;
+  }
+
+  .countdown b,
+  .countdown__digits {
+    font-size: clamp(32px, 8.5vw, 46px);
+  }
+
+  .countdown b span,
+  .countdown__digits span:not(.sr-only) {
+    width: 0.62em;
+  }
+
+  .countdown__sep,
   .countdown i {
     display: none;
   }

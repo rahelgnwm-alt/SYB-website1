@@ -56,6 +56,16 @@ export const routes: Routes = [
         title: 'Products — Shopify Admin SYBofficial',
       },
       {
+        path: 'discounts',
+        loadComponent: () => import('./components/pages/admin/components/admin-discounts/admin-discounts').then((m) => m.AdminDiscountsComponent),
+        title: 'Discounts & Pricing — Shopify Admin SYBofficial',
+      },
+      {
+        path: 'flash-sale',
+        loadComponent: () => import('./components/pages/admin/components/admin-flash-sale/admin-flash-sale').then((m) => m.AdminFlashSaleComponent),
+        title: 'Flash Sale Manager — Shopify Admin SYBofficial',
+      },
+      {
         path: 'shipping',
         loadComponent: () => import('./components/pages/admin/components/admin-logistics/admin-logistics').then((m) => m.AdminLogisticsComponent),
         title: 'Shipping & Delivery — Shopify Admin SYBofficial',

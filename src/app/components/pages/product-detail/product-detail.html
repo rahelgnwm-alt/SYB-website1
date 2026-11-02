@@ -187,32 +187,59 @@
           </div>
 
           <!-- Tabs Deep Dive -->
-          <div class="tabs-box">
-            <div class="tabs-nav" role="tablist">
+          <div class="tabs-box" (touchstart)="onTabTouchStart($event)" (touchend)="onTabTouchEnd($event)">
+            <div class="tabs-nav" role="tablist" aria-label="Detail Informasi Produk">
               <button
                 type="button"
                 class="tab-btn"
                 [class.active]="activeTab() === 'desc'"
                 (click)="activeTab.set('desc')"
-              >Deskripsi</button>
+                id="pdp-tab-desc"
+                role="tab"
+                [attr.aria-selected]="activeTab() === 'desc'"
+              >
+                <span class="tab-btn__icon">📖</span>
+                <span class="tab-btn__label">Deskripsi</span>
+              </button>
+
               <button
                 type="button"
                 class="tab-btn"
                 [class.active]="activeTab() === 'benefits'"
                 (click)="activeTab.set('benefits')"
-              >Manfaat</button>
+                id="pdp-tab-benefits"
+                role="tab"
+                [attr.aria-selected]="activeTab() === 'benefits'"
+              >
+                <span class="tab-btn__icon">✨</span>
+                <span class="tab-btn__label">Manfaat</span>
+              </button>
+
               <button
                 type="button"
                 class="tab-btn"
                 [class.active]="activeTab() === 'ingredients'"
                 (click)="activeTab.set('ingredients')"
-              >Bahan Aktif</button>
+                id="pdp-tab-ingredients"
+                role="tab"
+                [attr.aria-selected]="activeTab() === 'ingredients'"
+              >
+                <span class="tab-btn__icon">🧪</span>
+                <span class="tab-btn__label">Bahan Aktif</span>
+              </button>
+
               <button
                 type="button"
                 class="tab-btn"
                 [class.active]="activeTab() === 'how-to'"
                 (click)="activeTab.set('how-to')"
-              >Cara Pakai</button>
+                id="pdp-tab-how-to"
+                role="tab"
+                [attr.aria-selected]="activeTab() === 'how-to'"
+              >
+                <span class="tab-btn__icon">🧴</span>
+                <span class="tab-btn__label">Cara Pakai</span>
+              </button>
             </div>
 
             <div class="tab-content">
@@ -259,6 +286,13 @@
                     }
                   </ol>
                 </div>
+              }
+            </div>
+
+            <!-- Swipe navigation indicator dots (mobile) -->
+            <div class="tabs-dots" aria-hidden="true">
+              @for (t of tabKeys; track t) {
+                <span class="tabs-dot" [class.active]="activeTab() === t" (click)="activeTab.set(t)"></span>
               }
             </div>
           </div>

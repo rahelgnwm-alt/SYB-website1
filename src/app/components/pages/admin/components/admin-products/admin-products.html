@@ -278,7 +278,7 @@
       <div class="studio-modal-header">
         <div class="studio-header-left">
           <div class="studio-breadcrumb">
-            <span class="studio-badge-tag">{{ modalMode() === 'add' ? '✦ STUDIO PRODUK BARU' : '✏️ EDIT PRODUK KATALOG' }}</span>
+            <span class="studio-badge-tag">{{ modalMode() === 'add' ? '✦ PRODUK BARU' : '✏️ EDIT PRODUK' }}</span>
             <span class="studio-sku-pill">SKU: {{ formSku() || 'SYB-NEW' }}</span>
             <span class="studio-status-pill" [class.active]="formStatus() === 'Active'">
               <span class="status-pulse-dot"></span>
@@ -319,9 +319,10 @@
           class="studio-tab-pill"
           [class.active]="activeStudioTab() === 'all'"
           (click)="setStudioTab('all')"
+          title="Semua Bagian"
         >
           <span class="tab-icon">📑</span>
-          <span>Semua Bagian</span>
+          <span class="tab-label">Semua Bagian</span>
         </button>
 
         <button
@@ -329,9 +330,10 @@
           class="studio-tab-pill"
           [class.active]="activeStudioTab() === 'basic'"
           (click)="setStudioTab('basic')"
+          title="Informasi & BPOM"
         >
           <span class="tab-icon">🏷️</span>
-          <span>Informasi &amp; BPOM</span>
+          <span class="tab-label">Informasi &amp; BPOM</span>
         </button>
 
         <button
@@ -339,9 +341,10 @@
           class="studio-tab-pill"
           [class.active]="activeStudioTab() === 'pricing'"
           (click)="setStudioTab('pricing')"
+          title="Harga & Inventaris"
         >
           <span class="tab-icon">💰</span>
-          <span>Harga &amp; Inventaris</span>
+          <span class="tab-label">Harga &amp; Inventaris</span>
           @if (discountPercent() > 0) {
             <span class="tab-badge-pill pink">{{ discountPercent() }}%</span>
           }
@@ -352,9 +355,10 @@
           class="studio-tab-pill"
           [class.active]="activeStudioTab() === 'media'"
           (click)="setStudioTab('media')"
+          title="Foto & Branding"
         >
           <span class="tab-icon">🎨</span>
-          <span>Foto &amp; Branding</span>
+          <span class="tab-label">Foto &amp; Branding</span>
         </button>
 
         <button
@@ -362,9 +366,10 @@
           class="studio-tab-pill"
           [class.active]="activeStudioTab() === 'formula'"
           (click)="setStudioTab('formula')"
+          title="Formula & Manfaat"
         >
           <span class="tab-icon">✨</span>
-          <span>Formula &amp; Manfaat</span>
+          <span class="tab-label">Formula &amp; Manfaat</span>
           <span class="tab-badge-pill">{{ formKeyIngredients().length }}</span>
         </button>
 
@@ -373,27 +378,11 @@
           class="studio-tab-pill"
           [class.active]="activeStudioTab() === 'variants'"
           (click)="setStudioTab('variants')"
+          title="Varian"
         >
           <span class="tab-icon">📦</span>
-          <span>Varian ({{ formVariants().length }})</span>
+          <span class="tab-label">Varian ({{ formVariants().length }})</span>
         </button>
-      </div>
-
-      <!-- ==================== QUICK BEAUTY PRESETS TOOLBAR ==================== -->
-      <div class="presets-toolbar">
-        <span class="presets-label">⚡ Template Skincare Cepat:</span>
-        <div class="presets-btn-track">
-          @for (preset of beautyPresets; track preset.label) {
-            <button
-              type="button"
-              class="preset-pill-btn"
-              (click)="applyPreset(preset)"
-              [title]="'Terapkan template: ' + preset.title"
-            >
-              {{ preset.label }}
-            </button>
-          }
-        </div>
       </div>
 
       <!-- ==================== STUDIO BODY (2-COLUMN GRID) ==================== -->
@@ -1165,7 +1154,7 @@
             (click)="saveProduct()"
           >
             <span class="btn-icon">💾</span>
-            <span>{{ modalMode() === 'add' ? 'Publikasikan Produk Baru' : 'Simpan Perubahan Produk' }}</span>
+            <span>{{ modalMode() === 'add' ? 'Publikasikan Produk' : 'Simpan Perubahan' }}</span>
           </button>
         </div>
       </div>
