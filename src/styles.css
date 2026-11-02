@@ -43,6 +43,12 @@
   --header-h: 84px;
 }
 
+@media (max-width: 640px) {
+  :root {
+    --gutter: clamp(12px, 3.5vw, 18px);
+  }
+}
+
 *,
 *::before,
 *::after {
