@@ -1,5 +1,4 @@
 import { Component, inject, computed, ChangeDetectionStrategy } from '@angular/core';
-import { CommonModule } from '@angular/common';
 import { Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { ProductService } from '../../../services/product.service';
 import { ShippingService } from '../../../services/shipping.service';
@@ -7,7 +6,7 @@ import { AuthService } from '../../../services/auth.service';
 
 @Component({
   selector: 'app-admin',
-  imports: [CommonModule, RouterLink, RouterLinkActive, RouterOutlet],
+  imports: [RouterLink, RouterLinkActive, RouterOutlet],
   templateUrl: './admin.html',
   styleUrl: './admin.css',
   changeDetection: ChangeDetectionStrategy.OnPush,

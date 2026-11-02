@@ -115,16 +115,21 @@
     </div>
 
     <!-- Navigation Tabs -->
-    <div class="profile-tabs-nav">
+    <div class="profile-tabs-nav" role="tablist" aria-label="Menu Profil Pelanggan">
       <button
         class="profile-tab-btn"
         [class.active]="activeTab() === 'orders'"
         (click)="activeTab.set('orders')"
         id="tab-orders"
+        role="tab"
+        [attr.aria-selected]="activeTab() === 'orders'"
+        title="Pesanan Saya"
       >
         <span class="tab-icon">📦</span>
-        Pesanan Saya
-        <span class="tab-badge">{{ userOrders().length }}</span>
+        <span class="tab-text">Pesanan Saya</span>
+        @if (userOrders().length > 0) {
+          <span class="tab-badge">{{ userOrders().length }}</span>
+        }
       </button>
 
       <button
@@ -132,9 +137,12 @@
         [class.active]="activeTab() === 'address'"
         (click)="activeTab.set('address')"
         id="tab-address"
+        role="tab"
+        [attr.aria-selected]="activeTab() === 'address'"
+        title="Buku Alamat Pengiriman"
       >
         <span class="tab-icon">📍</span>
-        Buku Alamat Pengiriman
+        <span class="tab-text">Buku Alamat</span>
       </button>
 
       <button
@@ -142,9 +150,12 @@
         [class.active]="activeTab() === 'vouchers'"
         (click)="activeTab.set('vouchers')"
         id="tab-vouchers"
+        role="tab"
+        [attr.aria-selected]="activeTab() === 'vouchers'"
+        title="Voucher & Diskon Saya"
       >
         <span class="tab-icon">🎟️</span>
-        Voucher & Diskon Saya
+        <span class="tab-text">Voucher Saya</span>
       </button>
 
       <button
@@ -152,9 +163,12 @@
         [class.active]="activeTab() === 'glow-club'"
         (click)="activeTab.set('glow-club')"
         id="tab-glow-club"
+        role="tab"
+        [attr.aria-selected]="activeTab() === 'glow-club'"
+        title="Glow VIP Club"
       >
         <span class="tab-icon">✨</span>
-        Glow VIP Club
+        <span class="tab-text">Glow VIP Club</span>
       </button>
     </div>
 

@@ -370,57 +370,113 @@
 /* Tabs Navigation */
 .profile-tabs-nav {
   display: flex;
-  gap: 10px;
-  border-bottom: 2px solid #f0dde7;
-  margin-bottom: 24px;
+  width: 100%;
+  gap: 8px;
+  padding: 6px;
+  background: rgba(255, 255, 255, 0.88);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 139, 198, 0.28);
+  border-radius: 999px;
+  margin-bottom: 28px;
+  box-shadow: 0 4px 20px -4px rgba(255, 10, 108, 0.08);
   overflow-x: auto;
-  padding-bottom: 2px;
+  overflow-y: hidden;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  box-sizing: border-box;
+}
+
+.profile-tabs-nav::-webkit-scrollbar {
+  display: none;
 }
 
 .profile-tab-btn {
+  flex: 1;
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 8px;
   background: transparent;
   border: none;
-  padding: 12px 18px;
-  font-size: 14px;
-  font-weight: 600;
-  color: #7d6575;
+  padding: 11px 16px;
+  font-size: 13.5px;
+  font-weight: 700;
+  color: #63324d;
   cursor: pointer;
-  position: relative;
   white-space: nowrap;
-  transition: all 0.2s;
-  border-radius: 8px 8px 0 0;
+  border-radius: 999px;
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .profile-tab-btn:hover {
-  color: #e91e63;
+  color: #ff0a6c;
+  background: rgba(255, 240, 247, 0.85);
 }
 
 .profile-tab-btn.active {
-  color: #e91e63;
-  font-weight: 700;
+  color: #ffffff;
+  background: linear-gradient(135deg, #ff2a7a 0%, #e91e63 100%);
+  box-shadow: 0 4px 14px rgba(233, 30, 99, 0.35);
 }
 
-.profile-tab-btn.active::after {
-  content: '';
-  position: absolute;
-  bottom: -4px;
-  left: 0;
-  right: 0;
-  height: 3px;
-  background: #e91e63;
-  border-radius: 3px;
+.tab-icon {
+  font-size: 15px;
+  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .tab-badge {
   background: #ffecf2;
   color: #e91e63;
   font-size: 11px;
-  font-weight: 700;
+  font-weight: 800;
   padding: 2px 7px;
-  border-radius: 12px;
+  border-radius: 999px;
+  transition: background 0.2s, color 0.2s;
+}
+
+.profile-tab-btn.active .tab-badge {
+  background: rgba(255, 255, 255, 0.28);
+  color: #ffffff;
+}
+
+/* Responsive Sleek Mobile View */
+@media (max-width: 640px) {
+  .profile-tabs-nav {
+    padding: 5px;
+    gap: 6px;
+    scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .profile-tab-btn {
+    padding: 10px 12px;
+    font-size: 12.5px;
+    gap: 6px;
+    scroll-snap-align: center;
+  }
+
+  /* Sleek icon mode on inactive tabs, full label on active tab */
+  .profile-tab-btn:not(.active) .tab-text {
+    display: none;
+  }
+
+  .profile-tab-btn:not(.active) {
+    flex: 0 0 auto;
+    min-width: 44px;
+    padding: 10px 12px;
+  }
+
+  .profile-tab-btn.active {
+    flex: 1 1 auto;
+  }
+
+  .profile-tab-btn .tab-icon {
+    font-size: 18px;
+  }
 }
 
 /* Orders List */

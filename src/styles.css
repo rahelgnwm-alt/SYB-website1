@@ -65,7 +65,8 @@ body {
   overflow-x: hidden;
 }
 
-body.is-loading {
+body.is-loading,
+body.menu-open {
   overflow: hidden;
 }
 

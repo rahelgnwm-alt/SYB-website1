@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, inject, input, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, DestroyRef, effect, inject, input, signal } from '@angular/core';
 import { Router, RouterLink, RouterLinkActive } from '@angular/router';
 import { SHOP_URL } from '../../../data';
 import { CartService } from '../../../services/cart.service';
@@ -16,6 +16,7 @@ import { AuthService } from '../../../services/auth.service';
     '(window:keydown.escape)': 'menuOpen.set(false)',
     '[class.is-scrolled]': 'scrolled()',
     '[class.is-solid]': 'solid()',
+    '[class.menu-open]': 'menuOpen()',
   },
 })
 export class SiteHeader {
@@ -24,19 +25,30 @@ export class SiteHeader {
   protected readonly cart = inject(CartService);
   protected readonly auth = inject(AuthService);
   private readonly router = inject(Router);
+  private readonly destroyRef = inject(DestroyRef);
   protected readonly shopUrl = SHOP_URL;
   protected readonly scrolled = signal(false);
   protected readonly menuOpen = signal(false);
 
+  constructor() {
+    effect(() => {
+      const open = this.menuOpen();
+      if (typeof document !== 'undefined') {
+        document.body.classList.toggle('menu-open', open);
+      }
+    });
+
+    this.destroyRef.onDestroy(() => {
+      if (typeof document !== 'undefined') {
+        document.body.classList.remove('menu-open');
+      }
+    });
+  }
+
   protected handleAccountClick(event: Event) {
     event.preventDefault();
-    if (!this.auth.isAuthenticated()) {
-      this.auth.openLoginModal();
-    } else if (this.auth.isAdmin()) {
-      this.router.navigate(['/admin/products']);
-    } else {
-      this.router.navigate(['/profile']);
-    }
+    if (!this.auth.isAuthenticated()) return this.auth.openLoginModal();
+    this.router.navigate([this.auth.isAdmin() ? '/admin/products' : '/profile']);
   }
 
   protected onScroll() {

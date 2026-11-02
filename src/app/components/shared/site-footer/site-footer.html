@@ -3,12 +3,15 @@
   <div class="container footer__top">
     <div class="footer__brand">
       <img src="images/logo.png" alt="SYB" class="footer__logo" width="130" height="45" />
-      <p>Rangkaian skincare, bodycare dan make up dengan bahan aktif alami yang diformulasikan lembut untuk kulit yang sehat dan terawat.</p>
+      <p>Rangkaian skincare, bodycare dan make up dengan bahan aktif alami yang diformulasikan lembut untuk kulit yang
+        sehat dan terawat.</p>
       <form class="newsletter" (submit)="$event.preventDefault()">
         <label for="newsletter-email" class="sr-only">Email</label>
         <input id="newsletter-email" type="email" placeholder="Email kamu untuk promo eksklusif" required />
         <button type="submit" aria-label="Daftar" id="newsletter-submit">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M13 6l6 6-6 6" stroke-linecap="round" stroke-linejoin="round" /></svg>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M5 12h14M13 6l6 6-6 6" stroke-linecap="round" stroke-linejoin="round" />
+          </svg>
         </button>
       </form>
     </div>
@@ -29,7 +32,6 @@
       <a href="{{ shopUrl }}/pages/shipping-deliveries/exchange">Penukaran</a>
       <a href="{{ shopUrl }}/pages/shipping-deliveries/payment">Pembayaran</a>
       <a href="{{ shopUrl }}/pages/shipping-deliveries/faq">FAQ</a>
-      <a routerLink="/admin">Portal Admin (Produk & Logistik)</a>
     </nav>
     <nav class="footer__col" aria-label="Ikuti kami">
       <h4>Ikuti kami</h4>

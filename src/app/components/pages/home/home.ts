@@ -66,6 +66,7 @@ export class Home {
     let lastY = scrollY;
     let velocity = 0;
     let raf = 0;
+    let ticking = false;
 
     const update = () => {
       const vh = innerHeight;
@@ -90,13 +91,29 @@ export class Home {
         }
         el.style.setProperty('--p', Math.min(Math.max(p, 0), 1).toFixed(4));
       }
-      raf = requestAnimationFrame(update);
+
+      if (Math.abs(y - lastY) > 0.5 || Math.abs(velocity) > 0.05) {
+        raf = requestAnimationFrame(update);
+      } else {
+        ticking = false;
+        velocity = 0;
+        root.style.setProperty('--scroll-v', '0');
+      }
     };
 
-    raf = requestAnimationFrame(update);
+    const onScroll = () => {
+      if (!ticking) {
+        ticking = true;
+        raf = requestAnimationFrame(update);
+      }
+    };
+
+    addEventListener('scroll', onScroll, { passive: true });
+    onScroll();
 
     this.destroyRef.onDestroy(() => {
       cancelAnimationFrame(raf);
+      removeEventListener('scroll', onScroll);
     });
   }
 }

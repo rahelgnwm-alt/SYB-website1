@@ -1,5 +1,13 @@
 import { Injectable, computed, signal } from '@angular/core';
 
+const WIB_FORMATTER = new Intl.DateTimeFormat('en-GB', {
+  timeZone: 'Asia/Jakarta',
+  hour: '2-digit',
+  minute: '2-digit',
+  second: '2-digit',
+  hour12: false,
+});
+
 /**
  * Reactive Jakarta (WIB) time service.
  * Drives live clocks, greetings, and flash-sale countdowns across the app.
@@ -10,13 +18,7 @@ export class TimeService {
 
   /** Current time in Jakarta (WIB), independent of visitor's local timezone. */
   readonly wib = computed(() => {
-    const parts = new Intl.DateTimeFormat('en-GB', {
-      timeZone: 'Asia/Jakarta',
-      hour: '2-digit',
-      minute: '2-digit',
-      second: '2-digit',
-      hour12: false,
-    }).formatToParts(this.now());
+    const parts = WIB_FORMATTER.formatToParts(this.now());
     const get = (t: string) => Number(parts.find((p) => p.type === t)?.value ?? 0);
     return { h: get('hour') % 24, m: get('minute'), s: get('second') };
   });

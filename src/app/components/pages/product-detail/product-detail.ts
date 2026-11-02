@@ -84,7 +84,10 @@ export class ProductDetail {
   @HostListener('window:scroll')
   onWindowScroll(): void {
     if (typeof window !== 'undefined') {
-      this.scrolledPastHero.set(window.scrollY > 420);
+      const past = window.scrollY > 420;
+      if (this.scrolledPastHero() !== past) {
+        this.scrolledPastHero.set(past);
+      }
     }
   }
 

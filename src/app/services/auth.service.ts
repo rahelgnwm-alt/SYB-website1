@@ -114,6 +114,12 @@ export class AuthService {
     this.loginError.set(null);
   }
 
+  isAdminCredentials(usernameInput: string, passwordInput: string): boolean {
+    const u = usernameInput.trim().toLowerCase();
+    const isUser = u === this.defaultAdminUsername || u === this.fallbackUsername || u === 'admin';
+    return isUser && this.validAdminPasswords.includes(passwordInput.trim());
+  }
+
   /**
    * Universal Login Handler:
    * If credentials match admin -> logs in as Super Admin (redirects to /admin/products)
@@ -127,14 +133,7 @@ export class AuthService {
     await new Promise((resolve) => setTimeout(resolve, 350));
 
     const cleanUsername = usernameInput.trim().toLowerCase();
-    const cleanPassword = passwordInput.trim();
-
-    const isUsernameMatch =
-      cleanUsername === this.defaultAdminUsername ||
-      cleanUsername === this.fallbackUsername ||
-      cleanUsername === 'admin';
-
-    const isPasswordMatch = this.validAdminPasswords.includes(cleanPassword);
+    const isMatch = this.isAdminCredentials(usernameInput, passwordInput);
 
     const nowFormatted = new Date().toLocaleDateString('id-ID', {
       day: 'numeric',
@@ -145,7 +144,7 @@ export class AuthService {
     });
 
     // 1. IF CREDENTIALS MATCH ADMIN -> LOG INTO ADMIN
-    if (isUsernameMatch && isPasswordMatch) {
+    if (isMatch) {
       const adminUser: UserSession = {
         id: 'usr_admin_01',
         username: cleanUsername.includes('@') ? cleanUsername.split('@')[0] : cleanUsername,

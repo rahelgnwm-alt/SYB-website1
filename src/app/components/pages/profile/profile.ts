@@ -1,5 +1,4 @@
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
-import { CommonModule } from '@angular/common';
 import { Router, RouterLink } from '@angular/router';
 import { AuthService, UserSession } from '../../../services/auth.service';
 import { ShippingService } from '../../../services/shipping.service';
@@ -18,7 +17,7 @@ interface VoucherItem {
 
 @Component({
   selector: 'app-profile',
-  imports: [CommonModule, RouterLink],
+  imports: [RouterLink],
   templateUrl: './profile.html',
   styleUrl: './profile.css',
   changeDetection: ChangeDetectionStrategy.OnPush,

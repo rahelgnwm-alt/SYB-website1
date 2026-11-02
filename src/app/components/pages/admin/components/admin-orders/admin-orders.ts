@@ -1,12 +1,12 @@
 import { Component, inject, signal, computed, ChangeDetectionStrategy } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { DecimalPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ShippingService } from '../../../../../services/shipping.service';
 import { ShopifyOrder } from '../../../../../models/shipping.model';
 
 @Component({
   selector: 'app-admin-orders',
-  imports: [CommonModule, FormsModule],
+  imports: [DecimalPipe, FormsModule],
   templateUrl: './admin-orders.html',
   styleUrl: './admin-orders.css',
   changeDetection: ChangeDetectionStrategy.OnPush,

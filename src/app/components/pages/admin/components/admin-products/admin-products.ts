@@ -1,12 +1,12 @@
 import { Component, inject, signal, computed, ChangeDetectionStrategy } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { DecimalPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ProductService } from '../../../../../services/product.service';
 import { Product, ProductVariant } from '../../../../../models/product.model';
 
 @Component({
   selector: 'app-admin-products',
-  imports: [CommonModule, FormsModule],
+  imports: [DecimalPipe, FormsModule],
   templateUrl: './admin-products.html',
   styleUrl: './admin-products.css',
   changeDetection: ChangeDetectionStrategy.OnPush,

@@ -18,7 +18,7 @@ import { CartService } from './services/cart.service';
 export class App {
   protected readonly cart = inject(CartService);
   protected readonly isAdmin = signal(false);
-  protected readonly isHome = signal(true);
+  protected readonly isHome = signal(typeof window !== 'undefined' ? window.location.pathname === '/' : true);
 
   constructor() {
     const router = inject(Router);

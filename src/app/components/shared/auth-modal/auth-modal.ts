@@ -1,11 +1,9 @@
 import { Component, inject, signal, computed } from '@angular/core';
-import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { AuthService } from '../../../services/auth.service';
 
 @Component({
   selector: 'app-auth-modal',
-  imports: [CommonModule],
   templateUrl: './auth-modal.html',
   styleUrl: './auth-modal.css'
 })
@@ -17,14 +15,9 @@ export class AuthModalComponent {
   protected readonly password = signal('sybadmin2026');
   protected readonly selectedDemoType = signal<'admin' | 'customer'>('admin');
 
-  // Reactive detection of whether the entered credentials will log into Admin or Customer
-  protected readonly isDetectedAdmin = computed(() => {
-    const u = this.username().trim().toLowerCase();
-    const p = this.password().trim();
-    const isUser = u === 'admin@sybindonesia.com' || u === 'sybofficial' || u === 'admin';
-    const isPass = ['sybadmin2026', 'admin123', 'admin'].includes(p);
-    return isUser && isPass;
-  });
+  protected readonly isDetectedAdmin = computed(() =>
+    this.authService.isAdminCredentials(this.username(), this.password())
+  );
 
   close(): void {
     this.authService.closeLoginModal();
@@ -46,15 +39,10 @@ export class AuthModalComponent {
     event.preventDefault();
     const res = await this.authService.login(this.username(), this.password());
     if (res.success) {
-      if (res.role === 'admin') {
-        const returnUrl = this.authService.getReturnUrl();
-        const target = returnUrl && returnUrl.startsWith('/admin') ? returnUrl : '/admin/products';
-        this.router.navigateByUrl(target);
-      } else {
-        const returnUrl = this.authService.getReturnUrl();
-        const target = returnUrl && !returnUrl.startsWith('/admin') ? returnUrl : '/profile';
-        this.router.navigateByUrl(target);
-      }
+      const ret = this.authService.getReturnUrl();
+      const isAdmin = res.role === 'admin';
+      const target = ret && (isAdmin === ret.startsWith('/admin')) ? ret : (isAdmin ? '/admin/products' : '/profile');
+      this.router.navigateByUrl(target);
     }
   }
 }

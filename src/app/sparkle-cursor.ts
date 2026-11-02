@@ -98,6 +98,14 @@ export class SparkleCursor implements OnDestroy {
     };
     resize();
 
+    let running = false;
+    const startLoop = () => {
+      if (!running) {
+        running = true;
+        this.raf = requestAnimationFrame(loop);
+      }
+    };
+
     const onMove = (e: PointerEvent) => {
       this.mouse.x = e.clientX;
       this.mouse.y = e.clientY;
@@ -117,10 +125,12 @@ export class SparkleCursor implements OnDestroy {
       const hover = t?.closest('a, button, [data-cursor="hover"]');
       this.host.classList.toggle('view', !!view);
       this.host.classList.toggle('hover', !view && !!hover);
+      startLoop();
     };
     const onDown = (e: PointerEvent) => {
       this.host.classList.add('down');
       if (!reduced) this.spawn(e.clientX, e.clientY, 10, true);
+      startLoop();
     };
     const onUp = () => this.host.classList.remove('down');
     const onLeave = () => this.host.classList.remove('active');
@@ -129,7 +139,7 @@ export class SparkleCursor implements OnDestroy {
     addEventListener('pointerdown', onDown, { passive: true });
     addEventListener('pointerup', onUp, { passive: true });
     document.addEventListener('pointerleave', onLeave);
-    addEventListener('resize', resize);
+    addEventListener('resize', () => { resize(); startLoop(); });
     this.cleanup.push(
       () => removeEventListener('pointermove', onMove),
       () => removeEventListener('pointerdown', onDown),
@@ -139,30 +149,41 @@ export class SparkleCursor implements OnDestroy {
     );
 
     const loop = () => {
-      // cursor follow
-      this.ringPos.x += (this.mouse.x - this.ringPos.x) * 0.18;
-      this.ringPos.y += (this.mouse.y - this.ringPos.y) * 0.18;
+      const dx = this.mouse.x - this.ringPos.x;
+      const dy = this.mouse.y - this.ringPos.y;
+      const dist = Math.hypot(dx, dy);
+
+      if (dist > 0.2) {
+        this.ringPos.x += dx * 0.18;
+        this.ringPos.y += dy * 0.18;
+      }
       this.dot().nativeElement.style.transform = `translate3d(${this.mouse.x}px, ${this.mouse.y}px, 0)`;
       this.ring().nativeElement.style.transform = `translate3d(${this.ringPos.x}px, ${this.ringPos.y}px, 0)`;
 
-      // particles
-      ctx.clearRect(0, 0, innerWidth, innerHeight);
-      for (let i = this.particles.length - 1; i >= 0; i--) {
-        const p = this.particles[i];
-        p.life -= 0.018;
-        if (p.life <= 0) {
-          this.particles.splice(i, 1);
-          continue;
+      if (this.particles.length > 0) {
+        ctx.clearRect(0, 0, innerWidth, innerHeight);
+        for (let i = this.particles.length - 1; i >= 0; i--) {
+          const p = this.particles[i];
+          p.life -= 0.018;
+          if (p.life <= 0) {
+            this.particles.splice(i, 1);
+            continue;
+          }
+          p.x += p.vx;
+          p.y += p.vy;
+          p.vy += 0.035;
+          p.rot += p.vr;
+          this.draw(ctx, p);
         }
-        p.x += p.vx;
-        p.y += p.vy;
-        p.vy += 0.035;
-        p.rot += p.vr;
-        this.draw(ctx, p);
+      } else if (dist <= 0.2) {
+        ctx.clearRect(0, 0, innerWidth, innerHeight);
+        running = false;
+        return;
       }
+
       this.raf = requestAnimationFrame(loop);
     };
-    this.raf = requestAnimationFrame(loop);
+    startLoop();
   }
 
   private spawn(x: number, y: number, count: number, burst = false) {
