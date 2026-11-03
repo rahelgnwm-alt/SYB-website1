@@ -37,15 +37,18 @@
       <button class="icon-btn hide-sm account-btn" (click)="handleAccountClick($event)" aria-label="Akun"
         id="header-account">
         @if (auth.isAdmin()) {
-        <span class="header-admin-crown" title="Portal Admin SYB Aktif">👑</span>
-        } @else if (auth.isAuthenticated()) {
-        <span class="header-user-badge" [title]="auth.currentUser()?.fullName">{{ auth.currentUser()?.fullName?.[0] ||
-          'U' }}</span>
+          <span class="header-admin-crown" title="Portal Admin SYB Aktif">👑</span>
         } @else {
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
-          <circle cx="12" cy="8" r="4" />
-          <path d="M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6" stroke-linecap="round" />
-        </svg>
+          @if (auth.isAuthenticated()) {
+            <span class="header-user-badge" [title]="auth.currentUser()?.fullName">
+              {{ auth.currentUser()?.fullName ? auth.currentUser()!.fullName.charAt(0) : 'U' }}
+            </span>
+          } @else {
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+              <circle cx="12" cy="8" r="4" />
+              <path d="M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6" stroke-linecap="round" />
+            </svg>
+          }
         }
       </button>
       <a class="icon-btn cart" routerLink="/cart" aria-label="Keranjang" id="header-cart" (click)="menuOpen.set(false)">
@@ -70,14 +73,19 @@
     <a routerLink="/rituals" [style.--i]="4" (click)="menuOpen.set(false)">Glow O'Clock</a>
     <a routerLink="/cart" [style.--i]="5" (click)="menuOpen.set(false)">Keranjang ({{ cart.count() }})</a>
     @if (!auth.isAuthenticated()) {
-    <a (click)="handleAccountClick($event); menuOpen.set(false)" [style.--i]="6" id="mobile-account-btn">Masuk / Akun
-      Saya</a>
-    } @else if (auth.isAdmin()) {
-    <a routerLink="/admin/products" (click)="menuOpen.set(false)" [style.--i]="6" class="menu-admin-link">👑 Portal
-      Admin SYB</a>
+      <a (click)="handleAccountClick($event); menuOpen.set(false)" [style.--i]="6" id="mobile-account-btn">
+        Masuk / Akun Saya
+      </a>
     } @else {
-    <a routerLink="/profile" (click)="menuOpen.set(false)" [style.--i]="6">Profil Saya ({{
-      auth.currentUser()?.fullName?.split(' ')?.[0] }})</a>
+      @if (auth.isAdmin()) {
+        <a routerLink="/admin/products" (click)="menuOpen.set(false)" [style.--i]="6" class="menu-admin-link">
+          👑 Portal Admin SYB
+        </a>
+      } @else {
+        <a routerLink="/profile" (click)="menuOpen.set(false)" [style.--i]="6">
+          Profil Saya ({{ auth.currentUser()?.fullName }})
+        </a>
+      }
     }
   </div>
 </header>
