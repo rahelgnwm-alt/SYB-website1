@@ -76,6 +76,10 @@ export class CheckoutComponent implements OnInit {
   protected readonly tariffOptions = signal<JneTariffOption[]>([]);
   protected readonly selectedTariff = signal<JneTariffOption | null>(null);
 
+  readonly resolvedDestCode = computed(() =>
+    this.jneApi.mapCityToDestCode(this.city() || this.province(), this.postalCode())
+  );
+
   // Weight estimation: ~250g per item, min 1kg
   protected readonly estimatedWeightKg = computed(() => {
     const totalItems = this.cart.count();
@@ -184,7 +188,7 @@ export class CheckoutComponent implements OnInit {
    */
   protected async fetchJneTariffs(): Promise<void> {
     this.isLoadingTariff.set(true);
-    const destCode = this.jneApi.mapCityToDestCode(this.city() || this.province());
+    const destCode = this.jneApi.mapCityToDestCode(this.city() || this.province(), this.postalCode());
     const weight = this.estimatedWeightKg();
 
     try {

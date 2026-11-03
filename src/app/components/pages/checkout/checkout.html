@@ -8,581 +8,499 @@
   <div class="container checkout-container">
     <!-- ==================== ORDER COMPLETED STATE ==================== -->
     @if (completedOrder(); as ord) {
-      <div class="success-card-wrapper">
-        <div class="success-card">
-          <div class="success-badge-glow">
-            <span class="success-icon-symbol">✓</span>
-          </div>
+    <div class="success-card-wrapper">
+      <div class="success-card">
+        <div class="success-badge-glow">
+          <span class="success-icon-symbol">✓</span>
+        </div>
 
-          <span class="pill-chip-badge">Pembayaran Terverifikasi Otomatis</span>
-          <h1 class="display success-title">
-            Terima Kasih, <span class="gradient-text">{{ ord.customerName }}!</span> 🎉
-          </h1>
-          <p class="success-subtitle">
-            Pesanan <strong>{{ ord.orderNumber }}</strong> telah diterima dan sedang dipersiapkan dengan penuh cinta di gudang logistik pusat Surabaya.
-          </p>
+        <span class="pill-chip-badge">Pembayaran Terverifikasi Otomatis</span>
+        <h1 class="display success-title">
+          Terima Kasih, <span class="gradient-text">{{ ord.customerName }}!</span> 🎉
+        </h1>
+        <p class="success-subtitle">
+          Pesanan <strong>{{ ord.orderNumber }}</strong> telah diterima dan sedang dipersiapkan dengan penuh cinta di
+          gudang logistik pusat Surabaya.
+        </p>
 
-          <div class="success-box-grid">
-            <div class="success-info-box">
-              <div class="box-head">
-                <span class="box-icon">📦</span>
-                <span class="box-title">Detail Pengiriman</span>
-              </div>
-              <p class="box-desc"><strong>{{ ord.customerName }}</strong> ({{ ord.customerPhone }})</p>
-              <p class="box-desc">{{ ord.shippingAddress.street }}, {{ ord.shippingAddress.city }}, {{ ord.shippingAddress.province }} {{ ord.shippingAddress.postalCode }}</p>
-              <div class="courier-pill">
-                <span>Kurir Ekspedisi: <strong>{{ ord.courier }} - {{ ord.serviceName }}</strong></span>
-              </div>
+        <div class="success-box-grid">
+          <div class="success-info-box">
+            <div class="box-head">
+              <span class="box-icon">📦</span>
+              <span class="box-title">Detail Pengiriman</span>
             </div>
-
-            <div class="success-info-box">
-              <div class="box-head">
-                <span class="box-icon">💳</span>
-                <span class="box-title">Rincian Pembayaran</span>
-              </div>
-              <div class="price-row">
-                <span>Subtotal:</span>
-                <strong>{{ rupiah(ord.subtotal) }}</strong>
-              </div>
-              <div class="price-row">
-                <span>Ongkos Kirim (JNE):</span>
-                <strong>{{ rupiah(ord.shippingCost) }}</strong>
-              </div>
-              @if (ord.discount > 0) {
-                <div class="price-row discount">
-                  <span>Diskon Promo:</span>
-                  <strong>-{{ rupiah(ord.discount) }}</strong>
-                </div>
-              }
-              <div class="price-row total-paid">
-                <span>Total Terbayar:</span>
-                <strong class="paid-amount">{{ rupiah(ord.total) }}</strong>
-              </div>
+            <p class="box-desc"><strong>{{ ord.customerName }}</strong> ({{ ord.customerPhone }})</p>
+            <p class="box-desc">{{ ord.shippingAddress.street }}, {{ ord.shippingAddress.city }}, {{
+              ord.shippingAddress.province }} {{ ord.shippingAddress.postalCode }}</p>
+            <div class="courier-pill">
+              <span>Kurir Ekspedisi: <strong>{{ ord.courier }} - {{ ord.serviceName }}</strong></span>
             </div>
           </div>
 
-          <div class="success-actions">
-            <a routerLink="/profile" class="btn btn--primary">
-              <span>📍 Lacak Status Pesanan di Profil</span>
-            </a>
-            <a routerLink="/products" class="btn btn--ghost-pink">
-              <span>Belanja Produk Lainnya</span>
-            </a>
+          <div class="success-info-box">
+            <div class="box-head">
+              <span class="box-icon">💳</span>
+              <span class="box-title">Rincian Pembayaran</span>
+            </div>
+            <div class="price-row">
+              <span>Subtotal:</span>
+              <strong>{{ rupiah(ord.subtotal) }}</strong>
+            </div>
+            <div class="price-row">
+              <span>Ongkos Kirim (JNE):</span>
+              <strong>{{ rupiah(ord.shippingCost) }}</strong>
+            </div>
+            @if (ord.discount > 0) {
+            <div class="price-row discount">
+              <span>Diskon Promo:</span>
+              <strong>-{{ rupiah(ord.discount) }}</strong>
+            </div>
+            }
+            <div class="price-row total-paid">
+              <span>Total Terbayar:</span>
+              <strong class="paid-amount">{{ rupiah(ord.total) }}</strong>
+            </div>
           </div>
+        </div>
+
+        <div class="success-actions">
+          <a routerLink="/profile" class="btn btn--primary">
+            <span>📍 Lacak Status Pesanan di Profil</span>
+          </a>
+          <a routerLink="/products" class="btn btn--ghost-pink">
+            <span>Belanja Produk Lainnya</span>
+          </a>
         </div>
       </div>
+    </div>
     } @else {
-      <!-- ==================== MAIN CHECKOUT HEADER ==================== -->
-      <header class="checkout-page__head">
-        <div class="checkout-meta-bar">
-          <p class="eyebrow">Checkout Pesanan</p>
-          <div class="ssl-guarantee-pill">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
-              <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
-            </svg>
-            <span>Enkripsi SSL 256-Bit Aman</span>
+    <!-- ==================== MAIN CHECKOUT HEADER ==================== -->
+    <header class="checkout-page__head">
+      <div class="checkout-meta-bar">
+        <p class="eyebrow">Checkout Pesanan</p>
+        <div class="ssl-guarantee-pill">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+            <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+          </svg>
+          <span>Enkripsi SSL 256-Bit Aman</span>
+        </div>
+      </div>
+
+      <div class="checkout-head-row">
+        <h1 id="checkout-title" class="display checkout-title">
+          Informasi &amp; <span class="gradient-text">Pengiriman</span>
+        </h1>
+
+        <!-- Cute Stepper Navigation matching SYB Pills -->
+        <nav class="checkout-stepper" aria-label="Tahapan Pembelian">
+          <a routerLink="/cart" class="step-chip completed" title="Kembali ke keranjang">
+            <span class="step-chip__icon">✓</span>
+            <span class="step-chip__label">Keranjang</span>
+          </a>
+          <span class="step-chip__arrow" aria-hidden="true">→</span>
+          <div class="step-chip active" aria-current="step">
+            <span class="step-chip__icon">2</span>
+            <span class="step-chip__label">Pengiriman</span>
           </div>
-        </div>
+          <span class="step-chip__arrow" aria-hidden="true">→</span>
+          <div class="step-chip pending">
+            <span class="step-chip__icon">3</span>
+            <span class="step-chip__label">Selesai</span>
+          </div>
+        </nav>
+      </div>
+    </header>
 
-        <div class="checkout-head-row">
-          <h1 id="checkout-title" class="display checkout-title">
-            Informasi &amp; <span class="gradient-text">Pengiriman</span>
-          </h1>
-
-          <!-- Cute Stepper Navigation matching SYB Pills -->
-          <nav class="checkout-stepper" aria-label="Tahapan Pembelian">
-            <a routerLink="/cart" class="step-chip completed" title="Kembali ke keranjang">
-              <span class="step-chip__icon">✓</span>
-              <span class="step-chip__label">Keranjang</span>
-            </a>
-            <span class="step-chip__arrow" aria-hidden="true">→</span>
-            <div class="step-chip active" aria-current="step">
-              <span class="step-chip__icon">2</span>
-              <span class="step-chip__label">Pengiriman</span>
-            </div>
-            <span class="step-chip__arrow" aria-hidden="true">→</span>
-            <div class="step-chip pending">
-              <span class="step-chip__icon">3</span>
-              <span class="step-chip__label">Selesai</span>
-            </div>
-          </nav>
-        </div>
-      </header>
-
-      <!-- ==================== MAIN CHECKOUT TWO-COLUMN LAYOUT ==================== -->
-      <main class="checkout-main-content">
-        <div class="checkout-grid">
-          <!-- ---------------- LEFT COLUMN: FORM & SHIPPING ---------------- -->
-          <div class="checkout-col-left">
-            <!-- Account & Profile Notice Banner -->
-            @if (auth.currentUser(); as user) {
-              <div class="account-card">
-                <div class="account-left">
-                  <div class="avatar-circle">{{ (user.fullName || user.username).slice(0, 1).toUpperCase() }}</div>
-                  <div class="account-info">
-                    <span class="account-label">Akun Pembeli Terhubung</span>
-                    <strong class="account-name">{{ user.fullName }}</strong>
-                    <span class="account-email">({{ user.email }})</span>
-                  </div>
-                </div>
-                @if (user.address) {
-                  <button type="button" class="btn-use-profile" (click)="applyProfileAddress()" title="Gunakan alamat tersimpan di akun">
-                    <span>📍 Pakai Alamat Profil</span>
-                  </button>
-                }
+    <!-- ==================== MAIN CHECKOUT TWO-COLUMN LAYOUT ==================== -->
+    <main class="checkout-main-content">
+      <div class="checkout-grid">
+        <!-- ---------------- LEFT COLUMN: FORM & SHIPPING ---------------- -->
+        <div class="checkout-col-left">
+          <!-- Account & Profile Notice Banner -->
+          @if (auth.currentUser(); as user) {
+          <div class="account-card">
+            <div class="account-left">
+              <div class="avatar-circle">{{ (user.fullName || user.username).slice(0, 1).toUpperCase() }}</div>
+              <div class="account-info">
+                <span class="account-label">Akun Pembeli Terhubung</span>
+                <strong class="account-name">{{ user.fullName }}</strong>
+                <span class="account-email">({{ user.email }})</span>
               </div>
-            } @else {
-              <div class="guest-login-card">
-                <div class="guest-text">
-                  <span class="guest-icon">✨</span>
-                  <span>Sudah punya akun member SYB? Masuk untuk checkout lebih cepat &amp; klaim poin loyalty.</span>
-                </div>
-                <button type="button" class="btn-login-shortcut" (click)="auth.openLoginModal('/checkout')">
-                  Masuk ke Akun &rarr;
-                </button>
+            </div>
+            @if (user.address) {
+            <button type="button" class="btn-use-profile" (click)="applyProfileAddress()"
+              title="Gunakan alamat tersimpan di akun">
+              <span>📍 Pakai Alamat Profil</span>
+            </button>
+            }
+          </div>
+          } @else {
+          <div class="guest-login-card">
+            <div class="guest-text">
+              <span class="guest-icon">✨</span>
+              <span>Sudah punya akun member SYB? Masuk untuk checkout lebih cepat &amp; klaim poin loyalty.</span>
+            </div>
+            <button type="button" class="btn-login-shortcut" (click)="auth.openLoginModal('/checkout')">
+              Masuk ke Akun &rarr;
+            </button>
+          </div>
+          }
+
+          <!-- Form Card: Alamat Pengiriman (Exactly like user screenshot) -->
+          <section class="section-card" aria-labelledby="shipping-heading">
+            <div class="section-header">
+              <div class="section-header-left">
+                <span class="section-dot"></span>
+                <h2 id="shipping-heading" class="section-title">Alamat Pengiriman</h2>
               </div>
+              <span class="section-badge">Data Pembeli</span>
+            </div>
+
+            <!-- Form Error Message -->
+            @if (errorMessage(); as err) {
+            <div class="form-error-banner" role="alert">
+              <span>⚠️ {{ err }}</span>
+            </div>
             }
 
-            <!-- Form Card: Alamat Pengiriman (Exactly like user screenshot) -->
-            <section class="section-card" aria-labelledby="shipping-heading">
-              <div class="section-header">
-                <div class="section-header-left">
-                  <span class="section-dot"></span>
-                  <h2 id="shipping-heading" class="section-title">Alamat Pengiriman</h2>
-                </div>
-                <span class="section-badge">Data Pembeli</span>
+            <form class="address-form" (ngSubmit)="$event.preventDefault()">
+              <!-- 1. Negara / Wilayah -->
+              <div class="field-float is-select">
+                <select id="country-select" class="float-select" [ngModel]="country()"
+                  (ngModelChange)="country.set($event)" name="country">
+                  <option value="Indonesia">Indonesia</option>
+                </select>
+                <label for="country-select" class="float-label">Negara/Wilayah</label>
+                <svg class="select-chevron-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
+                  stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <polyline points="6 9 12 15 18 9"></polyline>
+                </svg>
               </div>
 
-              <!-- Form Error Message -->
-              @if (errorMessage(); as err) {
-                <div class="form-error-banner" role="alert">
-                  <span>⚠️ {{ err }}</span>
+              <!-- 2. Nama Depan & Nama Belakang (2 Columns) -->
+              <div class="form-row two-cols">
+                <div class="field-float">
+                  <input type="text" id="firstName" class="float-input" placeholder=" " [ngModel]="firstName()"
+                    (ngModelChange)="firstName.set($event)" name="firstName" />
+                  <label for="firstName" class="float-label">Nama depan (opsional)</label>
                 </div>
-              }
 
-              <form class="address-form" (ngSubmit)="$event.preventDefault()">
-                <!-- 1. Negara / Wilayah -->
+                <div class="field-float">
+                  <input type="text" id="lastName" class="float-input" placeholder=" " [ngModel]="lastName()"
+                    (ngModelChange)="lastName.set($event)" name="lastName" required />
+                  <label for="lastName" class="float-label">Nama belakang</label>
+                </div>
+              </div>
+
+              <!-- 3. Alamat -->
+              <div class="field-float">
+                <input type="text" id="address" class="float-input" placeholder=" " [ngModel]="address()"
+                  (ngModelChange)="address.set($event)" name="address" required />
+                <label for="address" class="float-label">Alamat</label>
+              </div>
+
+              <!-- 4. Apartemen, suite, dsb. (opsional) -->
+              <div class="field-float">
+                <input type="text" id="apartment" class="float-input" placeholder=" " [ngModel]="apartment()"
+                  (ngModelChange)="apartment.set($event)" name="apartment" />
+                <label for="apartment" class="float-label">Apartemen, suite, dsb. (opsional)</label>
+              </div>
+
+              <!-- 5. Kota -->
+              <div class="field-float">
+                <input type="text" id="city" class="float-input" placeholder=" " [ngModel]="city()"
+                  (ngModelChange)="city.set($event); onLocationChange()" name="city" required />
+                <label for="city" class="float-label">Kota</label>
+              </div>
+
+              <!-- 6. Provinsi & Kode Pos (2 Columns - Perfectly Aligned) -->
+              <div class="form-row two-cols">
                 <div class="field-float is-select">
-                  <select
-                    id="country-select"
-                    class="float-select"
-                    [ngModel]="country()"
-                    (ngModelChange)="country.set($event)"
-                    name="country"
-                  >
-                    <option value="Indonesia">Indonesia</option>
+                  <select id="province-select" class="float-select" [ngModel]="province()"
+                    (ngModelChange)="province.set($event); onLocationChange()" name="province" required>
+                    @for (p of provinces; track p) {
+                    <option [value]="p">{{ p }}</option>
+                    }
                   </select>
-                  <label for="country-select" class="float-label">Negara/Wilayah</label>
-                  <svg class="select-chevron-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <label for="province-select" class="float-label">Provinsi</label>
+                  <svg class="select-chevron-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                    stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                     <polyline points="6 9 12 15 18 9"></polyline>
                   </svg>
                 </div>
 
-                <!-- 2. Nama Depan & Nama Belakang (2 Columns) -->
-                <div class="form-row two-cols">
-                  <div class="field-float">
-                    <input
-                      type="text"
-                      id="firstName"
-                      class="float-input"
-                      placeholder=" "
-                      [ngModel]="firstName()"
-                      (ngModelChange)="firstName.set($event)"
-                      name="firstName"
-                    />
-                    <label for="firstName" class="float-label">Nama depan (opsional)</label>
-                  </div>
-
-                  <div class="field-float">
-                    <input
-                      type="text"
-                      id="lastName"
-                      class="float-input"
-                      placeholder=" "
-                      [ngModel]="lastName()"
-                      (ngModelChange)="lastName.set($event)"
-                      name="lastName"
-                      required
-                    />
-                    <label for="lastName" class="float-label">Nama belakang</label>
-                  </div>
-                </div>
-
-                <!-- 3. Alamat -->
                 <div class="field-float">
-                  <input
-                    type="text"
-                    id="address"
-                    class="float-input"
-                    placeholder=" "
-                    [ngModel]="address()"
-                    (ngModelChange)="address.set($event)"
-                    name="address"
-                    required
-                  />
-                  <label for="address" class="float-label">Alamat</label>
+                  <input type="text" id="postalCode" class="float-input" placeholder=" " [ngModel]="postalCode()"
+                    (ngModelChange)="postalCode.set($event); onLocationChange()" name="postalCode" required />
+                  <label for="postalCode" class="float-label">Kode pos</label>
                 </div>
-
-                <!-- 4. Apartemen, suite, dsb. (opsional) -->
-                <div class="field-float">
-                  <input
-                    type="text"
-                    id="apartment"
-                    class="float-input"
-                    placeholder=" "
-                    [ngModel]="apartment()"
-                    (ngModelChange)="apartment.set($event)"
-                    name="apartment"
-                  />
-                  <label for="apartment" class="float-label">Apartemen, suite, dsb. (opsional)</label>
-                </div>
-
-                <!-- 5. Kota -->
-                <div class="field-float">
-                  <input
-                    type="text"
-                    id="city"
-                    class="float-input"
-                    placeholder=" "
-                    [ngModel]="city()"
-                    (ngModelChange)="city.set($event); onLocationChange()"
-                    name="city"
-                    required
-                  />
-                  <label for="city" class="float-label">Kota</label>
-                </div>
-
-                <!-- 6. Provinsi & Kode Pos (2 Columns - Perfectly Aligned) -->
-                <div class="form-row two-cols">
-                  <div class="field-float is-select">
-                    <select
-                      id="province-select"
-                      class="float-select"
-                      [ngModel]="province()"
-                      (ngModelChange)="province.set($event); onLocationChange()"
-                      name="province"
-                      required
-                    >
-                      @for (p of provinces; track p) {
-                        <option [value]="p">{{ p }}</option>
-                      }
-                    </select>
-                    <label for="province-select" class="float-label">Provinsi</label>
-                    <svg class="select-chevron-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                      <polyline points="6 9 12 15 18 9"></polyline>
-                    </svg>
-                  </div>
-
-                  <div class="field-float">
-                    <input
-                      type="text"
-                      id="postalCode"
-                      class="float-input"
-                      placeholder=" "
-                      [ngModel]="postalCode()"
-                      (ngModelChange)="postalCode.set($event)"
-                      name="postalCode"
-                      required
-                    />
-                    <label for="postalCode" class="float-label">Kode pos</label>
-                  </div>
-                </div>
-
-                <!-- 7. Telepon with Help Tooltip -->
-                <div class="field-float">
-                  <input
-                    type="tel"
-                    id="phone"
-                    class="float-input float-input--with-icon"
-                    placeholder=" "
-                    [ngModel]="phone()"
-                    (ngModelChange)="phone.set($event)"
-                    name="phone"
-                    required
-                  />
-                  <label for="phone" class="float-label">Telepon</label>
-                  <div class="tooltip-wrapper">
-                    <span class="help-tooltip-icon" aria-label="Penjelasan nomor telepon" tabindex="0">?</span>
-                    <div class="tooltip-popover">Nomor telepon aktif untuk konfirmasi pengantaran kurir ekspedisi ke lokasi Anda</div>
-                  </div>
-                </div>
-
-                <!-- 8. Email (untuk notifikasi status resi) -->
-                <div class="field-float">
-                  <input
-                    type="email"
-                    id="email"
-                    class="float-input"
-                    placeholder=" "
-                    [ngModel]="email()"
-                    (ngModelChange)="email.set($event)"
-                    name="email"
-                    required
-                  />
-                  <label for="email" class="float-label">Email konfirmasi pesanan</label>
-                </div>
-
-                <!-- Checkbox 1: Simpan informasi ini untuk login berikutnya -->
-                <label class="custom-checkbox-row">
-                  <input
-                    type="checkbox"
-                    [checked]="saveInfoNextTime()"
-                    (change)="saveInfoNextTime.set(!saveInfoNextTime())"
-                  />
-                  <span class="checkbox-box">
-                    <span class="checkbox-tick">✓</span>
-                  </span>
-                  <span class="checkbox-text">Simpan informasi ini untuk login berikutnya</span>
-                </label>
-
-                <!-- Checkbox 2: Perbarui alamat profil akun jika sudah punya akun -->
-                @if (auth.currentUser()) {
-                  <label class="custom-checkbox-row highlight">
-                    <input
-                      type="checkbox"
-                      [checked]="updateProfileAddress()"
-                      (change)="updateProfileAddress.set(!updateProfileAddress())"
-                    />
-                    <span class="checkbox-box">
-                      <span class="checkbox-tick">✓</span>
-                    </span>
-                    <span class="checkbox-text">
-                      Perbarui alamat di profil akun saya dengan data ini
-                    </span>
-                  </label>
-                }
-              </form>
-            </section>
-
-            <!-- ---------------- JNE SHIPPING METHOD SELECTION ---------------- -->
-            <section class="section-card" aria-labelledby="method-heading">
-              <div class="section-header">
-                <div class="section-header-left">
-                  <span class="section-dot"></span>
-                  <div>
-                    <h2 id="method-heading" class="section-title">Metode Pengiriman</h2>
-                    <p class="section-sub">Dihitung otomatis via JNE API Resmi (Asal: Gudang SYB Surabaya • {{ estimatedWeightKg() }} kg)</p>
-                  </div>
-                </div>
-                <span class="jne-api-badge">JNE API LIVE</span>
               </div>
 
-              @if (isLoadingTariff()) {
-                <div class="tariff-loading-box">
-                  <span class="loading-spinner"></span>
-                  <span>Mengambil estimasi tarif resmi JNE untuk tujuan {{ city() || province() }}...</span>
+              <!-- 7. Telepon with Help Tooltip -->
+              <div class="field-float">
+                <input type="tel" id="phone" class="float-input float-input--with-icon" placeholder=" "
+                  [ngModel]="phone()" (ngModelChange)="phone.set($event)" name="phone" required />
+                <label for="phone" class="float-label">Telepon</label>
+                <div class="tooltip-wrapper">
+                  <span class="help-tooltip-icon" aria-label="Penjelasan nomor telepon" tabindex="0">?</span>
+                  <div class="tooltip-popover">Nomor telepon aktif untuk konfirmasi pengantaran kurir ekspedisi ke
+                    lokasi Anda</div>
                 </div>
-              } @else {
-                <div class="shipping-options-list" role="radiogroup" aria-label="Layanan pengiriman JNE">
-                  @for (opt of tariffOptions(); track opt.serviceCode) {
-                    <div
-                      class="shipping-option-row"
-                      [class.selected]="selectedTariff()?.serviceCode === opt.serviceCode"
-                      (click)="selectTariff(opt)"
-                      role="radio"
-                      [attr.aria-checked]="selectedTariff()?.serviceCode === opt.serviceCode"
-                      tabindex="0"
-                    >
-                      <div class="opt-left">
-                        <div class="radio-circle">
-                          <span class="radio-core"></span>
-                        </div>
-                        <div class="opt-text">
-                          <div class="opt-name-row">
-                            <strong class="opt-title">{{ opt.serviceName }}</strong>
-                            @if (opt.badge) {
-                              <span class="opt-badge">{{ opt.badge }}</span>
-                            }
-                          </div>
-                          <span class="opt-eta">⏱️ Estimasi Pengantaran: {{ opt.etd }}</span>
-                        </div>
-                      </div>
-                      <div class="opt-right">
-                        @if (isFreeShipping()) {
-                          <div class="free-badge-wrap">
-                            <strong class="price-free">GRATIS ✨</strong>
-                            <s class="price-strike">{{ rupiah(opt.price) }}</s>
-                          </div>
-                        } @else {
-                          <strong class="price-val">{{ rupiah(opt.price) }}</strong>
-                        }
-                      </div>
+              </div>
+
+              <!-- 8. Email (untuk notifikasi status resi) -->
+              <div class="field-float">
+                <input type="email" id="email" class="float-input" placeholder=" " [ngModel]="email()"
+                  (ngModelChange)="email.set($event)" name="email" required />
+                <label for="email" class="float-label">Email konfirmasi pesanan</label>
+              </div>
+
+              <!-- Checkbox 1: Simpan informasi ini untuk login berikutnya -->
+              <label class="custom-checkbox-row">
+                <input type="checkbox" [checked]="saveInfoNextTime()"
+                  (change)="saveInfoNextTime.set(!saveInfoNextTime())" />
+                <span class="checkbox-box">
+                  <span class="checkbox-tick">✓</span>
+                </span>
+                <span class="checkbox-text">Simpan informasi ini untuk login berikutnya</span>
+              </label>
+
+              <!-- Checkbox 2: Perbarui alamat profil akun jika sudah punya akun -->
+              @if (auth.currentUser()) {
+              <label class="custom-checkbox-row highlight">
+                <input type="checkbox" [checked]="updateProfileAddress()"
+                  (change)="updateProfileAddress.set(!updateProfileAddress())" />
+                <span class="checkbox-box">
+                  <span class="checkbox-tick">✓</span>
+                </span>
+                <span class="checkbox-text">
+                  Perbarui alamat di profil akun saya dengan data ini
+                </span>
+              </label>
+              }
+            </form>
+          </section>
+
+          <!-- ---------------- JNE SHIPPING METHOD SELECTION ---------------- -->
+          <section class="section-card" aria-labelledby="method-heading">
+            <div class="section-header">
+              <div class="section-header-left">
+                <span class="section-dot"></span>
+                <div>
+                  <h2 id="method-heading" class="section-title">Metode Pengiriman</h2>
+                  <p class="section-sub">Dihitung otomatis via JNE API Resmi (Asal: Gudang SYB Surabaya • {{
+                    estimatedWeightKg() }} kg)</p>
+                </div>
+              </div>
+              <span class="jne-api-badge">JNE API LIVE</span>
+            </div>
+
+            @if (isLoadingTariff()) {
+            <div class="tariff-loading-box">
+              <span class="loading-spinner"></span>
+              <span>Mengambil estimasi tarif resmi JNE untuk tujuan {{ city() || province() }} (Zona: {{ resolvedDestCode() }})...</span>
+            </div>
+            } @else {
+            <div class="shipping-options-list" role="radiogroup" aria-label="Layanan pengiriman JNE">
+              @for (opt of tariffOptions(); track opt.serviceCode) {
+              <div class="shipping-option-row" [class.selected]="selectedTariff()?.serviceCode === opt.serviceCode"
+                (click)="selectTariff(opt)" role="radio"
+                [attr.aria-checked]="selectedTariff()?.serviceCode === opt.serviceCode" tabindex="0">
+                <div class="opt-left">
+                  <div class="radio-circle">
+                    <span class="radio-core"></span>
+                  </div>
+                  <div class="opt-text">
+                    <div class="opt-name-row">
+                      <strong class="opt-title">{{ opt.serviceName }}</strong>
+                      @if (opt.badge) {
+                      <span class="opt-badge">{{ opt.badge }}</span>
+                      }
                     </div>
+                    <span class="opt-eta">⏱️ Estimasi Pengantaran: {{ opt.etd }}</span>
+                  </div>
+                </div>
+                <div class="opt-right">
+                  @if (isFreeShipping()) {
+                  <div class="free-badge-wrap">
+                    <strong class="price-free">GRATIS ✨</strong>
+                    <s class="price-strike">{{ rupiah(opt.price) }}</s>
+                  </div>
+                  } @else {
+                  <strong class="price-val">{{ rupiah(opt.price) }}</strong>
                   }
                 </div>
+              </div>
               }
-            </section>
+            </div>
+            }
+          </section>
 
-            <!-- ---------------- PAYMENT METHOD ---------------- -->
-            <section class="section-card" aria-labelledby="payment-heading">
-              <div class="section-header">
-                <div class="section-header-left">
-                  <span class="section-dot"></span>
-                  <h2 id="payment-heading" class="section-title">Metode Pembayaran</h2>
-                </div>
-                <span class="secure-tag">100% Aman &amp; Terverifikasi</span>
+          <!-- ---------------- PAYMENT METHOD ---------------- -->
+          <section class="section-card" aria-labelledby="payment-heading">
+            <div class="section-header">
+              <div class="section-header-left">
+                <span class="section-dot"></span>
+                <h2 id="payment-heading" class="section-title">Metode Pembayaran</h2>
               </div>
+              <span class="secure-tag">100% Aman &amp; Terverifikasi</span>
+            </div>
 
-              <div class="payment-methods-grid">
-                <label class="payment-card" [class.selected]="paymentMethod() === 'va'">
-                  <input type="radio" name="paymethod" value="va" [checked]="paymentMethod() === 'va'" (change)="paymentMethod.set('va')" />
-                  <div class="radio-circle">
-                    <span class="radio-core"></span>
+            <div class="payment-methods-grid">
+              <label class="payment-card" [class.selected]="paymentMethod() === 'va'">
+                <input type="radio" name="paymethod" value="va" [checked]="paymentMethod() === 'va'"
+                  (change)="paymentMethod.set('va')" />
+                <div class="radio-circle">
+                  <span class="radio-core"></span>
+                </div>
+                <div class="pay-body">
+                  <div class="pay-title-row">
+                    <strong>Virtual Account (BCA, Mandiri, BRI, BNI)</strong>
+                    <span class="rec-pill">Otomatis</span>
                   </div>
-                  <div class="pay-body">
-                    <div class="pay-title-row">
-                      <strong>Virtual Account (BCA, Mandiri, BRI, BNI)</strong>
-                      <span class="rec-pill">Otomatis</span>
-                    </div>
-                    <small>Verifikasi otomatis 24 jam tanpa perlu upload bukti transfer fisik</small>
-                  </div>
-                </label>
+                  <small>Verifikasi otomatis 24 jam tanpa perlu upload bukti transfer fisik</small>
+                </div>
+              </label>
 
-                <label class="payment-card" [class.selected]="paymentMethod() === 'qris'">
-                  <input type="radio" name="paymethod" value="qris" [checked]="paymentMethod() === 'qris'" (change)="paymentMethod.set('qris')" />
-                  <div class="radio-circle">
-                    <span class="radio-core"></span>
+              <label class="payment-card" [class.selected]="paymentMethod() === 'qris'">
+                <input type="radio" name="paymethod" value="qris" [checked]="paymentMethod() === 'qris'"
+                  (change)="paymentMethod.set('qris')" />
+                <div class="radio-circle">
+                  <span class="radio-core"></span>
+                </div>
+                <div class="pay-body">
+                  <div class="pay-title-row">
+                    <strong>QRIS / E-Wallet (GoPay, ShopeePay, OVO, Dana)</strong>
+                    <span class="rec-pill rec-pill--fast">Scan Cepat</span>
                   </div>
-                  <div class="pay-body">
-                    <div class="pay-title-row">
-                      <strong>QRIS / E-Wallet (GoPay, ShopeePay, OVO, Dana)</strong>
-                      <span class="rec-pill rec-pill--fast">Scan Cepat</span>
-                    </div>
-                    <small>Scan instan dari semua aplikasi perbankan &amp; dompet digital Anda</small>
-                  </div>
-                </label>
+                  <small>Scan instan dari semua aplikasi perbankan &amp; dompet digital Anda</small>
+                </div>
+              </label>
 
-                <label class="payment-card" [class.selected]="paymentMethod() === 'cod'">
-                  <input type="radio" name="paymethod" value="cod" [checked]="paymentMethod() === 'cod'" (change)="paymentMethod.set('cod')" />
-                  <div class="radio-circle">
-                    <span class="radio-core"></span>
+              <label class="payment-card" [class.selected]="paymentMethod() === 'cod'">
+                <input type="radio" name="paymethod" value="cod" [checked]="paymentMethod() === 'cod'"
+                  (change)="paymentMethod.set('cod')" />
+                <div class="radio-circle">
+                  <span class="radio-core"></span>
+                </div>
+                <div class="pay-body">
+                  <div class="pay-title-row">
+                    <strong>COD (Bayar Tunai di Tempat)</strong>
+                    <span class="rec-pill rec-pill--cod">Bayar Kurir</span>
                   </div>
-                  <div class="pay-body">
-                    <div class="pay-title-row">
-                      <strong>COD (Bayar Tunai di Tempat)</strong>
-                      <span class="rec-pill rec-pill--cod">Bayar Kurir</span>
-                    </div>
-                    <small>Bayar uang tunai langsung ke kurir JNE saat paket tiba di depan rumah</small>
-                  </div>
-                </label>
+                  <small>Bayar uang tunai langsung ke kurir JNE saat paket tiba di depan rumah</small>
+                </div>
+              </label>
+            </div>
+          </section>
+        </div>
+
+        <!-- ---------------- RIGHT COLUMN: ORDER SUMMARY ---------------- -->
+        <aside class="checkout-col-right" aria-label="Ringkasan Pesanan Anda">
+          <div class="summary-card">
+            <div class="summary-header">
+              <h3 class="summary-title">Ringkasan Pesanan</h3>
+              <span class="count-badge">{{ cart.count() }} Produk</span>
+            </div>
+
+            <!-- Cart Items List -->
+            <ul class="order-items-list" aria-label="Daftar produk dibeli">
+              @for (line of cart.lines(); track line.product.id) {
+              <li class="order-item-row">
+                <div class="thumb-wrap">
+                  <img [src]="line.product.image" [alt]="line.product.name" />
+                  <span class="qty-bubble">{{ line.qty }}</span>
+                </div>
+                <div class="item-meta">
+                  <strong class="item-name">{{ line.product.name }}</strong>
+                  <small class="item-variant">{{ line.product.tagline }}</small>
+                </div>
+                <div class="item-price">
+                  {{ rupiah(line.product.price * line.qty) }}
+                </div>
+              </li>
+              }
+            </ul>
+
+            <!-- Discount Voucher Box -->
+            <div class="voucher-box">
+              <div class="voucher-input-group">
+                <input type="text" placeholder="Kode voucher promo" [ngModel]="voucherInput()"
+                  (ngModelChange)="voucherInput.set($event)" aria-label="Input kode voucher promo" />
+                <button type="button" class="btn-apply-voucher" (click)="applyVoucher()">
+                  Terapkan
+                </button>
               </div>
-            </section>
-          </div>
-
-          <!-- ---------------- RIGHT COLUMN: ORDER SUMMARY ---------------- -->
-          <aside class="checkout-col-right" aria-label="Ringkasan Pesanan Anda">
-            <div class="summary-card">
-              <div class="summary-header">
-                <h3 class="summary-title">Ringkasan Pesanan</h3>
-                <span class="count-badge">{{ cart.count() }} Produk</span>
-              </div>
-
-              <!-- Cart Items List -->
-              <ul class="order-items-list" aria-label="Daftar produk dibeli">
-                @for (line of cart.lines(); track line.product.id) {
-                  <li class="order-item-row">
-                    <div class="thumb-wrap">
-                      <img [src]="line.product.image" [alt]="line.product.name" />
-                      <span class="qty-bubble">{{ line.qty }}</span>
-                    </div>
-                    <div class="item-meta">
-                      <strong class="item-name">{{ line.product.name }}</strong>
-                      <small class="item-variant">{{ line.product.tagline }}</small>
-                    </div>
-                    <div class="item-price">
-                      {{ rupiah(line.product.price * line.qty) }}
-                    </div>
-                  </li>
-                }
-              </ul>
-
-              <!-- Discount Voucher Box -->
-              <div class="voucher-box">
-                <div class="voucher-input-group">
-                  <input
-                    type="text"
-                    placeholder="Kode voucher promo"
-                    [ngModel]="voucherInput()"
-                    (ngModelChange)="voucherInput.set($event)"
-                    aria-label="Input kode voucher promo"
-                  />
-                  <button type="button" class="btn-apply-voucher" (click)="applyVoucher()">
-                    Terapkan
-                  </button>
-                </div>
-                <div class="voucher-hints">
-                  <span>Voucher aktif: <code>GLOWVIP20</code>, <code>ONGKIRFREE</code>, <code>CUTEBEAUTY</code></span>
-                </div>
-              </div>
-
-              <!-- Price Breakdown -->
-              <dl class="breakdown-list">
-                <div class="bd-row">
-                  <dt>Subtotal Produk</dt>
-                  <dd>{{ rupiah(cart.subtotal()) }}</dd>
-                </div>
-
-                @if (appliedDiscount() > 0) {
-                  <div class="bd-row discount">
-                    <dt>Potongan Voucher ({{ appliedVoucherCode() }})</dt>
-                    <dd class="discount-val">-{{ rupiah(appliedDiscount()) }}</dd>
-                  </div>
-                }
-
-                <div class="bd-row">
-                  <dt>
-                    Ongkos Kirim
-                    @if (selectedTariff(); as st) {
-                      <small class="tariff-tag">({{ st.serviceDisplay }})</small>
-                    }
-                  </dt>
-                  <dd>
-                    @if (isFreeShipping()) {
-                      <span class="free-text">GRATIS ✨</span>
-                    } @else {
-                      {{ rupiah(shippingCost()) }}
-                    }
-                  </dd>
-                </div>
-
-                <div class="bd-row total-row">
-                  <dt>Total Pembayaran</dt>
-                  <dd class="grand-total-val">{{ rupiah(grandTotal()) }}</dd>
-                </div>
-              </dl>
-
-              <!-- Complete Order Button -->
-              <button
-                type="button"
-                class="btn-place-order"
-                [disabled]="isSubmitting() || cart.lines().length === 0"
-                (click)="placeOrder()"
-              >
-                @if (isSubmitting()) {
-                  <span class="btn-spinner" aria-hidden="true"></span>
-                  <span>Memproses Pesanan Anda...</span>
-                } @else {
-                  <span>Selesaikan Pesanan • {{ rupiah(grandTotal()) }} &rarr;</span>
-                }
-              </button>
-
-              <div class="terms-guarantee">
-                <p class="terms-note">
-                  🔒 Pembayaran terenkripsi aman. Dengan menyelesaikan pesanan, Anda menyetujui Ketentuan &amp; Privasi SYB Official Store.
-                </p>
+              <div class="voucher-hints">
+                <span>Voucher aktif: <code>GLOWVIP20</code>, <code>ONGKIRFREE</code>, <code>CUTEBEAUTY</code></span>
               </div>
             </div>
-          </aside>
-        </div>
-      </main>
+
+            <!-- Price Breakdown -->
+            <dl class="breakdown-list">
+              <div class="bd-row">
+                <dt>Subtotal Produk</dt>
+                <dd>{{ rupiah(cart.subtotal()) }}</dd>
+              </div>
+
+              @if (appliedDiscount() > 0) {
+              <div class="bd-row discount">
+                <dt>Potongan Voucher ({{ appliedVoucherCode() }})</dt>
+                <dd class="discount-val">-{{ rupiah(appliedDiscount()) }}</dd>
+              </div>
+              }
+
+              <div class="bd-row">
+                <dt>
+                  Ongkos Kirim
+                  @if (selectedTariff(); as st) {
+                  <small class="tariff-tag">({{ st.serviceDisplay }})</small>
+                  }
+                </dt>
+                <dd>
+                  @if (isFreeShipping()) {
+                  <span class="free-text">GRATIS ✨</span>
+                  } @else {
+                  {{ rupiah(shippingCost()) }}
+                  }
+                </dd>
+              </div>
+
+              <div class="bd-row total-row">
+                <dt>Total Pembayaran</dt>
+                <dd class="grand-total-val">{{ rupiah(grandTotal()) }}</dd>
+              </div>
+            </dl>
+
+            <!-- Complete Order Button -->
+            <button type="button" class="btn-place-order" [disabled]="isSubmitting() || cart.lines().length === 0"
+              (click)="placeOrder()">
+              @if (isSubmitting()) {
+              <span class="btn-spinner" aria-hidden="true"></span>
+              <span>Memproses Pesanan Anda...</span>
+              } @else {
+              <span>Selesaikan Pesanan • {{ rupiah(grandTotal()) }} &rarr;</span>
+              }
+            </button>
+
+            <div class="terms-guarantee">
+              <p class="terms-note">
+                🔒 Pembayaran terenkripsi aman. Dengan menyelesaikan pesanan, Anda menyetujui Ketentuan &amp; Privasi
+                SYB Official Store.
+              </p>
+            </div>
+          </div>
+        </aside>
+      </div>
+    </main>
     }
   </div>
 
   <!-- Toast Notification -->
   @if (toastMessage(); as msg) {
-    <div class="checkout-toast" role="alert">
-      {{ msg }}
-    </div>
+  <div class="checkout-toast" role="alert">
+    {{ msg }}
+  </div>
   }
 </section>

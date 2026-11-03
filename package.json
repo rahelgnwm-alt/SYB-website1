@@ -5,6 +5,7 @@
     "ng": "ng",
     "start": "ng serve",
     "proxy:jne": "node server/jne-proxy.mjs",
+    "proxy:php": "php -S localhost:8000 -t server",
     "build": "ng build",
     "watch": "ng build --watch --configuration development",
     "test": "ng test"

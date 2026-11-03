@@ -47,10 +47,19 @@ describe('JneApiService', () => {
   });
 
   it('should correctly map city to JNE destination code', () => {
-    expect(service.mapCityToDestCode('Jakarta Selatan')).toBe('CGK10000');
+    expect(service.mapCityToDestCode('Jakarta Selatan')).toBe('CGK10201');
     expect(service.mapCityToDestCode('Kota Surabaya')).toBe('SUB10000');
     expect(service.mapCityToDestCode('Kota Bandung')).toBe('BDO10000');
     expect(service.mapCityToDestCode('Kota Denpasar')).toBe('DPS10000');
+    // Accurate postal code mapping from official JNE database
+    expect(service.mapCityToDestCode('Surabaya', '60293')).toBe('SUB10009');
+    expect(service.mapCityToDestCode('Jakarta', '12190')).toBe('CGK10202');
+  });
+
+  it('should provide official JNE origins list with 605 locations', () => {
+    expect(service.origins.length).toBe(605);
+    expect(service.origins[0].code).toBe('SUB10000');
+    expect(service.origins[0].name).toContain('SURABAYA');
   });
 
   it('should correctly map courier service name to JNE service code', () => {
@@ -71,7 +80,7 @@ describe('JneApiService', () => {
     expect(payload.OLSHOP_QTY).toBe('2');
     expect(payload.OLSHOP_WEIGHT).toBe('1');
     expect(payload.OLSHOP_ORIG).toBe('SUB10000');
-    expect(payload.OLSHOP_DEST).toBe('CGK10000');
+    expect(payload.OLSHOP_DEST).toBe('CGK10202');
     expect(payload.OLSHOP_SERVICE).toBe('REG');
   });
 

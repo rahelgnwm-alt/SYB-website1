@@ -41,6 +41,27 @@ export interface Product {
   flashSaleQuota?: number;
 }
 
+export interface FlashSaleItem {
+  productId: string;
+  discountPercent: number;
+  flashSalePrice?: number;
+  quota?: number;
+}
+
+export interface FlashSaleSession {
+  id: string;
+  name: string;
+  title: string;
+  subtitle: string;
+  startDate: string; // YYYY-MM-DD
+  startTime: string; // HH:mm
+  endDate: string;   // YYYY-MM-DD
+  endTime: string;   // HH:mm
+  isActive: boolean;
+  items: FlashSaleItem[];
+  createdAt?: string;
+}
+
 export interface FlashSaleConfig {
   isActive: boolean;
   endHour: number; // 0-23 in WIB
@@ -48,6 +69,7 @@ export interface FlashSaleConfig {
   title: string;
   subtitle: string;
   targetTimestamp?: number | null;
+  activeSessionId?: string | null;
 }
 
 export interface ReviewItem {

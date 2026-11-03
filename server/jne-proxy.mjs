@@ -14,8 +14,8 @@ const server = http.createServer(async (req, res) => {
     return;
   }
 
-  const isCnote = req.url?.startsWith('/api/jne/generatecnote');
-  const isPricedev = req.url?.startsWith('/api/jne/pricedev');
+  const isCnote = req.url?.includes('generatecnote');
+  const isPricedev = req.url?.includes('pricedev');
 
   if ((isCnote || isPricedev) && req.method === 'POST') {
     let bodyData = '';

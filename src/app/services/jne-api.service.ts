@@ -10,6 +10,12 @@ import {
   JneTariffOption,
   JneTariffResponse
 } from '../models/jne.model';
+import {
+  JNE_ORIGINS,
+  JNE_ZIP_DESTINATIONS,
+  JNE_CITY_DESTINATIONS,
+  JneOriginOption
+} from '../data/jne-data';
 
 const STORAGE_KEY = 'syb_jne_config';
 
@@ -101,6 +107,24 @@ export class JneApiService {
       : 'https://apiv2.jne.co.id:10202/tracing/api/pricedev';
   }
 
+  /**
+   * Determine matching proxy URL based on environment & custom config
+   */
+  getProxyUrl(endpoint: 'generatecnote' | 'pricedev' = 'generatecnote'): string {
+    const custom = this.config().apiProxyUrl;
+    if (custom && (custom.includes('.php') || custom.startsWith('http'))) {
+      if (endpoint === 'pricedev' && custom.includes('generatecnote.php')) {
+        return custom.replace('generatecnote.php', 'pricedev.php');
+      }
+      return custom;
+    }
+
+    const env = this.config().environment;
+    return env === 'sandbox'
+      ? `/api/jne/sandbox/${endpoint}`
+      : `/api/jne/live/${endpoint}`;
+  }
+
   readonly availableDestinations: DestinationOption[] = [
     { code: 'SUB10000', city: 'Kota Surabaya (Asal Gudang)', province: 'Jawa Timur', group: 'Jawa Timur' },
     { code: 'MLG10000', city: 'Kota Malang', province: 'Jawa Timur', group: 'Jawa Timur' },
@@ -120,27 +144,55 @@ export class JneApiService {
     { code: 'BPN10000', city: 'Kota Balikpapan', province: 'Kalimantan Timur', group: 'Kalimantan' }
   ];
 
+  readonly origins: JneOriginOption[] = JNE_ORIGINS;
+
   /**
-   * Helper to map Indonesian cities into JNE destination city codes (OLSHOP_DEST)
+   * Helper to map Indonesian cities & postal codes into official JNE tariff codes (OLSHOP_DEST / thru)
+   * Uses official JNE dataset: 84,230 destinations, 8,697 postal codes, and 769 cities.
    */
-  mapCityToDestCode(city: string): string {
-    const c = (city || '').toUpperCase();
-    if (c.includes('SURABAYA')) return 'SUB10000';
-    if (c.includes('JAKARTA') || c.includes('DKI')) return 'CGK10000';
-    if (c.includes('BANDUNG')) return 'BDO10000';
-    if (c.includes('SEMARANG')) return 'SRG10000';
-    if (c.includes('YOGYA') || c.includes('JOGJA') || c.includes('SLEMAN')) return 'JOG10000';
-    if (c.includes('MALANG')) return 'MLG10000';
-    if (c.includes('DENPASAR') || c.includes('BALI')) return 'DPS10000';
-    if (c.includes('MEDAN')) return 'MES10000';
-    if (c.includes('PEKANBARU')) return 'PKU10000';
-    if (c.includes('MAKASSAR')) return 'UPG10000';
-    if (c.includes('BALIKPAPAN')) return 'BPN10000';
-    if (c.includes('BEKASI')) return 'BKS10000';
-    if (c.includes('TANGERANG')) return 'TGR10000';
-    if (c.includes('BOGOR')) return 'BGR10000';
-    if (c.includes('DEPOK')) return 'DPK10000';
-    if (c.includes('PALEMBANG')) return 'PLM10000';
+  mapCityToDestCode(city: string, postalCode?: string): string {
+    // 1. Try exact 5-digit postal code match first (highest accuracy)
+    const cleanZip = (postalCode || '').trim();
+    if (cleanZip && cleanZip.length === 5 && JNE_ZIP_DESTINATIONS[cleanZip]) {
+      return JNE_ZIP_DESTINATIONS[cleanZip];
+    }
+
+    // 2. Try normalized city name match in official JNE city destinations
+    const c = (city || '').toUpperCase().trim();
+    if (c) {
+      if (JNE_CITY_DESTINATIONS[c]) {
+        return JNE_CITY_DESTINATIONS[c];
+      }
+
+      const stripped = c.replace(/^(KOTA|KABUPATEN|KAB\.)\s+/i, '').trim();
+      if (JNE_CITY_DESTINATIONS[stripped]) {
+        return JNE_CITY_DESTINATIONS[stripped];
+      }
+
+      for (const [cityName, code] of Object.entries(JNE_CITY_DESTINATIONS)) {
+        if (c.includes(cityName) || cityName.includes(stripped)) {
+          return code;
+        }
+      }
+
+      if (c.includes('SURABAYA')) return 'SUB10000';
+      if (c.includes('JAKARTA') || c.includes('DKI')) return 'CGK10000';
+      if (c.includes('BANDUNG')) return 'BDO10000';
+      if (c.includes('SEMARANG')) return 'SRG10000';
+      if (c.includes('YOGYA') || c.includes('JOGJA') || c.includes('SLEMAN')) return 'JOG10000';
+      if (c.includes('MALANG')) return 'MLG10000';
+      if (c.includes('DENPASAR') || c.includes('BALI')) return 'DPS10000';
+      if (c.includes('MEDAN')) return 'MES10000';
+      if (c.includes('PEKANBARU')) return 'PKU10000';
+      if (c.includes('MAKASSAR')) return 'UPG10000';
+      if (c.includes('BALIKPAPAN')) return 'BPN10000';
+      if (c.includes('BEKASI')) return 'BKS10000';
+      if (c.includes('TANGERANG')) return 'TGR10000';
+      if (c.includes('BOGOR')) return 'BGR10000';
+      if (c.includes('DEPOK')) return 'DPK10000';
+      if (c.includes('PALEMBANG')) return 'PLM10000';
+    }
+
     return 'CGK10000';
   }
 
@@ -209,7 +261,7 @@ export class JneApiService {
       OLSHOP_INST: this.truncate(cfg.defaultGoodsInstruction, 60),
       OLSHOP_INS_FLAG: 'N',
       OLSHOP_ORIG: cfg.originCode,
-      OLSHOP_DEST: this.mapCityToDestCode(order.shippingAddress?.city || ''),
+      OLSHOP_DEST: this.mapCityToDestCode(order.shippingAddress?.city || '', order.shippingAddress?.postalCode),
       OLSHOP_SERVICE: this.mapServiceCode(order.serviceName),
       OLSHOP_COD_FLAG: 'N',
       OLSHOP_COD_AMOUNT: '0',
@@ -233,10 +285,22 @@ export class JneApiService {
     });
 
     const directEndpoint = this.getEndpoint();
-    const proxyUrl = this.config().apiProxyUrl;
+    const proxyTarget = this.getProxyUrl('generatecnote');
 
-    // We'll try the proxy first if available (to bypass browser CORS), then direct endpoint
-    const urlsToTry = proxyUrl ? [proxyUrl, directEndpoint] : [directEndpoint];
+    // Resilient discovery list:
+    // 1. Environment-matched proxy (/api/jne/sandbox/generatecnote or /api/jne/live/generatecnote)
+    // 2. Generic proxy (/api/jne/generatecnote)
+    // 3. Local PHP server (localhost:8000/generatecnote.php)
+    // 4. Local Node proxy (localhost:3000/api/jne/generatecnote)
+    // 5. Direct endpoint as fallback
+    const candidateUrls = [
+      proxyTarget,
+      '/api/jne/generatecnote',
+      'http://localhost:8000/generatecnote.php',
+      'http://localhost:3000/api/jne/generatecnote',
+      directEndpoint
+    ];
+    const urlsToTry = Array.from(new Set(candidateUrls));
 
     let lastError: string | null = null;
     let rawResponse: unknown = null;
@@ -286,10 +350,10 @@ export class JneApiService {
           lastError = data.error;
         }
       } catch (err: any) {
-        // Typically a CORS error when calling direct JNE API from browser
+        // Typically a CORS error when calling direct JNE API from browser without proxy
         const errMsg = err?.message || String(err);
         if (errMsg.includes('Failed to fetch') || errMsg.includes('NetworkError') || errMsg.includes('CORS')) {
-          lastError = `Koneksi browser dibatasi oleh CORS policy JNE (${directEndpoint}).`;
+          lastError = `Koneksi browser dibatasi oleh CORS policy JNE (${targetUrl}). Jalankan server proxy dengan "npm start", "npm run proxy:php", atau "npm run proxy:jne".`;
         } else {
           lastError = errMsg;
         }
@@ -332,8 +396,15 @@ export class JneApiService {
     });
 
     const directUrl = this.getTariffEndpoint();
-    const proxyUrl = '/api/jne/pricedev';
-    const urlsToTry = [proxyUrl, directUrl];
+    const proxyTarget = this.getProxyUrl('pricedev');
+    const candidateUrls = [
+      proxyTarget,
+      '/api/jne/pricedev',
+      'http://localhost:8000/pricedev.php',
+      'http://localhost:3000/api/jne/pricedev',
+      directUrl
+    ];
+    const urlsToTry = Array.from(new Set(candidateUrls));
 
     for (const url of urlsToTry) {
       try {

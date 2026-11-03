@@ -7,35 +7,57 @@
     </div>
   }
 
+  <!-- ==================== CUSTOM CONFIRMATION POPUP NOTIFICATION ==================== -->
+  @if (confirmDialog(); as dialog) {
+    <div class="confirm-modal-backdrop" (click)="closeConfirm()">
+      <div class="confirm-modal-card" (click)="$event.stopPropagation()" role="dialog" aria-modal="true" aria-labelledby="confirm-popup-title">
+        <div class="confirm-icon-bubble" [class.is-danger]="dialog.isDanger">
+          <span>{{ dialog.isDanger ? '🗑️' : '⚠️' }}</span>
+        </div>
+
+        <h3 id="confirm-popup-title" class="confirm-title">{{ dialog.title }}</h3>
+        <p class="confirm-message">{{ dialog.message }}</p>
+
+        <div class="confirm-actions">
+          <button type="button" class="btn-confirm-cancel" (click)="closeConfirm()">
+            {{ dialog.cancelLabel || 'Batal' }}
+          </button>
+          <button
+            type="button"
+            class="btn-confirm-proceed"
+            [class.btn-danger]="dialog.isDanger"
+            (click)="dialog.onConfirm()"
+          >
+            {{ dialog.confirmLabel }}
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+
   <!-- Header -->
   <header class="fs-header">
     <div class="header-titles">
       <div class="header-badge-row">
-        <span class="badge-tag-flash">⚡ Manajemen Flash Sale</span>
-        @if (time.flashSaleConfig().isActive) {
+        <span class="badge-tag-flash">⚡ Manajemen Multi-Sesi Flash Sale</span>
+        @if (fsService.activeSession(); as active) {
           <span class="badge-status-live">
-            <span class="pulse-dot"></span> LIVE AKTIF DI WEB
+            <span class="pulse-dot"></span> LIVE WEB: {{ active.name }}
           </span>
         } @else {
-          <span class="badge-status-paused">⏸️ NON-AKTIF (PAUSED)</span>
+          <span class="badge-status-paused">⏸️ SEMUA SESI NON-AKTIF</span>
         }
       </div>
-      <h1 class="header-main-title">Pengaturan Jam &amp; Produk Flash Sale</h1>
+      <h1 class="header-main-title">Pengaturan Multi-Jadwal &amp; Produk Flash Sale</h1>
       <p class="header-desc">
-        Tentukan jam berakhir atau durasi countdown Flash Sale, pilih produk mana saja yang ingin diikutsertakan, dan atur harga diskon spesial per produk.
+        Buat dan atur berbagai sesi Flash Sale dengan tanggal &amp; jam berbeda. Setiap sesi dapat memiliki daftar produk pilihan yang berbeda atau sama dengan harga diskon khusus masing-masing.
       </p>
     </div>
 
     <div class="header-actions">
-      <!-- Master Switch -->
-      <button
-        type="button"
-        class="btn-master-switch"
-        [class.btn-active]="time.flashSaleConfig().isActive"
-        (click)="toggleMasterSwitch()"
-      >
-        <span class="switch-bullet"></span>
-        <span>{{ time.flashSaleConfig().isActive ? 'Flash Sale: AKTIF' : 'Flash Sale: NON-AKTIF' }}</span>
+      <button type="button" class="btn-create-session-primary" (click)="openCreateSession()">
+        <span class="btn-icon">➕</span>
+        <span>Buat Sesi Flash Sale Baru</span>
       </button>
 
       <a routerLink="/" fragment="flash-title" target="_blank" class="btn-preview-store" title="Lihat banner di homepage">
@@ -44,72 +66,358 @@
     </div>
   </header>
 
-  <!-- ==================== SECTION 1: SETTING JAM & LIVE PREVIEW ==================== -->
-  <section class="fs-schedule-grid">
-    <!-- Schedule Settings Box -->
+  <!-- ==================== MODAL: BUAT SESI FLASH SALE BARU ==================== -->
+  @if (isCreatingSession()) {
+    <div class="fs-modal-backdrop" (click)="cancelCreateSession()">
+      <div class="fs-modal-card" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <div class="modal-title-group">
+            <span class="modal-bolt">⚡</span>
+            <div>
+              <h2 class="modal-title">Buat Sesi Flash Sale Baru</h2>
+              <p class="modal-subtitle">Tentukan tanggal, jam mulai &amp; berakhir, serta judul banner untuk sesi ini.</p>
+            </div>
+          </div>
+          <button type="button" class="btn-close-modal" (click)="cancelCreateSession()">✕</button>
+        </div>
+
+        <form (ngSubmit)="submitNewSession()">
+          <div class="modal-body-form">
+            <!-- 1. Nama Sesi -->
+            <div class="form-field-group">
+              <label for="new-session-name" class="field-label">Nama Sesi Flash Sale:</label>
+              <input
+                id="new-session-name"
+                type="text"
+                class="form-input"
+                [ngModel]="newSessionName()"
+                (ngModelChange)="newSessionName.set($event)"
+                name="newSessionName"
+                placeholder="Contoh: Flash Sale 11.11 Siang, Weekend Glow Rush, Midnight Sale"
+                required
+              />
+            </div>
+
+            <!-- 2. Waktu Mulai & Berakhir (Grid) -->
+            <div class="datetime-grid-row">
+              <div class="datetime-col">
+                <span class="col-heading">🟢 Jadwal Waktu Mulai (WIB):</span>
+                <div class="dt-inputs-wrap">
+                  <div class="dt-input-item">
+                    <label for="new-start-date">Tanggal Mulai:</label>
+                    <input
+                      id="new-start-date"
+                      type="date"
+                      class="form-input"
+                      [ngModel]="newSessionStartDate()"
+                      (ngModelChange)="newSessionStartDate.set($event)"
+                      name="newSessionStartDate"
+                      required
+                    />
+                  </div>
+                  <div class="dt-input-item">
+                    <label for="new-start-time">Jam Mulai:</label>
+                    <input
+                      id="new-start-time"
+                      type="time"
+                      class="form-input"
+                      [ngModel]="newSessionStartTime()"
+                      (ngModelChange)="newSessionStartTime.set($event)"
+                      name="newSessionStartTime"
+                      required
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div class="datetime-col">
+                <span class="col-heading">🏁 Jadwal Waktu Berakhir (WIB):</span>
+                <div class="dt-inputs-wrap">
+                  <div class="dt-input-item">
+                    <label for="new-end-date">Tanggal Selesai:</label>
+                    <input
+                      id="new-end-date"
+                      type="date"
+                      class="form-input"
+                      [ngModel]="newSessionEndDate()"
+                      (ngModelChange)="newSessionEndDate.set($event)"
+                      name="newSessionEndDate"
+                      required
+                    />
+                  </div>
+                  <div class="dt-input-item">
+                    <label for="new-end-time">Jam Selesai:</label>
+                    <input
+                      id="new-end-time"
+                      type="time"
+                      class="form-input"
+                      [ngModel]="newSessionEndTime()"
+                      (ngModelChange)="newSessionEndTime.set($event)"
+                      name="newSessionEndTime"
+                      required
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- 3. Teks Banner di Web -->
+            <div class="form-row-2">
+              <div class="form-field-group">
+                <label for="new-session-title" class="field-label">Judul Banner Toko:</label>
+                <input
+                  id="new-session-title"
+                  type="text"
+                  class="form-input"
+                  [ngModel]="newSessionTitle()"
+                  (ngModelChange)="newSessionTitle.set($event)"
+                  name="newSessionTitle"
+                  placeholder="Contoh: Flash sale berakhir dalam"
+                />
+              </div>
+
+              <div class="form-field-group">
+                <label for="new-session-subtitle" class="field-label">Teks Eyebrow Toko:</label>
+                <input
+                  id="new-session-subtitle"
+                  type="text"
+                  class="form-input"
+                  [ngModel]="newSessionSubtitle()"
+                  (ngModelChange)="newSessionSubtitle.set($event)"
+                  name="newSessionSubtitle"
+                  placeholder="Contoh: Diskon Hingga 60% Hari Ini"
+                />
+              </div>
+            </div>
+          </div>
+
+          <div class="modal-footer-actions">
+            <button type="button" class="btn-modal-cancel" (click)="cancelCreateSession()">
+              Batal
+            </button>
+            <button type="submit" class="btn-modal-submit">
+              <span>✓ Simpan Sesi &amp; Pilih Produk &rarr;</span>
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  }
+
+  <!-- ==================== SECTION 1: KARTU SESI FLASH SALE ==================== -->
+  <section class="sessions-overview-section" aria-labelledby="sessions-heading">
+    <div class="section-top-bar">
+      <div>
+        <h2 id="sessions-heading" class="section-title">Daftar Jadwal Sesi Flash Sale</h2>
+        <p class="section-sub">Klik salah satu sesi di bawah untuk mengelola jadwal jam dan produk spesifiknya.</p>
+      </div>
+
+      <div class="wib-current-pill">
+        <span>Jam WIB Sekarang: <b>{{ time.clockLabel() }}</b></span>
+      </div>
+    </div>
+
+    <div class="sessions-cards-grid">
+      @for (s of sessions(); track s.id) {
+        @let st = fsService.getSessionStatus(s);
+        @let isSelected = currentSelectedSession().id === s.id;
+        @let isLive = st.code === 'live';
+
+        <div
+          class="session-card"
+          [class.is-selected]="isSelected"
+          [class.is-live]="isLive"
+          (click)="selectSession(s.id)"
+          role="button"
+          tabindex="0"
+        >
+          <div class="session-card-top">
+            <div class="session-name-group">
+              <span class="session-dot" [class.live-dot]="isLive"></span>
+              <strong class="session-name">{{ s.name }}</strong>
+            </div>
+
+            <!-- Status Badge -->
+            <span class="session-status-chip" [class]="'status-' + st.code">
+              {{ st.label }}
+            </span>
+          </div>
+
+          <!-- Schedule Times -->
+          <div class="session-times-box">
+            <div class="time-meta-row">
+              <span class="meta-icon">📅</span>
+              <span class="meta-label">Mulai:</span>
+              <strong class="meta-val">{{ s.startDate }} • {{ s.startTime }} WIB</strong>
+            </div>
+            <div class="time-meta-row">
+              <span class="meta-icon">🏁</span>
+              <span class="meta-label">Selesai:</span>
+              <strong class="meta-val">{{ s.endDate }} • {{ s.endTime }} WIB</strong>
+            </div>
+          </div>
+
+          <!-- Products Count & Banner Preview -->
+          <div class="session-info-footer">
+            <span class="products-count-badge">
+              📦 <b>{{ s.items.length }}</b> Produk Terdaftar
+            </span>
+
+            @if (isSelected) {
+              <span class="selected-badge">SEDANG DIKELOLA</span>
+            }
+          </div>
+
+          <!-- Actions toolbar -->
+          <div class="session-card-actions" (click)="$event.stopPropagation()">
+            <button
+              type="button"
+              class="btn-action-sm btn-manage"
+              [class.active]="isSelected"
+              (click)="selectSession(s.id)"
+              title="Kelola Produk di sesi ini"
+            >
+              {{ isSelected ? '✓ Sedang Dikelola' : 'Kelola Produk' }}
+            </button>
+
+            @if (!isLive && s.isActive) {
+              <button
+                type="button"
+                class="btn-action-sm btn-live-now"
+                (click)="makeSessionLiveNow(s)"
+                title="Jadikan sesi ini aktif dan langsung tampil di web sekarang"
+              >
+                ⚡ Live Sekarang
+              </button>
+            }
+
+            <button
+              type="button"
+              class="btn-action-sm btn-copy"
+              (click)="duplicateSession(s)"
+              title="Duplikasi sesi ini untuk jadwal lain"
+            >
+              📋 Duplikat
+            </button>
+
+            <button
+              type="button"
+              class="btn-action-sm btn-toggle"
+              [class.paused]="!s.isActive"
+              (click)="toggleSessionStatus(s)"
+              title="Aktifkan atau Non-aktifkan sesi ini"
+            >
+              {{ s.isActive ? 'Matikan' : 'Aktifkan' }}
+            </button>
+
+            @if (sessions().length > 1) {
+              <button
+                type="button"
+                class="btn-action-sm btn-delete"
+                (click)="deleteSession(s)"
+                title="Hapus sesi"
+              >
+                🗑️
+              </button>
+            }
+          </div>
+        </div>
+      }
+    </div>
+  </section>
+
+  <!-- ==================== SECTION 2: EDIT JADWAL & LIVE COUNTDOWN PREVIEW ==================== -->
+  <section class="fs-schedule-grid" aria-labelledby="editor-heading">
+    <!-- Schedule Settings Box for Selected Session -->
     <div class="schedule-settings-card">
       <div class="card-head">
         <div class="card-title-group">
           <span class="icon-clock">🕒</span>
           <div>
-            <h2 class="card-title">1. Atur Jam Berakhir Flash Sale (WIB)</h2>
-            <p class="card-subtitle">Pilih jam target countdown atau tambah durasi waktu live.</p>
+            <h2 id="editor-heading" class="card-title">
+              Jadwal Sesi: <span class="session-highlight">{{ currentSelectedSession().name }}</span>
+            </h2>
+            <p class="card-subtitle">Ubah tanggal, jam mulai, jam berakhir, atau sesuaikan teks banner toko.</p>
           </div>
         </div>
-        <span class="wib-current-pill">
-          Waktu WIB Sekarang: <b>{{ time.clockLabel() }}</b>
-        </span>
+
+        <button type="button" class="btn-save-schedule-top" (click)="saveSelectedSession()">
+          <span>💾 Simpan Jadwal Sesi</span>
+        </button>
       </div>
 
-      <!-- Hour Presets -->
+      <!-- Session Name Edit -->
+      <div class="session-name-edit-field">
+        <label for="edit-sess-name">Nama Sesi Flash Sale:</label>
+        <input
+          id="edit-sess-name"
+          type="text"
+          class="form-input"
+          [ngModel]="editSessionName()"
+          (ngModelChange)="editSessionName.set($event)"
+          placeholder="Nama Sesi Flash Sale"
+        />
+      </div>
+
+      <!-- Date & Time Row -->
+      <div class="session-datetime-editor">
+        <!-- Start Date & Time -->
+        <div class="editor-dt-col">
+          <span class="dt-tag">🟢 Waktu Mulai (WIB):</span>
+          <div class="dt-pickers-wrap">
+            <input
+              type="date"
+              class="form-input"
+              [ngModel]="editStartDate()"
+              (ngModelChange)="editStartDate.set($event)"
+              aria-label="Tanggal Mulai"
+            />
+            <input
+              type="time"
+              class="form-input"
+              [ngModel]="editStartTime()"
+              (ngModelChange)="editStartTime.set($event)"
+              aria-label="Jam Mulai"
+            />
+          </div>
+        </div>
+
+        <!-- End Date & Time -->
+        <div class="editor-dt-col">
+          <span class="dt-tag">🏁 Waktu Selesai (WIB):</span>
+          <div class="dt-pickers-wrap">
+            <input
+              type="date"
+              class="form-input"
+              [ngModel]="editEndDate()"
+              (ngModelChange)="editEndDate.set($event)"
+              aria-label="Tanggal Selesai"
+            />
+            <input
+              type="time"
+              class="form-input"
+              [ngModel]="editEndTime()"
+              (ngModelChange)="editEndTime.set($event)"
+              aria-label="Jam Selesai"
+            />
+          </div>
+        </div>
+      </div>
+
+      <!-- Quick Hour End Presets -->
       <div class="schedule-presets-block">
-        <span class="block-label">Pilih Jam Target Selesai (WIB):</span>
+        <span class="block-label">Preset Jam Selesai Cepat (Hari Ini):</span>
         <div class="hour-presets-row">
           @for (preset of hourPresets; track preset.label) {
             <button
               type="button"
               class="btn-hour-preset"
-              [class.active]="selectedEndHour() === preset.hour && selectedEndMinute() === preset.min"
               (click)="applyHourPreset(preset.hour, preset.min)"
             >
               {{ preset.label }}
             </button>
           }
         </div>
-      </div>
-
-      <!-- Custom Hour Picker & Save -->
-      <div class="custom-hour-row">
-        <div class="hour-inputs-wrap">
-          <div class="picker-group">
-            <label for="hour-picker">Jam (00 - 24):</label>
-            <input
-              id="hour-picker"
-              type="number"
-              min="0"
-              max="24"
-              [ngModel]="selectedEndHour()"
-              (ngModelChange)="selectedEndHour.set($event)"
-            />
-          </div>
-          <span class="time-colon">:</span>
-          <div class="picker-group">
-            <label for="min-picker">Menit (00 - 59):</label>
-            <input
-              id="min-picker"
-              type="number"
-              min="0"
-              max="59"
-              [ngModel]="selectedEndMinute()"
-              (ngModelChange)="selectedEndMinute.set($event)"
-            />
-          </div>
-          <span class="wib-label">WIB</span>
-        </div>
-
-        <button type="button" class="btn-save-schedule" (click)="saveScheduleByHour()">
-          <span>✓ Terapkan Jam Ini</span>
-        </button>
       </div>
 
       <!-- Duration Quick Add Buttons -->
@@ -128,26 +436,26 @@
       <div class="banner-texts-block">
         <div class="text-inputs-row">
           <div class="text-input-item">
-            <label for="event-title">Judul Banner:</label>
+            <label for="edit-title">Judul Banner di Web:</label>
             <input
-              id="event-title"
+              id="edit-title"
               type="text"
-              [ngModel]="eventTitle()"
-              (ngModelChange)="eventTitle.set($event)"
+              [ngModel]="editTitle()"
+              (ngModelChange)="editTitle.set($event)"
               placeholder="Contoh: Flash sale berakhir dalam"
             />
           </div>
           <div class="text-input-item">
-            <label for="event-subtitle">Teks Eyebrow:</label>
+            <label for="edit-subtitle">Teks Eyebrow di Web:</label>
             <input
-              id="event-subtitle"
+              id="edit-subtitle"
               type="text"
-              [ngModel]="eventSubtitle()"
-              (ngModelChange)="eventSubtitle.set($event)"
+              [ngModel]="editSubtitle()"
+              (ngModelChange)="editSubtitle.set($event)"
               placeholder="Contoh: Limited time offer"
             />
           </div>
-          <button type="button" class="btn-save-titles" (click)="saveTitles()">
+          <button type="button" class="btn-save-titles" (click)="saveSelectedSession()">
             Simpan Teks
           </button>
         </div>
@@ -157,15 +465,15 @@
     <!-- Live Website Simulation Preview Card -->
     <div class="live-preview-card">
       <div class="preview-badge-row">
-        <span class="preview-tag">👁️ Live Website Preview</span>
-        <span class="preview-status" [class.is-live]="time.flashSaleConfig().isActive">
-          {{ time.flashSaleConfig().isActive ? 'LIVE TICKING' : 'PAUSED' }}
+        <span class="preview-tag">👁️ Live Countdown Preview</span>
+        <span class="preview-status" [class.is-live]="currentSelectedSession().isActive">
+          {{ currentSelectedSession().isActive ? 'LIVE TICKING' : 'PAUSED' }}
         </span>
       </div>
 
       <div class="preview-banner-mockup">
-        <p class="mockup-eyebrow">{{ time.flashSaleConfig().subtitle }}</p>
-        <h3 class="mockup-title">{{ time.flashSaleConfig().title }}</h3>
+        <p class="mockup-eyebrow">{{ editSubtitle() || currentSelectedSession().subtitle }}</p>
+        <h3 class="mockup-title">{{ editTitle() || currentSelectedSession().title }}</h3>
 
         <!-- Actual Responsive 3-Box Ticker -->
         <div class="mockup-countdown">
@@ -191,14 +499,14 @@
       </div>
 
       <div class="preview-meta-footer">
-        <span>Target Selesai: <b>{{ selectedEndHour() === 24 ? '23:59 (Midnight)' : (selectedEndHour() + ':' + (selectedEndMinute() < 10 ? '0' : '') + selectedEndMinute()) }} WIB</b></span>
-        <span>Total Produk Aktif: <b>{{ enrolledCount() }} Produk</b></span>
+        <span>Sesi Terpilih: <b>{{ currentSelectedSession().name }}</b></span>
+        <span>Produk di Sesi Ini: <b>{{ enrolledCount() }} Produk</b></span>
       </div>
     </div>
   </section>
 
-  <!-- ==================== SECTION 2: PRODUCT ENROLLMENT & FLASH PRICING ==================== -->
-  <section class="fs-products-section">
+  <!-- ==================== SECTION 3: PRODUCT ENROLLMENT PER SESSION ==================== -->
+  <section class="fs-products-section" aria-labelledby="products-heading">
     <!-- Navigation Tabs -->
     <div class="section-tabs-bar">
       <div class="tab-buttons">
@@ -209,7 +517,7 @@
           (click)="activeTab.set('enrolled')"
         >
           <span class="tab-icon">⚡</span>
-          <span>Produk Terpilih Flash Sale</span>
+          <span>Produk di Sesi "{{ currentSelectedSession().name }}"</span>
           <span class="tab-counter">{{ enrolledCount() }}</span>
         </button>
 
@@ -221,7 +529,7 @@
         >
           <span class="tab-icon">➕</span>
           <span>Pilih &amp; Tambah dari Katalog</span>
-          <span class="tab-counter-sub">{{ productService.products().length }}</span>
+          <span class="tab-counter-sub">{{ productService.products().length }} Produk Tersedia</span>
         </button>
       </div>
 
@@ -232,25 +540,25 @@
             + Masukkan Semua Best Seller
           </button>
           <button type="button" class="btn-enroll-bulk-disc" (click)="applyBulkDiscountToEnrolled(50)">
-            Set 50% Semua Flash Sale
+            Set 50% Semua di Sesi Ini
           </button>
           @if (enrolledCount() > 0) {
             <button type="button" class="btn-clear-fs" (click)="removeAllFromFlashSale()">
-              ✕ Kosongkan
+              ✕ Kosongkan Sesi Ini
             </button>
           }
         </div>
       }
     </div>
 
-    <!-- TAB 1: ENROLLED PRODUCTS LIST & SPECIAL DISCOUNTS -->
+    <!-- TAB 1: ENROLLED PRODUCTS LIST & SPECIAL DISCOUNTS FOR THIS SESSION -->
     @if (activeTab() === 'enrolled') {
       <div class="enrolled-container">
         @if (enrolledCount() === 0) {
           <div class="empty-enrolled-state">
             <span class="empty-bolt">⚡</span>
-            <h3>Belum Ada Produk yang Masuk Flash Sale</h3>
-            <p>Pilih produk dari katalog untuk diikutsertakan dalam event Flash Sale ini.</p>
+            <h3>Belum Ada Produk di Sesi "{{ currentSelectedSession().name }}"</h3>
+            <p>Pilih produk mana saja yang ingin Anda sertakan dalam jadwal Flash Sale ini. Anda dapat memilih produk yang sama dengan sesi lain atau produk yang berbeda sama sekali.</p>
             <button type="button" class="btn-go-catalog" (click)="activeTab.set('catalog')">
               + Pilih Produk dari Katalog Sekarang
             </button>
@@ -269,8 +577,8 @@
                 </tr>
               </thead>
               <tbody>
-                @for (product of enrolledProducts(); track product.id) {
-                  @let disc = calcDiscountPercent(product);
+                @for (product of sessionEnrolledProducts(); track product.id) {
+                  @let disc = product.flashSaleDiscount || 50;
                   <tr>
                     <!-- Product Info -->
                     <td class="col-fs-prod">
@@ -280,7 +588,7 @@
                           <div class="fs-prod-title">{{ product.title }}</div>
                           <div class="fs-prod-cat">
                             <span class="pill-cat-mini">{{ product.categoryLabel }}</span>
-                            <span class="badge-fs-tag">⚡ FLASH SALE</span>
+                            <span class="badge-fs-tag">⚡ SESI: {{ currentSelectedSession().name }}</span>
                           </div>
                         </div>
                       </div>
@@ -291,7 +599,7 @@
                       <span class="orig-price-label">Rp {{ product.originalPrice.toLocaleString('id-ID') }}</span>
                     </td>
 
-                    <!-- Special Discount -->
+                    <!-- Special Discount Input -->
                     <td class="col-fs-disc">
                       <div class="fs-disc-stepper">
                         <div class="disc-input-box">
@@ -299,56 +607,57 @@
                             type="number"
                             min="1"
                             max="99"
-                            [value]="disc"
-                            (change)="onDiscountChange(product, $any($event.target).value)"
+                            [ngModel]="disc"
+                            (ngModelChange)="onDiscountChange(product, $event)"
+                            aria-label="Persentase diskon"
                           />
-                          <span class="disc-pct-symbol">%</span>
+                          <span class="disc-pct">%</span>
                         </div>
-
-                        <!-- Quick Presets -->
-                        <div class="mini-disc-presets">
-                          <button type="button" (click)="setQuickDiscount(product, 40)">40%</button>
-                          <button type="button" (click)="setQuickDiscount(product, 50)">50%</button>
-                          <button type="button" (click)="setQuickDiscount(product, 70)">70%</button>
+                        <div class="quick-pct-chips">
+                          <button type="button" class="pct-chip" (click)="onDiscountChange(product, 30)">30%</button>
+                          <button type="button" class="pct-chip" (click)="onDiscountChange(product, 50)">50%</button>
+                          <button type="button" class="pct-chip" (click)="onDiscountChange(product, 70)">70%</button>
                         </div>
                       </div>
                     </td>
 
-                    <!-- Flash Sale Price -->
+                    <!-- Flash Sale Price Input -->
                     <td class="col-fs-price">
-                      <div class="fs-price-input-box">
-                        <span class="rp-tag">Rp</span>
+                      <div class="price-input-box">
+                        <span class="rp-prefix">Rp</span>
                         <input
                           type="number"
                           step="500"
-                          min="0"
-                          [value]="product.price"
-                          (change)="onPriceChange(product, $any($event.target).value)"
+                          [ngModel]="product.price"
+                          (ngModelChange)="onPriceChange(product, $event)"
+                          aria-label="Harga Flash Sale"
                         />
                       </div>
-                      <span class="fs-savings-note">Hemat Rp {{ (product.originalPrice - product.price).toLocaleString('id-ID') }}</span>
+                      <small class="hemat-tag">Hemat Rp {{ (product.originalPrice - product.price).toLocaleString('id-ID') }}</small>
                     </td>
 
-                    <!-- Quota Limit -->
+                    <!-- Quota Allocation -->
                     <td class="col-fs-quota">
                       <div class="quota-input-box">
                         <input
                           type="number"
                           min="1"
-                          [value]="product.flashSaleQuota || 50"
-                          (change)="onQuotaChange(product, $any($event.target).value)"
+                          max="9999"
+                          [ngModel]="product.flashSaleQuota || 50"
+                          (ngModelChange)="onQuotaChange(product, $event)"
+                          aria-label="Kuota flash sale"
                         />
                         <span class="quota-unit">pcs</span>
                       </div>
                     </td>
 
-                    <!-- Remove Button -->
+                    <!-- Remove Action -->
                     <td class="col-fs-action">
                       <button
                         type="button"
-                        class="btn-remove-from-fs"
-                        (click)="toggleProductEnrollment(product)"
-                        title="Keluarkan dari Flash Sale"
+                        class="btn-remove-fs"
+                        (click)="toggleProductInSession(product)"
+                        title="Keluarkan produk dari sesi ini"
                       >
                         ✕ Keluarkan
                       </button>
@@ -362,26 +671,27 @@
       </div>
     }
 
-    <!-- TAB 2: CATALOG SELECTION (PICK ANY PRODUCT) -->
+    <!-- TAB 2: SELECT & ENROLL FROM FULL CATALOG -->
     @if (activeTab() === 'catalog') {
-      <div class="catalog-picker-container">
-        <!-- Search & Filter Bar -->
-        <div class="catalog-filter-bar">
-          <div class="search-wrap">
-            <span class="search-ico">🔍</span>
+      <div class="catalog-container">
+        <!-- Catalog Controls -->
+        <div class="catalog-filters-bar">
+          <div class="search-input-wrap">
+            <span class="search-icon">🔍</span>
             <input
               type="text"
-              placeholder="Cari produk untuk dimasukkan ke Flash Sale..."
+              class="catalog-search"
+              placeholder="Cari produk berdasarkan nama / formula..."
               [ngModel]="catalogSearchQuery()"
               (ngModelChange)="catalogSearchQuery.set($event)"
             />
           </div>
 
-          <div class="category-filter-pills">
+          <div class="cat-filter-pills">
             @for (cat of ['Semua', 'Wajah', 'Tubuh', 'Makeup', 'Paket Ritual']; track cat) {
               <button
                 type="button"
-                class="pill-filter"
+                class="btn-cat-filter"
                 [class.active]="catalogCategory() === cat"
                 (click)="catalogCategory.set(cat)"
               >
@@ -391,47 +701,41 @@
           </div>
         </div>
 
-        <!-- Product Cards Grid -->
+        <!-- Catalog Products Grid -->
         <div class="catalog-grid">
           @for (prod of availableProducts(); track prod.id) {
-            @let isEnrolled = prod.isFlashSale;
-            @let disc = calcDiscountPercent(prod);
+            @let inSession = isProductInSession(prod.id);
+            @let currDisc = inSession ? getProductSessionDiscount(prod.id) : 50;
 
-            <div class="catalog-item-card" [class.is-enrolled]="isEnrolled">
-              <div class="card-thumb-wrap">
-                <img [src]="prod.image" [alt]="prod.title" class="card-thumb" />
-                @if (isEnrolled) {
-                  <span class="badge-enrolled-bolt">⚡ AKTIF FLASH SALE</span>
+            <div class="catalog-item-card" [class.enrolled]="inSession">
+              <div class="catalog-thumb-wrap">
+                <img [src]="prod.image" [alt]="prod.title" />
+                @if (inSession) {
+                  <span class="ribbon-enrolled">⚡ TERDAFTAR ({{ currDisc }}% OFF)</span>
                 }
               </div>
 
-              <div class="card-content">
-                <div class="card-category-tag">{{ prod.categoryLabel }}</div>
-                <h4 class="card-prod-title">{{ prod.title }}</h4>
+              <div class="catalog-item-info">
+                <span class="cat-tag">{{ prod.categoryLabel }}</span>
+                <h4 class="item-title">{{ prod.title }}</h4>
+                <p class="item-sub">{{ prod.subtitle }}</p>
 
-                <div class="card-price-row">
-                  <div class="price-stack">
-                    <span class="current-price">Rp {{ prod.price.toLocaleString('id-ID') }}</span>
-                    @if (prod.originalPrice > prod.price) {
-                      <span class="strikethrough-price">Rp {{ prod.originalPrice.toLocaleString('id-ID') }}</span>
-                    }
-                  </div>
-                  @if (disc > 0) {
-                    <span class="discount-pill-green">{{ disc }}% OFF</span>
-                  }
+                <div class="item-pricing">
+                  <strong class="item-price">Rp {{ prod.price.toLocaleString('id-ID') }}</strong>
+                  <s class="item-orig">Rp {{ prod.originalPrice.toLocaleString('id-ID') }}</s>
                 </div>
 
-                <div class="card-action-bar">
+                <div class="item-action-row">
                   <button
                     type="button"
-                    class="btn-toggle-enroll"
-                    [class.btn-enrolled]="isEnrolled"
-                    (click)="toggleProductEnrollment(prod)"
+                    class="btn-enroll-toggle"
+                    [class.is-enrolled]="inSession"
+                    (click)="toggleProductInSession(prod)"
                   >
-                    @if (isEnrolled) {
-                      <span>✓ Masuk Flash Sale (Klik utk Keluarkan)</span>
+                    @if (inSession) {
+                      <span>✓ Keluarkan dari Sesi Ini</span>
                     } @else {
-                      <span>⚡ + Masukkan ke Flash Sale</span>
+                      <span>+ Masukkan ke Sesi "{{ currentSelectedSession().name }}"</span>
                     }
                   </button>
                 </div>
@@ -443,4 +747,3 @@
     }
   </section>
 </div>
-

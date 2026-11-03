@@ -645,12 +645,17 @@
           </div>
 
           <div class="input-field">
-            <label>Kode Asal JNE (OLSHOP_ORIG) *</label>
-            <input
-              type="text"
-              [(ngModel)]="editableJneConfig().originCode"
-              placeholder="Contoh: SUB10000 (Surabaya)"
-            />
+            <label>Wilayah / Kota Asal Pengirim (OLSHOP_ORIG) *</label>
+            <select
+              [ngModel]="editableJneConfig().originCode"
+              (ngModelChange)="editableJneConfig().originCode = $event"
+              class="origin-select"
+            >
+              @for (orig of originList; track orig.code) {
+                <option [value]="orig.code">{{ orig.name }} ({{ orig.code }})</option>
+              }
+            </select>
+            <small class="field-hint">605 kota asal resmi JNE terdaftar (Default: SURABAYA - SUB10000)</small>
           </div>
 
           <div class="input-field">
@@ -715,13 +720,23 @@
               placeholder="Kosmetik & Skincare SYB Resmi"
             />
           </div>
+
+          <div class="input-field full-width">
+            <label>Backend / Proxy URL (PHP: generatecnote.php)</label>
+            <input
+              type="text"
+              [(ngModel)]="editableJneConfig().apiProxyUrl"
+              placeholder="/api/jne/generatecnote atau http://localhost:8000/generatecnote.php"
+            />
+            <small class="field-hint">Arahkan ke backend PHP (misal <code>/server/generatecnote.php</code>, <code>http://localhost:8000/generatecnote.php</code>, atau hosting Domainesia)</small>
+          </div>
         </div>
 
         <div class="info-alert-box">
           <span class="info-icon">💡</span>
           <div class="info-text">
-            <strong>Catatan Integrasi:</strong>
-            <p>JNE endpoint Live: <code>https://apiv2.jne.co.id:10206/tracing/api/generatecnote</code>. Agar terhindar dari pemblokiran CORS di browser, jalankan proxy bawaan sistem dengan <code>npm run proxy:jne</code> atau gunakan dev server <code>npm start</code>.</p>
+            <strong>Catatan Integrasi PHP & API JNE:</strong>
+            <p>JNE endpoint: <code>https://apiv2.jne.co.id:10202/tracing/api/generatecnote</code> (Sandbox) atau <code>https://apiv2.jne.co.id:10206/tracing/api/generatecnote</code> (Live). Backend PHP tersedia di <code>server/generatecnote.php</code> (jalankan dengan <code>npm run proxy:php</code> atau deploy ke web server hosting).</p>
           </div>
         </div>
       </div>

@@ -1,5 +1,6 @@
-import { Injectable, computed, signal } from '@angular/core';
+import { Injectable, computed, inject, signal } from '@angular/core';
 import { FlashSaleConfig } from '../models/product.model';
+import { FlashSaleService } from './flash-sale.service';
 
 const WIB_FORMATTER = new Intl.DateTimeFormat('en-GB', {
   timeZone: 'Asia/Jakarta',
@@ -26,8 +27,29 @@ const DEFAULT_FLASH_SALE_CONFIG: FlashSaleConfig = {
  */
 @Injectable({ providedIn: 'root' })
 export class TimeService {
+  private readonly fsService = inject(FlashSaleService);
+
   readonly now = signal(new Date());
-  readonly flashSaleConfig = signal<FlashSaleConfig>(this.loadFlashSaleConfig());
+  readonly localFlashConfig = signal<FlashSaleConfig>(this.loadFlashSaleConfig());
+
+  /** Dynamic Flash Sale Config reflecting active session or local fallback */
+  readonly flashSaleConfig = computed<FlashSaleConfig>(() => {
+    const active = this.fsService.activeSession();
+    if (active) {
+      const endH = Number(active.endTime.split(':')[0]) || 24;
+      const endM = Number(active.endTime.split(':')[1]) || 0;
+      return {
+        isActive: active.isActive,
+        title: active.title,
+        subtitle: active.subtitle,
+        endHour: endH,
+        endMinute: endM,
+        activeSessionId: active.id,
+        targetTimestamp: null,
+      };
+    }
+    return this.localFlashConfig();
+  });
 
   /** Current time in Jakarta (WIB), independent of visitor's local timezone. */
   readonly wib = computed(() => {
@@ -64,11 +86,22 @@ export class TimeService {
     return 'Malam ini, saatnya me-time 🌙';
   });
 
-  /** Flash sale countdown matching the admin-configured end hour or duration. */
+  /** Flash sale countdown matching the active session or admin-configured end hour. */
   readonly countdown = computed(() => {
-    const config = this.flashSaleConfig();
     const pad = (n: number) => String(Math.max(0, n)).padStart(2, '0');
+    const active = this.fsService.activeSession();
 
+    if (active && active.isActive) {
+      const end = new Date(`${active.endDate}T${active.endTime}:00`);
+      const diffSec = Math.max(0, Math.floor((end.getTime() - this.now().getTime()) / 1000));
+      return {
+        h: pad(Math.floor(diffSec / 3600)),
+        m: pad(Math.floor((diffSec % 3600) / 60)),
+        s: pad(diffSec % 60),
+      };
+    }
+
+    const config = this.flashSaleConfig();
     if (!config.isActive) {
       return { h: '00', m: '00', s: '00' };
     }
@@ -130,18 +163,39 @@ export class TimeService {
   }
 
   updateFlashSaleConfig(partial: Partial<FlashSaleConfig>): void {
-    const updated = { ...this.flashSaleConfig(), ...partial };
-    this.flashSaleConfig.set(updated);
+    const updated = { ...this.localFlashConfig(), ...partial };
+    this.localFlashConfig.set(updated);
     this.persistFlashSaleConfig(updated);
+
+    const active = this.fsService.activeSession();
+    if (active) {
+      this.fsService.updateSession(active.id, {
+        ...(partial.title !== undefined ? { title: partial.title } : {}),
+        ...(partial.subtitle !== undefined ? { subtitle: partial.subtitle } : {}),
+        ...(partial.isActive !== undefined ? { isActive: partial.isActive } : {}),
+      });
+    }
   }
 
   setFlashSaleEndHour(hour: number, minute = 0): void {
+    const h = Math.max(0, Math.min(24, hour));
+    const m = Math.max(0, Math.min(59, minute));
     this.updateFlashSaleConfig({
-      endHour: Math.max(0, Math.min(24, hour)),
-      endMinute: Math.max(0, Math.min(59, minute)),
+      endHour: h,
+      endMinute: m,
       targetTimestamp: null,
       isActive: true,
     });
+
+    const active = this.fsService.activeSession();
+    if (active) {
+      const hStr = String(h === 24 ? 23 : h).padStart(2, '0');
+      const mStr = String(h === 24 ? 59 : m).padStart(2, '0');
+      this.fsService.updateSession(active.id, {
+        endTime: `${hStr}:${mStr}`,
+        isActive: true,
+      });
+    }
   }
 
   setFlashSaleDuration(hours: number): void {
@@ -153,7 +207,7 @@ export class TimeService {
   }
 
   resetFlashSaleToDefault(): void {
-    this.flashSaleConfig.set({ ...DEFAULT_FLASH_SALE_CONFIG });
+    this.localFlashConfig.set({ ...DEFAULT_FLASH_SALE_CONFIG });
     this.persistFlashSaleConfig(DEFAULT_FLASH_SALE_CONFIG);
   }
 }

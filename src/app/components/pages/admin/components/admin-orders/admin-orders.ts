@@ -40,6 +40,7 @@ export class AdminOrdersComponent {
   readonly isJneSettingsOpen = signal<boolean>(false);
   readonly jneConfig = this.jneApiService.config;
   readonly editableJneConfig = signal<JneConfig>(this.jneApiService.loadConfig());
+  readonly originList = this.jneApiService.origins;
 
   // Toast
   readonly toastMessage = signal<string | null>(null);

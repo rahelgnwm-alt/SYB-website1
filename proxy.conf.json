@@ -1,6 +1,22 @@
 {
-  "/api/jne": {
+  "/api/jne/sandbox": {
+    "target": "https://apiv2.jne.co.id:10202",
+    "secure": false,
+    "changeOrigin": true,
+    "pathRewrite": {
+      "^/api/jne/sandbox": "/tracing/api"
+    }
+  },
+  "/api/jne/live": {
     "target": "https://apiv2.jne.co.id:10206",
+    "secure": false,
+    "changeOrigin": true,
+    "pathRewrite": {
+      "^/api/jne/live": "/tracing/api"
+    }
+  },
+  "/api/jne": {
+    "target": "https://apiv2.jne.co.id:10202",
     "secure": false,
     "changeOrigin": true,
     "pathRewrite": {
@@ -8,4 +24,3 @@
     }
   }
 }
-

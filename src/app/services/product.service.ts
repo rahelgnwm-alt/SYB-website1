@@ -1,5 +1,5 @@
 import { Injectable, signal, computed } from '@angular/core';
-import { Product, ReviewItem, Ritual, CategoryItem } from '../models/product.model';
+import { Product, ReviewItem, Ritual, CategoryItem, FlashSaleItem } from '../models/product.model';
 
 @Injectable({
   providedIn: 'root'
@@ -759,6 +759,38 @@ export class ProductService {
           flashSaleDiscount: isFlashSale ? disc : undefined,
           flashSaleQuota: isFlashSale ? (p.flashSaleQuota || 50) : undefined,
         };
+      })
+    );
+    this.persist();
+  }
+
+  syncFlashSaleItems(items: FlashSaleItem[]): void {
+    const itemMap = new Map(items.map((it) => [it.productId, it]));
+    this.products.update((current) =>
+      current.map((p) => {
+        const flashItem = itemMap.get(p.id);
+        if (flashItem) {
+          const orig = p.originalPrice || p.price;
+          const disc = flashItem.discountPercent || 50;
+          const flashPrice = flashItem.flashSalePrice ?? Math.round(orig * (1 - disc / 100));
+          return {
+            ...p,
+            isFlashSale: true,
+            price: flashPrice,
+            flashSalePrice: flashPrice,
+            flashSaleDiscount: disc,
+            flashSaleQuota: flashItem.quota || 50,
+          };
+        } else {
+          return {
+            ...p,
+            isFlashSale: false,
+            price: p.originalPrice || p.price,
+            flashSalePrice: undefined,
+            flashSaleDiscount: undefined,
+            flashSaleQuota: undefined,
+          };
+        }
       })
     );
     this.persist();
