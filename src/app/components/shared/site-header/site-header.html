@@ -21,8 +21,10 @@
     </a>
 
     <nav class="header__nav" aria-label="Navigasi utama">
-      <a routerLink="/products" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }" id="nav-products">Semua Produk</a>
-      <a routerLink="/products" [queryParams]="{ filter: 'flash-sale' }" routerLinkActive="active" id="nav-flash">Flash Sale</a>
+      <a routerLink="/products" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }"
+        id="nav-products">Semua Produk</a>
+      <a routerLink="/products" [queryParams]="{ filter: 'flash-sale' }" routerLinkActive="active" id="nav-flash">Flash
+        Sale</a>
       <a routerLink="/reseller" routerLinkActive="active" id="nav-reseller">Reseller</a>
       <a routerLink="/about" routerLinkActive="active" id="nav-about">Tentang Kami</a>
     </nav>
@@ -38,13 +40,11 @@
         id="header-account">
         @if (auth.isAdmin()) {
           <span class="header-admin-crown" title="Portal Admin SYB Aktif">👑</span>
-        }
-        @if (auth.isAuthenticated() && !auth.isAdmin()) {
+        } @else if (auth.isAuthenticated()) {
           <span class="header-user-badge" [title]="auth.currentUser()?.fullName">
             {{ auth.currentUser()?.fullName ? auth.currentUser()!.fullName.charAt(0) : 'U' }}
           </span>
-        }
-        @if (!auth.isAuthenticated()) {
+        } @else {
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
             <circle cx="12" cy="8" r="4" />
             <path d="M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6" stroke-linecap="round" />
@@ -69,20 +69,19 @@
     <a routerLink="/products" [style.--i]="0" (click)="menuOpen.set(false)">Semua Produk</a>
     <a routerLink="/reseller" [style.--i]="1" (click)="menuOpen.set(false)">Program Reseller &amp; Grosir</a>
     <a routerLink="/about" [style.--i]="2" (click)="menuOpen.set(false)">Tentang Kami (Profil Perusahaan)</a>
-    <a routerLink="/products" [queryParams]="{ filter: 'flash-sale' }" [style.--i]="3" (click)="menuOpen.set(false)">Flash Sale</a>
+    <a routerLink="/products" [queryParams]="{ filter: 'flash-sale' }" [style.--i]="3"
+      (click)="menuOpen.set(false)">Flash Sale</a>
     <a routerLink="/rituals" [style.--i]="4" (click)="menuOpen.set(false)">Glow O'Clock</a>
     <a routerLink="/cart" [style.--i]="5" (click)="menuOpen.set(false)">Keranjang ({{ cart.count() }})</a>
     @if (!auth.isAuthenticated()) {
       <a (click)="handleAccountClick($event); menuOpen.set(false)" [style.--i]="6" id="mobile-account-btn">
         Masuk / Akun Saya
       </a>
-    }
-    @if (auth.isAdmin()) {
+    } @else if (auth.isAdmin()) {
       <a routerLink="/admin/products" (click)="menuOpen.set(false)" [style.--i]="6" class="menu-admin-link">
         👑 Portal Admin SYB
       </a>
-    }
-    @if (auth.isAuthenticated() && !auth.isAdmin()) {
+    } @else {
       <a routerLink="/profile" (click)="menuOpen.set(false)" [style.--i]="6">
         Profil Saya ({{ auth.currentUser()?.fullName }})
       </a>
