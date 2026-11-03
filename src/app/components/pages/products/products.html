@@ -22,7 +22,7 @@
             type="button"
             class="chip"
             [class.active]="filter() === f.key"
-            (click)="filter.set(f.key)"
+            (click)="setFilter(f.key)"
             [id]="'filter-' + f.key.toLowerCase().replace(' ', '-')"
           >{{ f.label }}</button>
         }
@@ -68,10 +68,16 @@
             <div class="p-card__media">
               <span class="p-card__glow"></span>
               <img [src]="p.image" [alt]="p.name" loading="lazy" draggable="false" />
-              @if (p.badge) {
-                <span class="p-card__badge" [class.new]="p.badge === 'New'" [class.bundle]="p.badge === 'Bundling'">{{ p.badge }}</span>
+              @if (p.isFlashSale) {
+                <div class="p-card__ribbon-flash" title="Produk Promo Flash Sale">
+                  <span class="ribbon-bolt">⚡</span>
+                  <span class="ribbon-text">Flash Sale</span>
+                </div>
               }
-              <span class="p-card__off">-{{ discount(p) }}%</span>
+              @if (p.badge) {
+                <span class="p-card__badge" [class.has-flash-ribbon]="p.isFlashSale" [class.new]="p.badge === 'New'" [class.bundle]="p.badge === 'Bundling'">{{ p.badge }}</span>
+              }
+              <span class="p-card__off" [class.flash]="p.isFlashSale">-{{ discount(p) }}%</span>
               @if (cart.qtyOf(p.id); as q) {
                 <span class="in-cart">♥ {{ q }} di keranjang</span>
               }

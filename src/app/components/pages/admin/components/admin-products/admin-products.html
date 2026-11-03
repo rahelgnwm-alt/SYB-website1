@@ -691,21 +691,77 @@
             @if (activeStudioTab() === 'all' || activeStudioTab() === 'media') {
               <div class="studio-section-card">
                 <div class="section-card-header">
-                  <div class="section-icon-badge purple">🎨</div>
+                  <div class="section-icon-badge purple">📷</div>
                   <div class="section-title-wrap">
-                    <h4 class="section-heading">3. Galeri Foto &amp; Tema Aksen Branding</h4>
-                    <p class="section-subheading">Pilih foto produk autentik SYB resolusi tinggi dan warna aksen kartu.</p>
+                    <h4 class="section-heading">3. Foto &amp; Media Produk</h4>
+                    <p class="section-subheading">Upload foto produk langsung dari perangkat Anda atau pilih dari koleksi resmi SYB.</p>
                   </div>
                 </div>
 
-                <div class="media-gallery-section">
-                  <label class="field-label">Pilih Foto Produk Resmi SYB (Klik untuk memilih):</label>
+                <!-- 1. Upload Photo from Device (Drag & Drop or File Picker) -->
+                <div class="upload-image-section">
+                  <label class="field-label">Upload Foto dari Komputer / HP:</label>
+
+                  <input
+                    type="file"
+                    #fileInput
+                    (change)="onFileSelected($event)"
+                    accept="image/png, image/jpeg, image/jpg, image/webp"
+                    style="display: none;"
+                  />
+
+                  @if (formImage() && (formImage().startsWith('data:image') || uploadedFileName())) {
+                    <!-- Uploaded Image Active Preview Card -->
+                    <div class="uploaded-image-preview-card">
+                      <div class="uploaded-preview-thumb">
+                        <img [src]="formImage()" alt="Preview Foto Upload" (error)="onImgError($event)" />
+                      </div>
+                      <div class="uploaded-info">
+                        <div class="uploaded-file-name">{{ uploadedFileName() || 'Foto Produk Custom Terunggah' }}</div>
+                        <span class="uploaded-status-badge">✓ Foto Siap Digunakan di Website</span>
+                      </div>
+                      <div class="uploaded-actions">
+                        <button type="button" class="btn-change-photo" (click)="fileInput.click()">
+                          Ganti Foto
+                        </button>
+                        <button type="button" class="btn-remove-photo" (click)="removeUploadedImage()">
+                          ✕ Hapus
+                        </button>
+                      </div>
+                    </div>
+                  } @else {
+                    <!-- Interactive Dropzone -->
+                    <div
+                      class="dropzone-box"
+                      [class.dragging]="isDraggingImage()"
+                      (click)="fileInput.click()"
+                      (dragover)="onImageDragOver($event)"
+                      (dragleave)="onImageDragLeave()"
+                      (drop)="onImageDrop($event)"
+                      role="button"
+                      tabindex="0"
+                      (keydown.enter)="fileInput.click()"
+                      (keydown.space)="fileInput.click()"
+                    >
+                      <div class="dropzone-icon">☁️</div>
+                      <div class="dropzone-text">
+                        <span class="dropzone-title">Klik untuk Memilih Foto dari Perangkat</span>
+                        <span class="dropzone-subtitle">atau seret &amp; letakkan file gambar langsung ke sini</span>
+                      </div>
+                      <span class="dropzone-formats">Mendukung format JPG, PNG, WEBP &bull; Maks. 5 MB</span>
+                    </div>
+                  }
+                </div>
+
+                <!-- 2. Or Select from Official SYB Gallery -->
+                <div class="media-gallery-section" style="margin-top: 1.5rem;">
+                  <label class="field-label">Atau Pilih dari Koleksi Foto Resmi SYB (Klik untuk memilih):</label>
                   <div class="gallery-photo-grid">
                     @for (img of availableImages; track img.name) {
                       <div
                         class="gallery-photo-card"
                         [class.active]="formImage() === img.path || formImage() === img.path.replace('/', '')"
-                        (click)="formImage.set(img.path)"
+                        (click)="selectOfficialImage(img.path)"
                         [title]="img.name"
                       >
                         <div class="photo-thumbnail-wrap">
@@ -717,59 +773,6 @@
                         <span class="photo-title-caption">{{ img.name }}</span>
                       </div>
                     }
-                  </div>
-                </div>
-
-                <div class="form-grid-two" style="margin-top: 1.25rem;">
-                  <div class="form-field-group">
-                    <label class="field-label">URL Foto Produk Kustom</label>
-                    <input
-                      type="text"
-                      [ngModel]="formImage()"
-                      (ngModelChange)="formImage.set($event)"
-                      [ngModelOptions]="{standalone: true}"
-                      placeholder="products/red-jelly-serum.jpg"
-                      class="studio-input"
-                    />
-                    <small class="field-hint">Dapat menggunakan path lokal /products/... atau URL HTTPS eksternal.</small>
-                  </div>
-
-                  <div class="form-field-group">
-                    <label class="field-label">Warna Aksen Branding (Hex):</label>
-                    <div class="swatches-palette-row">
-                      @for (swatch of brandSwatches; track swatch.hex) {
-                        <button
-                          type="button"
-                          class="swatch-circle-btn"
-                          [style.background]="swatch.hex"
-                          [class.active]="formAccentColor() === swatch.hex"
-                          (click)="selectSwatch(swatch.hex)"
-                          [title]="swatch.name + ' (' + swatch.hex + ')'"
-                        >
-                          @if (formAccentColor() === swatch.hex) {
-                            <span class="swatch-check">✓</span>
-                          }
-                        </button>
-                      }
-
-                      <div class="custom-color-inline">
-                        <input
-                          type="color"
-                          [ngModel]="formAccentColor()"
-                          (ngModelChange)="formAccentColor.set($event)"
-                          [ngModelOptions]="{standalone: true}"
-                          class="color-native-picker"
-                          title="Pilih warna custom"
-                        />
-                        <input
-                          type="text"
-                          [ngModel]="formAccentColor()"
-                          (ngModelChange)="formAccentColor.set($event)"
-                          [ngModelOptions]="{standalone: true}"
-                          class="studio-input color-hex-field"
-                        />
-                      </div>
-                    </div>
                   </div>
                 </div>
               </div>

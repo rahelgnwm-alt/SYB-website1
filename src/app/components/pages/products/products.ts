@@ -1,5 +1,6 @@
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
-import { RouterLink } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { MagneticDirective, RevealDirective, TiltDirective } from '../../../directives';
 import { PRODUCTS, Product, SHOP_URL, productUrl } from '../../../data';
 import { CartService } from '../../../services/cart.service';
@@ -18,6 +19,8 @@ type Filter = 'all' | 'Flash Sale' | 'Best Seller' | 'New' | 'Bundling';
 })
 export class Products {
   private readonly productService = inject(ProductService);
+  private readonly route = inject(ActivatedRoute);
+  private readonly router = inject(Router);
   protected readonly cart = inject(CartService);
   protected readonly productUrl = productUrl;
   protected readonly shopUrl = SHOP_URL;
@@ -34,6 +37,39 @@ export class Products {
   protected readonly filter = signal<Filter>('all');
   protected readonly sort = signal<Sort>('featured');
 
+  constructor() {
+    this.route.queryParams.pipe(takeUntilDestroyed()).subscribe((params) => {
+      const f = params['filter'];
+      if (!f) {
+        this.filter.set('all');
+        return;
+      }
+      const norm = f.toString().toLowerCase().replace(/[\s-_]/g, '');
+      if (norm === 'flashsale') {
+        this.filter.set('Flash Sale');
+      } else if (norm === 'bestseller') {
+        this.filter.set('Best Seller');
+      } else if (norm === 'new') {
+        this.filter.set('New');
+      } else if (norm === 'bundling') {
+        this.filter.set('Bundling');
+      } else {
+        this.filter.set('all');
+      }
+    });
+  }
+
+  protected setFilter(key: Filter): void {
+    this.filter.set(key);
+    const queryParam = key === 'all' ? null : key.toLowerCase().replace(/\s+/g, '-');
+    this.router.navigate([], {
+      relativeTo: this.route,
+      queryParams: { filter: queryParam },
+      queryParamsHandling: 'merge',
+      replaceUrl: true,
+    });
+  }
+
   protected readonly visible = computed(() => {
     const q = this.query().trim().toLowerCase();
     const f = this.filter();
@@ -46,25 +82,45 @@ export class Products {
         ...p,
         price: live.price,
         compareAt: live.originalPrice,
-        isFlashSale: live.isFlashSale,
+        isFlashSale: live.isFlashSale ?? p.isFlashSale,
       };
-    }).filter(
+    });
+
+    const staticIds = new Set(PRODUCTS.map((p) => p.id));
+    for (const p of this.productService.products()) {
+      if (!staticIds.has(p.id) && p.status === 'Active') {
+        list.push({
+          id: p.id,
+          name: p.title,
+          tagline: p.subtitle,
+          price: p.price,
+          compareAt: p.originalPrice,
+          badge: (p.badge?.replace(' ✦', '') || '') as any,
+          image: p.image,
+          tint: 'rgba(255, 10, 108, 0.08)',
+          isFlashSale: p.isFlashSale,
+        } as any);
+      }
+    }
+
+    let filtered = list.filter(
       (p: any) =>
         (f === 'all' || (f === 'Flash Sale' ? p.isFlashSale : p.badge === f)) &&
         (!q || p.name.toLowerCase().includes(q) || p.tagline.toLowerCase().includes(q)),
     );
+
     switch (this.sort()) {
       case 'price-asc':
-        list = [...list].sort((a, b) => a.price - b.price);
+        filtered = [...filtered].sort((a, b) => a.price - b.price);
         break;
       case 'price-desc':
-        list = [...list].sort((a, b) => b.price - a.price);
+        filtered = [...filtered].sort((a, b) => b.price - a.price);
         break;
       case 'discount':
-        list = [...list].sort((a, b) => this.discount(b) - this.discount(a));
+        filtered = [...filtered].sort((a, b) => this.discount(b) - this.discount(a));
         break;
     }
-    return list;
+    return filtered;
   });
 
   protected add(e: MouseEvent, p: Product) {
@@ -75,7 +131,7 @@ export class Products {
 
   protected reset() {
     this.query.set('');
-    this.filter.set('all');
+    this.setFilter('all');
     this.sort.set('featured');
   }
 

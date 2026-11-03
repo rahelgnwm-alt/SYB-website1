@@ -13,95 +13,42 @@
     <nav class="sidebar-nav">
       <div class="nav-section-title">Manajemen Utama</div>
 
-      <a
-        routerLink="/admin/products"
-        routerLinkActive="active"
-        class="nav-item"
-        id="btn-nav-products"
-      >
+      <a routerLink="/admin/products" routerLinkActive="active" class="nav-item" id="btn-nav-products">
         <span class="nav-icon">📦</span>
         <span class="nav-text">Katalog Produk</span>
         <span class="nav-counter">{{ totalProductsCount() }}</span>
       </a>
 
-      <a
-        routerLink="/admin/discounts"
-        routerLinkActive="active"
-        class="nav-item"
-        id="btn-nav-discounts"
-      >
+      <a routerLink="/admin/discounts" routerLinkActive="active" class="nav-item" id="btn-nav-discounts">
         <span class="nav-icon">🏷️</span>
         <span class="nav-text">Diskon Produk</span>
         <span class="nav-counter discount-badge" title="Produk sedang diskon">{{ discountedCount() }}</span>
       </a>
 
-      <a
-        routerLink="/admin/flash-sale"
-        routerLinkActive="active"
-        class="nav-item"
-        id="btn-nav-flash-sale"
-      >
+      <a routerLink="/admin/flash-sale" routerLinkActive="active" class="nav-item" id="btn-nav-flash-sale">
         <span class="nav-icon">⚡</span>
         <span class="nav-text">Kelola Flash Sale</span>
         @if (isFlashSaleActive()) {
-          <span class="nav-counter flash-badge alert" title="Flash Sale aktif live">{{ flashSaleCount() }}</span>
+        <span class="nav-counter flash-badge alert" title="Flash Sale aktif live">{{ flashSaleCount() }}</span>
         } @else {
-          <span class="nav-counter flash-badge" title="Flash Sale non-aktif">{{ flashSaleCount() }}</span>
+        <span class="nav-counter flash-badge" title="Flash Sale non-aktif">{{ flashSaleCount() }}</span>
         }
       </a>
 
-      <a
-        routerLink="/admin/shipping"
-        routerLinkActive="active"
-        class="nav-item"
-        id="btn-nav-shipping"
-      >
+      <a routerLink="/admin/shipping" routerLinkActive="active" class="nav-item" id="btn-nav-shipping">
         <span class="nav-icon">🚚</span>
         <span class="nav-text">Pengiriman &amp; Logistik</span>
         <span class="nav-counter shipping-badge">{{ activeShippingCount() }}</span>
       </a>
 
-      <a
-        routerLink="/admin/orders"
-        routerLinkActive="active"
-        class="nav-item"
-        id="btn-nav-orders"
-      >
+      <a routerLink="/admin/orders" routerLinkActive="active" class="nav-item" id="btn-nav-orders">
         <span class="nav-icon">📋</span>
         <span class="nav-text">Semua Pesanan</span>
         @if (unfulfilledCount() > 0) {
-          <span class="nav-counter alert" title="Perlu dikemas">{{ unfulfilledCount() }}</span>
+        <span class="nav-counter alert" title="Perlu dikemas">{{ unfulfilledCount() }}</span>
         } @else {
-          <span class="nav-counter">{{ totalOrdersCount() }}</span>
+        <span class="nav-counter">{{ totalOrdersCount() }}</span>
         }
-      </a>
-
-      <div class="nav-section-title">Aksi Cepat</div>
-      <a routerLink="/admin/products" class="nav-quick-btn" id="btn-quick-add-prod">
-        <span>+ Tambah Produk</span>
-        <kbd>N</kbd>
-      </a>
-
-      <a routerLink="/admin/discounts" class="nav-quick-btn" id="btn-quick-discounts">
-        <span>🏷️ Atur Diskon Massal</span>
-        <kbd>D</kbd>
-      </a>
-
-      <a routerLink="/admin/flash-sale" class="nav-quick-btn" id="btn-quick-flash-sale">
-        <span>⚡ Set Jam Flash Sale</span>
-        <kbd>F</kbd>
-      </a>
-
-      <a routerLink="/admin/shipping" class="nav-quick-btn" id="btn-quick-new-ship">
-        <span>🚚 Buat Resi Pengiriman</span>
-        <kbd>S</kbd>
-      </a>
-
-      <div class="nav-section-title">Sales Channel</div>
-      <a routerLink="/" class="nav-item online-store-link" target="_blank" title="Buka website publik di tab baru">
-        <span class="nav-icon">🌐</span>
-        <span>Lihat Website Publik</span>
-        <span class="link-ext">↗</span>
       </a>
     </nav>
 
@@ -139,22 +86,6 @@
       </div>
 
       <div class="topbar-right-actions">
-        <a routerLink="/admin/discounts" class="topbar-quick-link" title="Atur Diskon Produk">
-          <span class="quick-link-icon">🏷️</span>
-          <span>Atur Diskon</span>
-        </a>
-        <a routerLink="/admin/flash-sale" class="topbar-quick-link pink" title="Kelola Flash Sale & Jam">
-          <span class="quick-link-icon">⚡</span>
-          <span>Flash Sale</span>
-        </a>
-        <a routerLink="/admin/products" class="topbar-quick-link">
-          <span class="quick-link-icon">+</span>
-          <span>Produk Baru</span>
-        </a>
-        <a routerLink="/admin/shipping" class="topbar-quick-link">
-          <span class="quick-link-icon">🚚</span>
-          <span>Kirim Paket</span>
-        </a>
         <a routerLink="/" class="topbar-store-link desktop-only" target="_blank" title="Buka Toko Online">
           <span>Lihat Toko</span>
           <span class="store-arrow">&rarr;</span>

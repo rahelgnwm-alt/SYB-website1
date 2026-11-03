@@ -1,4 +1,4 @@
-import { Component, inject, computed, ChangeDetectionStrategy } from '@angular/core';
+import { Component, inject, computed, ChangeDetectionStrategy, OnInit, OnDestroy } from '@angular/core';
 import { Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { ProductService } from '../../../services/product.service';
 import { ShippingService } from '../../../services/shipping.service';
@@ -12,12 +12,24 @@ import { TimeService } from '../../../services/time.service';
   styleUrl: './admin.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class AdminComponent {
+export class AdminComponent implements OnInit, OnDestroy {
   readonly productService = inject(ProductService);
   readonly shippingService = inject(ShippingService);
   readonly authService = inject(AuthService);
   readonly timeService = inject(TimeService);
   private readonly router = inject(Router);
+
+  ngOnInit(): void {
+    if (typeof document !== 'undefined') {
+      document.documentElement.classList.add('admin-portal-active');
+    }
+  }
+
+  ngOnDestroy(): void {
+    if (typeof document !== 'undefined') {
+      document.documentElement.classList.remove('admin-portal-active');
+    }
+  }
 
   // Counters for Sidebar Badges
   readonly totalProductsCount = computed(() => this.productService.products().length);

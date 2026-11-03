@@ -54,7 +54,9 @@ export class ShippingService {
       discount: 13600,
       total: 87110,
       paymentStatus: 'Paid',
-      fulfillmentStatus: 'Ready to Ship',
+      fulfillmentStatus: 'Unfulfilled',
+      isLabelPrinted: true,
+      labelPrintedAt: '28 Okt 2026, 09:30',
       courier: 'J&T',
       serviceName: 'J&T EZ Express',
       trackingNumber: 'JT88291039401',
@@ -82,6 +84,7 @@ export class ShippingService {
       total: 96042,
       paymentStatus: 'Paid',
       fulfillmentStatus: 'Unfulfilled',
+      isLabelPrinted: false,
       courier: 'JNE',
       serviceName: 'JNE Reguler',
       trackingNumber: 'JNE-PENDING-02',
@@ -110,6 +113,8 @@ export class ShippingService {
       total: 91859,
       paymentStatus: 'Paid',
       fulfillmentStatus: 'Shipped',
+      isLabelPrinted: true,
+      labelPrintedAt: '28 Okt 2026, 11:30',
       courier: 'J&T',
       serviceName: 'J&T EZ Express',
       trackingNumber: 'JT99104820194',
@@ -136,7 +141,9 @@ export class ShippingService {
       discount: 0,
       total: 99806,
       paymentStatus: 'Paid',
-      fulfillmentStatus: 'Ready to Ship',
+      fulfillmentStatus: 'Shipped',
+      isLabelPrinted: true,
+      labelPrintedAt: '28 Okt 2026, 13:20',
       courier: 'JNE',
       serviceName: 'JNE YES (Yakin Esok Sampai)',
       trackingNumber: 'JNE0192830192',
@@ -165,10 +172,42 @@ export class ShippingService {
       total: 92955,
       paymentStatus: 'Paid',
       fulfillmentStatus: 'Delivered',
+      isLabelPrinted: true,
+      labelPrintedAt: '28 Okt 2026, 14:40',
       courier: 'SICEPAT',
       serviceName: 'SiCepat HALU',
       trackingNumber: '003948102948',
       weightGrams: 220
+    },
+    {
+      id: 'ord-1006',
+      orderNumber: '#SYB-10826',
+      createdAt: '28 Okt 2026, 15:00',
+      customerName: 'Dinda Permatasari',
+      customerEmail: 'dinda.p@gmail.com',
+      customerPhone: '081245678901',
+      shippingAddress: {
+        street: 'Jl. Pemuda No. 15',
+        city: 'Kota Surabaya (Origin)',
+        province: 'Jawa Timur',
+        postalCode: '60271'
+      },
+      items: [
+        { productId: 'red-jelly-serum', title: 'FORTE Red Jelly Serum', variantName: '20ml Regular Glass Bottle', quantity: 1, price: 22325, image: 'products/red-jelly-serum.jpg' },
+        { productId: 'lippy-oil-serum', title: 'Vitamin Lippy Oil Serum', variantName: 'Single 5ml Tube', quantity: 1, price: 46060, image: 'products/lippy-oil-serum.jpg' }
+      ],
+      subtotal: 68385,
+      shippingCost: 8000,
+      discount: 0,
+      total: 76385,
+      paymentStatus: 'Paid',
+      fulfillmentStatus: 'Unfulfilled',
+      isLabelPrinted: true,
+      labelPrintedAt: '28 Okt 2026, 15:15',
+      courier: 'J&T',
+      serviceName: 'J&T EZ Express',
+      trackingNumber: 'JT77391029481',
+      weightGrams: 300
     }
   ];
 
@@ -239,7 +278,21 @@ export class ShippingService {
       if (saved) {
         const parsed = JSON.parse(saved);
         if (Array.isArray(parsed) && parsed.length > 0) {
-          this.orders.set(parsed);
+          const sanitized: ShopifyOrder[] = parsed.map((o: ShopifyOrder) => {
+            const isReady = (o.fulfillmentStatus as string) === 'Ready to Ship';
+            const status = isReady ? 'Unfulfilled' : o.fulfillmentStatus;
+            const printed = isReady
+              ? true
+              : typeof o.isLabelPrinted === 'boolean'
+              ? o.isLabelPrinted
+              : Boolean(status !== 'Unfulfilled' || (o.trackingNumber && !o.trackingNumber.includes('PENDING')));
+            return {
+              ...o,
+              fulfillmentStatus: status,
+              isLabelPrinted: printed
+            };
+          });
+          this.orders.set(sanitized);
         }
       }
     } catch {}
@@ -267,12 +320,37 @@ export class ShippingService {
     }
   }
 
-  updateOrderStatus(orderId: string, newStatus: ShopifyOrder['fulfillmentStatus']): void {
+  updateOrderStatus(orderId: string, newStatus: ShopifyOrder['fulfillmentStatus'], isLabelPrinted?: boolean): void {
     this.orders.update((list) =>
       list.map((o) => {
         if (o.id === orderId) {
-          const updated = { ...o, fulfillmentStatus: newStatus };
+          const updated: ShopifyOrder = {
+            ...o,
+            fulfillmentStatus: newStatus,
+            ...(typeof isLabelPrinted === 'boolean' ? { isLabelPrinted } : {})
+          };
           if ((newStatus === 'Shipped' || newStatus === 'Ready to Ship') && (!o.trackingNumber || o.trackingNumber.includes('PENDING'))) {
+            updated.trackingNumber = this.generateTrackingNumber(o.courier);
+            updated.isLabelPrinted = true;
+          }
+          return updated;
+        }
+        return o;
+      })
+    );
+    this.persist();
+  }
+
+  markLabelPrinted(orderId: string): void {
+    this.orders.update((list) =>
+      list.map((o) => {
+        if (o.id === orderId) {
+          const updated: ShopifyOrder = {
+            ...o,
+            isLabelPrinted: true,
+            labelPrintedAt: new Date().toLocaleString('id-ID', { dateStyle: 'medium', timeStyle: 'short' }),
+          };
+          if (!o.trackingNumber || o.trackingNumber.includes('PENDING')) {
             updated.trackingNumber = this.generateTrackingNumber(o.courier);
           }
           return updated;
@@ -291,6 +369,27 @@ export class ShippingService {
             ...o,
             trackingNumber: trackingNumber.trim(),
             ...(courier ? { courier } : {})
+          };
+        }
+        return o;
+      })
+    );
+    this.persist();
+  }
+
+  applyAwbToOrder(orderId: string, trackingNumber: string, isAutoAdvance: boolean = true): void {
+    const trimmed = trackingNumber.trim();
+    this.orders.update((list) =>
+      list.map((o) => {
+        if (o.id === orderId) {
+          return {
+            ...o,
+            trackingNumber: trimmed,
+            courier: 'JNE',
+            isLabelPrinted: isAutoAdvance ? true : o.isLabelPrinted,
+            labelPrintedAt: isAutoAdvance
+              ? (o.labelPrintedAt || new Date().toLocaleString('id-ID', { dateStyle: 'medium', timeStyle: 'short' }))
+              : o.labelPrintedAt
           };
         }
         return o;
@@ -321,7 +420,8 @@ export class ShippingService {
     description: string;
     status: 'completed' | 'active' | 'upcoming';
   }[] {
-    const isUnfulfilled = order.fulfillmentStatus === 'Unfulfilled';
+    const isUnprinted = !order.isLabelPrinted && order.fulfillmentStatus === 'Unfulfilled';
+    const isPacking = !!order.isLabelPrinted && order.fulfillmentStatus === 'Unfulfilled';
     const isReady = order.fulfillmentStatus === 'Ready to Ship';
     const isShipped = order.fulfillmentStatus === 'Shipped';
     const isDelivered = order.fulfillmentStatus === 'Delivered';
@@ -335,13 +435,19 @@ export class ShippingService {
         status: 'completed'
       },
       {
-        title: isUnfulfilled ? 'Menunggu Pengemasan Gudang' : 'Pesanan Telah Dikemas & Diberi Label Resi',
+        title: isUnprinted
+          ? 'Menunggu Cetak Resi (Belum Dicetak)'
+          : isPacking
+          ? 'Resi Telah Dicetak — Fase Pengemasan (Packing)'
+          : 'Pesanan Selesai Dikemas & Diberi Resi',
         location: 'Gudang Ekspedisi SYB - Rungkut Industri Surabaya',
-        time: isUnfulfilled ? 'Dalam Antrean' : '28 Okt 2026, 12:45 WIB',
-        description: isUnfulfilled
-          ? 'Pesanan sedang disiapkan oleh staf gudang dan menunggu penerbitan AWB.'
-          : `Resi resmi ${order.courier} (${order.trackingNumber}) telah dicetak dan ditempel pada paket.`,
-        status: isUnfulfilled ? 'active' : isReady || isShipped || isDelivered ? 'completed' : 'upcoming'
+        time: isUnprinted ? 'Menunggu Cetak Label' : (order.labelPrintedAt || '28 Okt 2026, 12:45 WIB'),
+        description: isUnprinted
+          ? 'Pesanan terverifikasi. Menunggu staf gudang mencetak label resi ekspedisi.'
+          : isPacking
+          ? `Resi resmi ${order.courier} (${order.trackingNumber}) telah dicetak. Staf gudang sedang mengemas produk dengan bubble wrap.`
+          : `Resi resmi ${order.courier} (${order.trackingNumber}) tertempel rapi pada kardus pengiriman.`,
+        status: isUnprinted || isPacking ? 'active' : isReady || isShipped || isDelivered ? 'completed' : 'upcoming'
       },
       {
         title: isReady ? 'Menunggu Penjemputan Kurir (Pickup)' : isShipped || isDelivered ? `Paket Telah Diserahkan ke ${order.courier}` : 'Penjemputan Ekspedisi',

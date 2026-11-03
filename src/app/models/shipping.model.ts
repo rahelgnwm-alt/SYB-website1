@@ -49,6 +49,8 @@ export interface ShopifyOrder {
   total: number;
   paymentStatus: 'Paid' | 'Pending' | 'Refunded';
   fulfillmentStatus: 'Unfulfilled' | 'Ready to Ship' | 'Shipped' | 'Delivered';
+  isLabelPrinted?: boolean;
+  labelPrintedAt?: string;
   courier: CourierCode;
   serviceName: string;
   trackingNumber: string;

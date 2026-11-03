@@ -132,16 +132,9 @@ export class AdminProductsComponent {
   readonly activeStudioTab = signal<'all' | 'basic' | 'pricing' | 'media' | 'formula' | 'variants'>('all');
   readonly isPreviewVisible = signal<boolean>(true);
 
-  // Quick curation helpers
-  readonly brandSwatches = [
-    { name: 'SYB Rose', hex: '#ff0a6c' },
-    { name: 'Cherry Blossom', hex: '#e84393' },
-    { name: 'Velvet Plum', hex: '#7928ca' },
-    { name: 'Golden Glow', hex: '#f59e0b' },
-    { name: 'Coral Sunset', hex: '#ff6b6b' },
-    { name: 'Botanical Mint', hex: '#10b981' },
-    { name: 'Midnight Glam', hex: '#1e1b4b' }
-  ];
+  // Uploaded Image State
+  readonly uploadedFileName = signal<string | null>(null);
+  readonly isDraggingImage = signal<boolean>(false);
 
   readonly suggestedIngredients = [
     'Niacinamide 10%',
@@ -298,7 +291,8 @@ export class AdminProductsComponent {
     this.formBpom.set('NA182301' + Math.floor(10000 + Math.random() * 90000));
     this.formBadge.set('New Arrival ✦');
     this.formImage.set('products/red-jelly-serum.jpg');
-    this.formAccentColor.set('#ff2a7a');
+    this.uploadedFileName.set(null);
+    this.formAccentColor.set('#ff0a6c');
     this.formHeroTagline.set('Formula pencerah kulit intensif teruji klinis!');
     this.formDescription.set('Diformulasikan lembut dengan konsentrat bahan aktif untuk hasil glowing maksimal.');
     this.formBenefits.set(['Mencerahkan kulit seketika', 'Formula ringan cepat meresap']);
@@ -330,7 +324,8 @@ export class AdminProductsComponent {
     this.formBpom.set(prod.bpomNumber || 'NA18230109999');
     this.formBadge.set(prod.badge || 'Best Seller ✦');
     this.formImage.set(prod.image || 'products/red-jelly-serum.jpg');
-    this.formAccentColor.set(prod.accentColor || '#ff2a7a');
+    this.uploadedFileName.set(prod.image?.startsWith('data:image') ? 'Foto Kustom Terunggah' : null);
+    this.formAccentColor.set(prod.accentColor || '#ff0a6c');
     this.formHeroTagline.set(prod.heroTagline || prod.subtitle);
     this.formDescription.set(prod.description || prod.subtitle);
     this.formBenefits.set([...(prod.benefits || ['Mencerahkan kulit seketika'])]);
@@ -576,8 +571,61 @@ export class AdminProductsComponent {
     this.formInventory.update(curr => Math.max(0, curr + delta));
   }
 
-  selectSwatch(hex: string): void {
-    this.formAccentColor.set(hex);
+  onFileSelected(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    if (input.files && input.files[0]) {
+      this.processImageFile(input.files[0]);
+      input.value = '';
+    }
+  }
+
+  onImageDrop(event: DragEvent): void {
+    event.preventDefault();
+    this.isDraggingImage.set(false);
+    if (event.dataTransfer?.files && event.dataTransfer.files[0]) {
+      this.processImageFile(event.dataTransfer.files[0]);
+    }
+  }
+
+  onImageDragOver(event: DragEvent): void {
+    event.preventDefault();
+    this.isDraggingImage.set(true);
+  }
+
+  onImageDragLeave(): void {
+    this.isDraggingImage.set(false);
+  }
+
+  private processImageFile(file: File): void {
+    if (!file.type.startsWith('image/')) {
+      this.showToast('Format file harus berupa gambar (JPG, PNG, WEBP)');
+      return;
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      this.showToast('Ukuran gambar maksimal 5 MB');
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      const result = reader.result as string;
+      this.formImage.set(result);
+      this.uploadedFileName.set(file.name);
+      this.showToast(`✓ Foto "${file.name}" berhasil diunggah ke website!`);
+    };
+    reader.readAsDataURL(file);
+  }
+
+  removeUploadedImage(): void {
+    this.formImage.set('products/red-jelly-serum.jpg');
+    this.uploadedFileName.set(null);
+    this.showToast('Foto custom telah dihapus.');
+  }
+
+  selectOfficialImage(path: string): void {
+    this.formImage.set(path);
+    this.uploadedFileName.set(null);
   }
 
   onImgError(event: Event): void {

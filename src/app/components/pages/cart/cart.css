@@ -436,3 +436,299 @@
   .summary { padding: 24px; border-radius: 32px; }
   .more__grid { gap: 14px; }
 }
+
+/* ==================== JNE SHIPPING TARIFF CALCULATOR ==================== */
+.jne-shipping-box {
+  background: rgba(255, 255, 255, 0.07);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 24px;
+  padding: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  backdrop-filter: blur(12px);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+.jne-box-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.jne-brand {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.jne-brand-pill {
+  background: #ed1c24;
+  color: #ffffff;
+  font-weight: 900;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  padding: 3px 8px;
+  border-radius: 6px;
+  text-transform: uppercase;
+}
+
+.jne-sub-text {
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.7);
+  font-weight: 600;
+}
+
+.jne-origin-badge {
+  font-size: 11px;
+  color: var(--pink-200);
+  background: rgba(255, 10, 108, 0.15);
+  border: 1px solid rgba(255, 10, 108, 0.3);
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-weight: 600;
+}
+
+.dest-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.dest-label {
+  font-size: 12px;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.85);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.dest-select-wrap {
+  position: relative;
+}
+
+.dest-select {
+  width: 100%;
+  appearance: none;
+  background: rgba(20, 10, 35, 0.85);
+  color: #ffffff;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  border-radius: 14px;
+  padding: 10px 36px 10px 14px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.dest-select:focus {
+  border-color: #ff0a6c;
+  box-shadow: 0 0 0 3px rgba(255, 10, 108, 0.25);
+}
+
+.dest-select-wrap::after {
+  content: '▾';
+  position: absolute;
+  right: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--pink-200);
+  pointer-events: none;
+  font-size: 14px;
+}
+
+.dest-select option {
+  background: #1c0e30;
+  color: #ffffff;
+}
+
+.jne-meta-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.75);
+}
+
+.jne-meta-row b {
+  color: #ffffff;
+}
+
+.api-status {
+  color: #34d399;
+  font-weight: 600;
+}
+
+.tariff-loading {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 14px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 14px;
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.spinner-inline {
+  width: 16px;
+  height: 16px;
+  border: 2px solid rgba(255, 255, 255, 0.25);
+  border-top-color: #ff0a6c;
+  border-radius: 50%;
+  animation: jneSpin 0.8s linear infinite;
+}
+
+@keyframes jneSpin {
+  to { transform: rotate(360deg); }
+}
+
+.jne-services-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.jne-service-card {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1.5px solid rgba(255, 255, 255, 0.12);
+  cursor: pointer;
+  transition: all 0.22s ease;
+  user-select: none;
+}
+
+.jne-service-card:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 10, 108, 0.4);
+  transform: translateY(-1px);
+}
+
+.jne-service-card.selected {
+  background: rgba(255, 10, 108, 0.16);
+  border-color: #ff0a6c;
+  box-shadow: 0 4px 16px -4px rgba(255, 10, 108, 0.4);
+}
+
+.srv-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.custom-radio {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  border: 2px solid rgba(255, 255, 255, 0.4);
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  transition: border-color 0.2s;
+}
+
+.jne-service-card.selected .custom-radio {
+  border-color: #ff0a6c;
+}
+
+.radio-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #ff0a6c;
+  opacity: 0;
+  transform: scale(0.5);
+  transition: transform 0.2s, opacity 0.2s;
+}
+
+.jne-service-card.selected .radio-dot {
+  opacity: 1;
+  transform: scale(1);
+}
+
+.srv-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.srv-title-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.srv-name {
+  font-size: 13px;
+  font-weight: 700;
+  color: #ffffff;
+}
+
+.srv-badge {
+  font-size: 9px;
+  font-weight: 800;
+  text-transform: uppercase;
+  background: var(--pink-900);
+  color: #ffffff;
+  padding: 1px 6px;
+  border-radius: 6px;
+  letter-spacing: 0.02em;
+}
+
+.srv-etd {
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.65);
+}
+
+.srv-right {
+  text-align: right;
+  flex-shrink: 0;
+}
+
+.srv-price {
+  font-size: 14px;
+  font-weight: 800;
+  color: #ffffff;
+}
+
+.price-free-box {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+}
+
+.price-free {
+  font-size: 13px;
+  font-weight: 900;
+  color: #34d399;
+}
+
+.price-orig {
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.selected-srv-note {
+  font-size: 12px;
+  color: var(--pink-200);
+  font-weight: 600;
+}
+
+.free-ongkir-pill {
+  color: #34d399;
+  font-weight: 800;
+  background: rgba(52, 211, 153, 0.15);
+  padding: 2px 8px;
+  border-radius: 6px;
+  font-size: 12px;
+}
+

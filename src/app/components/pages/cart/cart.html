@@ -63,16 +63,113 @@
             <div class="ship__bar"><span [style.width.%]="cart.shippingProgress()"></span></div>
           </div>
 
+          <!-- JNE Shipping Tariff Calculator Section -->
+          <div class="jne-shipping-box">
+            <div class="jne-box-head">
+              <div class="jne-brand">
+                <span class="jne-brand-pill">JNE Express</span>
+                <span class="jne-sub-text">Tarif Resmi API (pricedev)</span>
+              </div>
+              <span class="jne-origin-badge">Gudang SYB Surabaya</span>
+            </div>
+
+            <!-- Destination selector -->
+            <div class="dest-field">
+              <label for="dest-select" class="dest-label">Kota Tujuan Pengiriman:</label>
+              <div class="dest-select-wrap">
+                <select
+                  id="dest-select"
+                  class="dest-select"
+                  [ngModel]="selectedDestCode()"
+                  (ngModelChange)="onDestinationChange($event)"
+                >
+                  @for (dest of destinations; track dest.code) {
+                    <option [value]="dest.code">{{ dest.city }} ({{ dest.province }})</option>
+                  }
+                </select>
+              </div>
+            </div>
+
+            <!-- Weight & Service Info -->
+            <div class="jne-meta-row">
+              <span class="meta-item">⚖️ Berat: <b>{{ estimatedWeightKg() }} kg</b> ({{ cart.count() }} produk)</span>
+              <span class="meta-item api-status">🟢 Live JNE Rate</span>
+            </div>
+
+            <!-- Loading Shimmer -->
+            @if (isLoadingTariff()) {
+              <div class="tariff-loading">
+                <span class="spinner-inline"></span>
+                <span>Mengecek ongkir resmi JNE...</span>
+              </div>
+            } @else {
+              <!-- Available JNE Services Radio Cards -->
+              <div class="jne-services-list" role="radiogroup" aria-label="Pilihan layanan JNE">
+                @for (opt of tariffOptions(); track opt.serviceCode) {
+                  <div
+                    class="jne-service-card"
+                    [class.selected]="selectedTariff()?.serviceCode === opt.serviceCode"
+                    (click)="selectService(opt)"
+                    role="radio"
+                    [attr.aria-checked]="selectedTariff()?.serviceCode === opt.serviceCode"
+                    tabindex="0"
+                  >
+                    <div class="srv-left">
+                      <div class="custom-radio">
+                        <span class="radio-dot"></span>
+                      </div>
+                      <div class="srv-info">
+                        <div class="srv-title-row">
+                          <strong class="srv-name">{{ opt.serviceName }}</strong>
+                          @if (opt.badge) {
+                            <span class="srv-badge">{{ opt.badge }}</span>
+                          }
+                        </div>
+                        <span class="srv-etd">⏱️ Estimasi: {{ opt.etd }}</span>
+                      </div>
+                    </div>
+                    <div class="srv-right">
+                      @if (isFreeShipping()) {
+                        <div class="price-free-box">
+                          <strong class="price-free">GRATIS</strong>
+                          <s class="price-orig">{{ rupiah(opt.price) }}</s>
+                        </div>
+                      } @else {
+                        <strong class="srv-price">{{ rupiah(opt.price) }}</strong>
+                      }
+                    </div>
+                  </div>
+                }
+              </div>
+            }
+          </div>
+
           <dl class="rows">
             <div><dt>Subtotal ({{ cart.count() }} item)</dt><dd>{{ rupiah(cart.subtotal()) }}</dd></div>
             <div class="save"><dt>Kamu hemat</dt><dd>-{{ rupiah(cart.savings()) }}</dd></div>
-            <div><dt>Ongkir</dt><dd>Dihitung saat checkout</dd></div>
+            <div>
+              <dt>
+                Ongkos Kirim
+                @if (selectedTariff(); as st) {
+                  <small class="selected-srv-note">({{ st.serviceDisplay }})</small>
+                }
+              </dt>
+              <dd>
+                @if (isFreeShipping()) {
+                  <span class="free-ongkir-pill">GRATIS ✨</span>
+                } @else if (selectedTariff()) {
+                  {{ rupiah(shippingCost()) }}
+                } @else {
+                  Dihitung saat checkout
+                }
+              </dd>
+            </div>
           </dl>
 
-          <p class="total"><span>Total</span><b>{{ rupiah(cart.subtotal()) }}</b></p>
+          <p class="total"><span>Total</span><b>{{ rupiah(grandTotal()) }}</b></p>
 
-          <a class="btn btn--primary btn--block" href="{{ shopUrl }}/cart" target="_blank" rel="noopener" appMagnetic="0.2" id="cart-checkout">
-            Checkout Sekarang
+          <a class="btn btn--primary btn--block" routerLink="/checkout" appMagnetic="0.2" id="cart-checkout">
+            Checkout Sekarang • {{ rupiah(grandTotal()) }}
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M13 6l6 6-6 6" stroke-linecap="round" stroke-linejoin="round" /></svg>
           </a>
           <button type="button" class="summary__clear" (click)="cart.clear()" id="cart-clear">Kosongkan keranjang</button>

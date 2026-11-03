@@ -28,9 +28,13 @@ export const routes: Routes = [
     title: 'Keranjang — SYB Official',
   },
   {
+    path: 'checkout',
+    loadComponent: () => import('./components/pages/checkout/checkout').then((m) => m.CheckoutComponent),
+    title: 'Checkout — SYB Official',
+  },
+  {
     path: 'flash-sale',
-    loadComponent: () => import('./components/pages/home/components/flash-sale/flash-sale').then((m) => m.FlashSale),
-    title: 'Flash Sale — SYB Official',
+    redirectTo: () => '/products?filter=flash-sale',
   },
   {
     path: 'rituals',

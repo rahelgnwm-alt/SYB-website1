@@ -415,3 +415,72 @@ button {
     transform: scale(1);
   }
 }
+
+/* ==========================================================================
+   Admin Portal Smooth View Transitions & Anti-Flicker Protection
+   ========================================================================== */
+
+/* While Admin is active, lock the root viewport background to slate (#f6f7f9)
+   preventing pink/white flash between child dashboard navigations */
+html.admin-portal-active,
+html.admin-portal-active body,
+html:has(.shopify-layout),
+html:has(.shopify-layout) body {
+  background-color: #f6f7f9 !important;
+}
+
+@supports (view-transition-name: none) {
+  /* Suppress full-window zoom/fade for admin dashboard routes */
+  html.admin-portal-active::view-transition-old(root),
+  html.admin-portal-active::view-transition-new(root),
+  html:has(.shopify-layout)::view-transition-old(root),
+  html:has(.shopify-layout)::view-transition-new(root) {
+    animation: none !important;
+  }
+
+  /* Isolate Admin Sidebar & Topbar - they remain completely static & rock-solid */
+  ::view-transition-old(admin-sidebar),
+  ::view-transition-new(admin-sidebar),
+  ::view-transition-old(admin-topbar),
+  ::view-transition-new(admin-topbar) {
+    animation: none !important;
+    mix-blend-mode: normal !important;
+  }
+
+  /* Premium, silky-smooth content transition for Admin Canvas */
+  ::view-transition-old(admin-canvas) {
+    animation: 0.14s cubic-bezier(0.4, 0, 1, 1) both adminCanvasFadeOut;
+    height: 100%;
+    object-fit: none;
+    object-position: top left;
+  }
+
+  ::view-transition-new(admin-canvas) {
+    animation: 0.22s cubic-bezier(0, 0, 0.2, 1) both adminCanvasFadeIn;
+    height: 100%;
+    object-fit: none;
+    object-position: top left;
+  }
+}
+
+@keyframes adminCanvasFadeOut {
+  from {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+}
+
+@keyframes adminCanvasFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

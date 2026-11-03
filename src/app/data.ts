@@ -9,6 +9,7 @@ export interface Product {
   handle: string;
   /** soft background tint behind the product photo */
   tint: string;
+  isFlashSale?: boolean;
 }
 
 export const SHOP_URL = 'https://sybindonesia.com/id';
@@ -26,6 +27,7 @@ export const PRODUCTS: Product[] = [
     handle:
       'best-seller-new-syb-forte-red-jelly-serum-20ml-with-niacinamide-10-untuk-mencerahkan-kulit-wajah-mengurangi-kusam-1-redjellyserum',
     tint: '#ffe1ef',
+    isFlashSale: true,
   },
   {
     id: 'aha-body-toner',
@@ -38,6 +40,7 @@ export const PRODUCTS: Product[] = [
     handle:
       'best-seller-new-netto-250ml-10ml-extra-new-syb-aha-skinboost-body-toner-melembabkan-mencerahkan-kulit-1pcs-new-syb-aha-skinboost-body-toner-250-ml',
     tint: '#ece0fc',
+    isFlashSale: true,
   },
   {
     id: 'golden-egg-mask',
@@ -49,6 +52,7 @@ export const PRODUCTS: Product[] = [
     badge: 'New',
     handle: 'new-syb-bright-glow-jelly-mask-golden-egg-with-sodium-pca-dan-dna-salmon-masker-wajah-golden-egg',
     tint: '#fff0dc',
+    isFlashSale: false,
   },
   {
     id: 'lip-cream-matte',
@@ -60,6 +64,7 @@ export const PRODUCTS: Product[] = [
     handle:
       'new-syb-lip-cream-matte-8-varian-transferproof-lipstick-dengan-vitamin-e-untuk-kelembapan-bibir-bpom-original-06-terrable',
     tint: '#ffe1ef',
+    isFlashSale: false,
   },
   {
     id: 'lippy-oil-serum',
@@ -70,6 +75,7 @@ export const PRODUCTS: Product[] = [
     compareAt: 98000,
     handle: '1-000-dapat-2pcs-new-syb-vitamin-lippy-oil-serum-serum-bibir-with-jojoba-oil-1pc-lippyserum',
     tint: '#ece0fc',
+    isFlashSale: true,
   },
   {
     id: 'jelly-mask',
@@ -80,6 +86,7 @@ export const PRODUCTS: Product[] = [
     compareAt: 59500,
     handle: 'new-syb-jelly-mask-available-in-5-varian-menenangkan-tanpa-sakit-netto-10gr-5-mix',
     tint: '#ffe1ef',
+    isFlashSale: false,
   },
   {
     id: 'peeling-serum',
@@ -90,6 +97,7 @@ export const PRODUCTS: Product[] = [
     compareAt: 76372,
     handle: 'new-syb-peeling-serum-with-vitamin-c-collagen-for-all-skin-types-1pc-peelingserum',
     tint: '#fff0dc',
+    isFlashSale: false,
   },
   {
     id: 'body-serum-booster',
@@ -101,6 +109,7 @@ export const PRODUCTS: Product[] = [
     handle:
       'new-syb-original-body-serum-booster-30ml-tersedia-4-macam-varian-serum-badan-mencerahkan-melembapkan-brightening',
     tint: '#ece0fc',
+    isFlashSale: false,
   },
   {
     id: 'powder-mask',
@@ -112,6 +121,7 @@ export const PRODUCTS: Product[] = [
     handle:
       'new-syb-powder-mask-masker-bubuk-dengan-5-macam-varian-untuk-semua-jenis-kulit-dengan-niacinamide-dan-glycolic-acid-3-pcs-peppermint',
     tint: '#ffe1ef',
+    isFlashSale: false,
   },
   {
     id: 'glow-fresh-bundle',
@@ -124,6 +134,7 @@ export const PRODUCTS: Product[] = [
     handle:
       'syb-paket-bundling-glow-fresh-aha-toner-peeling-gel-milk-snail-brightening-glow-serum-aha-toner-peeling-snail-brightening-glow-serum',
     tint: '#ece0fc',
+    isFlashSale: true,
   },
 ];
 

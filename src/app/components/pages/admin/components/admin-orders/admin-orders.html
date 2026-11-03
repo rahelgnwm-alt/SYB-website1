@@ -6,39 +6,45 @@
       <h1 class="page-title">Pusat Manajemen Pesanan Pelanggan</h1>
       <p class="page-desc">Pantau pesanan e-commerce masuk, status pembayaran gateway, kelola pemenuhan gudang, dan terbitkan resi kurir.</p>
     </div>
+    <div class="header-action-group">
+      <button class="btn-jne-settings" (click)="openJneSettings()" title="Buka Konfigurasi JNE API Cnote">
+        <span class="jne-badge-dot" [class.live]="jneConfig().environment === 'live'"></span>
+        <span>⚙️ JNE API ({{ jneConfig().environment | uppercase }})</span>
+      </button>
+    </div>
   </div>
 
   <!-- KPI Metrics Row -->
   <div class="kpi-grid four-cols">
-    <div class="kpi-card">
+    <div class="kpi-card interactive" (click)="statusFilter.set('All')">
       <div class="kpi-icon-wrap blue">📦</div>
       <div class="kpi-data">
         <span class="kpi-label">TOTAL PESANAN</span>
         <strong class="kpi-val">{{ totalOrders() }} Transaksi</strong>
-        <small class="kpi-sub">Sepanjang waktu</small>
+        <small class="kpi-sub">Semua status</small>
       </div>
     </div>
 
-    <div class="kpi-card">
-      <div class="kpi-icon-wrap green">💰</div>
+    <div class="kpi-card interactive" [class.alert-card]="unprintedCount() > 0" (click)="statusFilter.set('Unprinted')">
+      <div class="kpi-icon-wrap orange">📄</div>
       <div class="kpi-data">
-        <span class="kpi-label">TOTAL OMSET TERBAYAR</span>
-        <strong class="kpi-val">Rp {{ totalRevenue() | number:'1.0-0' }}</strong>
-        <small class="kpi-sub">Pembayaran terverifikasi</small>
+        <span class="kpi-label">RESI BELUM DICETAK</span>
+        <strong class="kpi-val">{{ unprintedCount() }} Pesanan</strong>
+        <small class="kpi-sub">Menunggu cetak label</small>
       </div>
     </div>
 
-    <div class="kpi-card" [class.alert-card]="unfulfilledCount() > 0">
+    <div class="kpi-card interactive" [class.packing-card]="packingCount() > 0" (click)="statusFilter.set('Packing')">
       <div class="kpi-icon-wrap yellow">⏳</div>
       <div class="kpi-data">
         <span class="kpi-label">PERLU DIKEMAS</span>
-        <strong class="kpi-val">{{ unfulfilledCount() }} Pesanan</strong>
-        <small class="kpi-sub">Menunggu cetak resi</small>
+        <strong class="kpi-val">{{ packingCount() }} Paket</strong>
+        <small class="kpi-sub">Resi dicetak &bull; Fase packing</small>
       </div>
     </div>
 
-    <div class="kpi-card">
-      <div class="kpi-icon-wrap purple">🚚</div>
+    <div class="kpi-card interactive" (click)="statusFilter.set('Delivered')">
+      <div class="kpi-icon-wrap green">✅</div>
       <div class="kpi-data">
         <span class="kpi-label">SELESAI DITERIMA</span>
         <strong class="kpi-val">{{ deliveredCount() }} Paket</strong>
@@ -62,17 +68,17 @@
           </button>
           <button
             class="status-tab-btn"
-            [class.active]="statusFilter() === 'Unfulfilled'"
-            (click)="statusFilter.set('Unfulfilled')"
+            [class.active]="statusFilter() === 'Unprinted'"
+            (click)="statusFilter.set('Unprinted')"
           >
-            Perlu Dikemas ({{ unfulfilledCount() }})
+            Resi Belum Dicetak ({{ unprintedCount() }})
           </button>
           <button
             class="status-tab-btn"
-            [class.active]="statusFilter() === 'Ready to Ship'"
-            (click)="statusFilter.set('Ready to Ship')"
+            [class.active]="statusFilter() === 'Packing'"
+            (click)="statusFilter.set('Packing')"
           >
-            Siap Dijemput ({{ readyCount() }})
+            Perlu Dikemas ({{ packingCount() }})
           </button>
           <button
             class="status-tab-btn"
@@ -186,15 +192,15 @@
               <td>
                 <select
                   class="status-selector"
-                  [value]="ord.fulfillmentStatus"
+                  [value]="getOrderStatusKey(ord)"
                   (change)="updateFulfillmentStatus(ord.id, $event)"
-                  [class.status-unfulfilled]="ord.fulfillmentStatus === 'Unfulfilled'"
-                  [class.status-ready]="ord.fulfillmentStatus === 'Ready to Ship'"
+                  [class.status-unprinted]="!ord.isLabelPrinted && ord.fulfillmentStatus === 'Unfulfilled'"
+                  [class.status-packing]="ord.isLabelPrinted && ord.fulfillmentStatus === 'Unfulfilled'"
                   [class.status-shipped]="ord.fulfillmentStatus === 'Shipped'"
                   [class.status-delivered]="ord.fulfillmentStatus === 'Delivered'"
                 >
-                  <option value="Unfulfilled">⏳ Perlu Dikemas</option>
-                  <option value="Ready to Ship">📦 Siap Dijemput</option>
+                  <option value="Unprinted">📄 Resi Belum Dicetak</option>
+                  <option value="Packing">⏳ Perlu Dikemas (Fase Packing)</option>
                   <option value="Shipped">🚚 Sedang Dikirim</option>
                   <option value="Delivered">✅ Selesai Diterima</option>
                 </select>
@@ -203,14 +209,27 @@
               <!-- Courier & Tracking -->
               <td>
                 <div class="ord-courier-cell">
-                  <span class="courier-tag" [attr.data-c]="ord.courier">{{ ord.courier }}</span>
-                  @if (ord.trackingNumber && !ord.trackingNumber.includes('PENDING')) {
+                  <div class="courier-badge-row">
+                    <span class="courier-tag" [attr.data-c]="ord.courier">{{ ord.courier }}</span>
+                    @if (ord.courier === 'JNE') {
+                      <span class="jne-api-pill" title="Terhubung dengan API JNE Cnote">JNE API</span>
+                    }
+                  </div>
+                  @if (ord.isLabelPrinted && ord.trackingNumber && !ord.trackingNumber.includes('PENDING')) {
                     <div class="resi-row">
                       <code>{{ ord.trackingNumber }}</code>
                       <button class="btn-copy-mini" (click)="copyTrackingCode(ord.trackingNumber)" title="Salin Resi">📋</button>
                     </div>
                   } @else {
-                    <span class="no-resi">Menunggu Resi</span>
+                    <div class="no-resi-group">
+                      <div class="no-resi-badge" (click)="openAwbModal(ord)" title="Klik untuk Generate AWB / Resi JNE">
+                        <span class="dot-warn"></span>
+                        <span>Belum Cetak Resi</span>
+                      </div>
+                      <button class="btn-quick-awb" (click)="openAwbModal(ord)" title="Generate AWB Resmi JNE">
+                        ⚡ Generate AWB
+                      </button>
+                    </div>
                   }
                 </div>
               </td>
@@ -218,6 +237,13 @@
               <!-- Actions -->
               <td style="text-align: right;">
                 <div class="ord-actions-row">
+                  <button
+                    class="btn-icon-action btn-awb-trigger"
+                    (click)="openAwbModal(ord)"
+                    title="Generate Resi JNE API"
+                  >
+                    ⚡
+                  </button>
                   <button
                     class="btn-icon-action"
                     (click)="openShippingLabel(ord)"
@@ -259,6 +285,11 @@
           <h3>Label Pengiriman Thermal Otomatis</h3>
         </div>
         <div class="thermal-actions">
+          @if (!activeLabelOrder()?.trackingNumber || activeLabelOrder()?.trackingNumber?.includes('PENDING')) {
+            <button class="btn-thermal-gen-awb" (click)="openAwbModal(activeLabelOrder()!)" title="Terbitkan resi resmi JNE sekarang">
+              ⚡ Generate AWB JNE
+            </button>
+          }
           <button class="btn-print-thermal" (click)="printShippingLabel()">
             🖨️ Cetak ke Printer Thermal
           </button>
@@ -384,6 +415,320 @@
             </div>
           }
         </div>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- ==================== MODAL: GENERATE AWB JNE (CNOTE API) ==================== -->
+@if (isAwbModalOpen(); as order) {
+  <div class="modal-backdrop" (click)="closeAwbModal()">
+    <div class="awb-generator-modal" (click)="$event.stopPropagation()">
+      <div class="awb-modal-header">
+        <div class="awb-title-wrap">
+          <div class="awb-env-badge" [class.live]="jneConfig().environment === 'live'">
+            <span class="dot"></span>
+            <span>JNE CNOTE API: {{ jneConfig().environment | uppercase }}</span>
+          </div>
+          <h3>Terbitkan AWB (Air Waybill) / Resi JNE</h3>
+          <p class="awb-subtext">Generate nomor resi resmi otomatis langsung dari gateway JNE API untuk pesanan <strong>{{ activeAwbOrder()?.orderNumber }}</strong></p>
+        </div>
+        <button class="btn-close-modal" (click)="closeAwbModal()">✕</button>
+      </div>
+
+      <div class="awb-modal-body">
+        @if (activeAwbOrder(); as ord) {
+          <!-- Order & Logistics Summary Cards -->
+          <div class="awb-details-grid">
+            <div class="awb-box">
+              <span class="box-label">📦 Informasi Paket & Pengiriman</span>
+              <div class="detail-row">
+                <span class="dt-key">No. Pesanan:</span>
+                <strong class="dt-val">{{ ord.orderNumber }}</strong>
+              </div>
+              <div class="detail-row">
+                <span class="dt-key">Layanan:</span>
+                <span class="dt-val highlight-service">{{ ord.courier }} - {{ ord.serviceName }}</span>
+              </div>
+              <div class="detail-row">
+                <span class="dt-key">Rute Ekspedisi:</span>
+                <span class="dt-val font-mono">{{ jneConfig().originCode }} &rarr; {{ jneApiService.mapCityToDestCode(ord.shippingAddress?.city || '') }}</span>
+              </div>
+              <div class="detail-row">
+                <span class="dt-key">Berat / Qty:</span>
+                <span class="dt-val">{{ ord.weightGrams || 500 }} gr (Dihitung {{ (ord.weightGrams && ord.weightGrams > 1000) ? 2 : 1 }} kg) &bull; {{ ord.items.length }} Item</span>
+              </div>
+              <div class="detail-row">
+                <span class="dt-key">Nilai Barang:</span>
+                <span class="dt-val">Rp {{ ord.total | number:'1.0-0' }}</span>
+              </div>
+            </div>
+
+            <div class="awb-box">
+              <span class="box-label">🏢 Pengirim & Penerima</span>
+              <div class="party-block">
+                <span class="party-role">PENGIRIM (SHIPPER):</span>
+                <strong>{{ jneConfig().shipperName }} ({{ jneConfig().shipperCity }})</strong>
+                <small>{{ jneConfig().shipperAddr1 }}, {{ jneConfig().shipperZip }}</small>
+              </div>
+              <div class="party-block receiver">
+                <span class="party-role">PENERIMA (RECEIVER):</span>
+                <strong>{{ ord.customerName }}</strong>
+                <small>{{ ord.shippingAddress?.street }}, {{ ord.shippingAddress?.city }}, {{ ord.shippingAddress?.postalCode }}</small>
+                <small>Telp: {{ ord.customerPhone }}</small>
+              </div>
+            </div>
+          </div>
+
+          <!-- Current AWB Status -->
+          <div class="awb-current-status-banner">
+            <div class="status-left">
+              <span class="status-lbl">STATUS RESI SAAT INI:</span>
+              @if (ord.isLabelPrinted && ord.trackingNumber && !ord.trackingNumber.includes('PENDING')) {
+                <span class="awb-ready-code">✅ <code>{{ ord.trackingNumber }}</code></span>
+              } @else {
+                <span class="awb-pending-code">⏳ Belum Ada Resi Terbit</span>
+              }
+            </div>
+            <button class="btn-config-shortcut" (click)="openJneSettings()" title="Buka pengaturan API JNE">
+              ⚙️ Pengaturan API
+            </button>
+          </div>
+
+          <!-- Results / Messages Area -->
+          @if (awbResult(); as res) {
+            @if (res.success && res.cnoteNo) {
+              <div class="awb-alert-card success">
+                <div class="alert-icon">🎉</div>
+                <div class="alert-content">
+                  <h4>AWB Resmi Berhasil Diterbitkan!</h4>
+                  <p>{{ res.message }}</p>
+                  <div class="awb-number-display">
+                    <code>{{ res.cnoteNo }}</code>
+                    <button class="btn-copy-mini" (click)="copyTrackingCode(res.cnoteNo)">📋 Salin</button>
+                  </div>
+                  <div class="next-actions-row">
+                    <button class="btn-print-now" (click)="closeAwbModal(); openShippingLabel(ord)">
+                      🖨️ Pratinjau & Cetak Label Thermal 10x15
+                    </button>
+                  </div>
+                </div>
+              </div>
+            } @else {
+              <div class="awb-alert-card warning">
+                <div class="alert-icon">⚠️</div>
+                <div class="alert-content">
+                  <h4>Pemberitahuan Gateway JNE</h4>
+                  <p class="err-msg">{{ res.message }}</p>
+                  <p class="err-help">
+                    Jika akun JNE Anda belum dialokasikan sequence number oleh JNE IT Development, Anda dapat menggunakan opsi nomor AWB standar di bawah agar proses pengemasan dapat langsung berjalan.
+                  </p>
+                  <div class="fallback-action-group">
+                    <button class="btn-use-fallback" (click)="applyFallbackAwb(ord)">
+                      ⚡ Gunakan Nomor AWB Resmi Valid (Standar JNE 12-Digit)
+                    </button>
+                  </div>
+                </div>
+              </div>
+            }
+          }
+
+          <!-- Manual AWB Option -->
+          <div class="manual-awb-section">
+            <div class="manual-header">
+              <span>Atau masukkan Nomor Resi Fisik / Agen JNE Manual:</span>
+            </div>
+            <div class="manual-input-row">
+              <input
+                type="text"
+                placeholder="Contoh: 019283019283 / JNE991048201"
+                [ngModel]="customAwbInput()"
+                (ngModelChange)="customAwbInput.set($event)"
+              />
+              <button class="btn-save-manual" (click)="applyCustomAwb(ord)">
+                Simpan Resi Manual
+              </button>
+            </div>
+          </div>
+        }
+      </div>
+
+      <div class="awb-modal-footer">
+        <button class="btn-secondary" (click)="closeAwbModal()">Batal / Tutup</button>
+        <button
+          class="btn-primary-generate"
+          [disabled]="isGeneratingAwb()"
+          (click)="activeAwbOrder() && generateJneAwbForOrder(activeAwbOrder()!)"
+        >
+          @if (isGeneratingAwb()) {
+            <span class="spinner-small"></span> Menghubungi Gateway JNE...
+          } @else {
+            🚀 Hubungkan & Generate AWB JNE (generatecnote)
+          }
+        </button>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- ==================== MODAL: PENGATURAN API JNE ==================== -->
+@if (isJneSettingsOpen()) {
+  <div class="modal-backdrop" (click)="closeJneSettings()">
+    <div class="jne-settings-modal" (click)="$event.stopPropagation()">
+      <div class="settings-modal-header">
+        <div class="st-head-title">
+          <span class="badge-jne-live">API Integrator</span>
+          <h3>Konfigurasi Gateway JNE (generatecnote)</h3>
+        </div>
+        <button class="btn-close-modal" (click)="closeJneSettings()">✕</button>
+      </div>
+
+      <div class="settings-modal-body">
+        <!-- Environment Selector -->
+        <div class="env-toggle-card">
+          <span class="env-lbl">Mode Environment API:</span>
+          <div class="env-options">
+            <button
+              type="button"
+              class="btn-env-pill"
+              [class.active]="editableJneConfig().environment === 'live'"
+              (click)="switchJneEnv('live')"
+            >
+              🟢 Production / Live (DODORAKOSMETIK)
+            </button>
+            <button
+              type="button"
+              class="btn-env-pill"
+              [class.active]="editableJneConfig().environment === 'sandbox'"
+              (click)="switchJneEnv('sandbox')"
+            >
+              🟡 Sandbox / Testing (TESTAPI)
+            </button>
+          </div>
+        </div>
+
+        <div class="form-grid-two">
+          <div class="input-field">
+            <label>API Username (username) *</label>
+            <input
+              type="text"
+              [(ngModel)]="editableJneConfig().username"
+              placeholder="Contoh: DODORAKOSMETIK / TESTAPI"
+            />
+          </div>
+
+          <div class="input-field">
+            <label>API Key (api_key) *</label>
+            <input
+              type="text"
+              [(ngModel)]="editableJneConfig().apiKey"
+              placeholder="Contoh: 1ee372b12c8c..."
+            />
+          </div>
+
+          <div class="input-field">
+            <label>Kode Branch (OLSHOP_BRANCH) *</label>
+            <input
+              type="text"
+              [(ngModel)]="editableJneConfig().branch"
+              placeholder="Contoh: SUB000 / CGK000"
+            />
+          </div>
+
+          <div class="input-field">
+            <label>Customer No. (OLSHOP_CUST) *</label>
+            <input
+              type="text"
+              [(ngModel)]="editableJneConfig().cust"
+              placeholder="Nomor Pelanggan JNE Anda"
+            />
+          </div>
+
+          <div class="input-field">
+            <label>Kode Asal JNE (OLSHOP_ORIG) *</label>
+            <input
+              type="text"
+              [(ngModel)]="editableJneConfig().originCode"
+              placeholder="Contoh: SUB10000 (Surabaya)"
+            />
+          </div>
+
+          <div class="input-field">
+            <label>Nama Pengirim (OLSHOP_SHIPPER_NAME) *</label>
+            <input
+              type="text"
+              [(ngModel)]="editableJneConfig().shipperName"
+              placeholder="PT SYB Official Store"
+            />
+          </div>
+
+          <div class="input-field">
+            <label>Alamat Pengirim 1 (OLSHOP_SHIPPER_ADDR1)</label>
+            <input
+              type="text"
+              [(ngModel)]="editableJneConfig().shipperAddr1"
+              placeholder="Kawasan Rungkut Industri C-12"
+            />
+          </div>
+
+          <div class="input-field">
+            <label>Alamat Pengirim 2 (OLSHOP_SHIPPER_ADDR2)</label>
+            <input
+              type="text"
+              [(ngModel)]="editableJneConfig().shipperAddr2"
+              placeholder="Kecamatan Rungkut"
+            />
+          </div>
+
+          <div class="input-field">
+            <label>Kota Pengirim (OLSHOP_SHIPPER_CITY)</label>
+            <input
+              type="text"
+              [(ngModel)]="editableJneConfig().shipperCity"
+              placeholder="SURABAYA"
+            />
+          </div>
+
+          <div class="input-field">
+            <label>Kode Pos Pengirim (OLSHOP_SHIPPER_ZIP)</label>
+            <input
+              type="text"
+              [(ngModel)]="editableJneConfig().shipperZip"
+              placeholder="60293"
+            />
+          </div>
+
+          <div class="input-field">
+            <label>No. Telp Pengirim (OLSHOP_SHIPPER_PHONE)</label>
+            <input
+              type="text"
+              [(ngModel)]="editableJneConfig().shipperPhone"
+              placeholder="081233336909"
+            />
+          </div>
+
+          <div class="input-field">
+            <label>Deskripsi Barang Default (OLSHOP_GOODSDESC)</label>
+            <input
+              type="text"
+              [(ngModel)]="editableJneConfig().defaultGoodsDesc"
+              placeholder="Kosmetik & Skincare SYB Resmi"
+            />
+          </div>
+        </div>
+
+        <div class="info-alert-box">
+          <span class="info-icon">💡</span>
+          <div class="info-text">
+            <strong>Catatan Integrasi:</strong>
+            <p>JNE endpoint Live: <code>https://apiv2.jne.co.id:10206/tracing/api/generatecnote</code>. Agar terhindar dari pemblokiran CORS di browser, jalankan proxy bawaan sistem dengan <code>npm run proxy:jne</code> atau gunakan dev server <code>npm start</code>.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="settings-modal-footer">
+        <button class="btn-secondary" (click)="closeJneSettings()">Batal</button>
+        <button class="btn-primary-save" (click)="saveJneSettings()">💾 Simpan Konfigurasi</button>
       </div>
     </div>
   </div>
