@@ -103,6 +103,18 @@
   letter-spacing: -0.01em;
 }
 
+.item__name a,
+.mini__name a {
+  color: inherit;
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+.item__name a:hover,
+.mini__name a:hover {
+  color: var(--pink-600);
+}
+
 .item__price {
   margin: 0;
   display: flex;

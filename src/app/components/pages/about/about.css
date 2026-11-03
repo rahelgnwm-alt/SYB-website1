@@ -309,6 +309,75 @@
   color: var(--plum-soft);
 }
 
+/* ============================== HELP & FAQ ============================== */
+.about-help {
+  margin-bottom: clamp(60px, 8vw, 110px);
+}
+
+.help-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 24px;
+  margin-bottom: 36px;
+}
+
+.help-card {
+  padding: 34px 28px;
+  border-radius: var(--radius-md);
+  background: var(--white);
+  box-shadow: 0 20px 50px -30px rgba(160, 92, 255, 0.35), inset 0 0 0 1px rgba(255, 139, 198, 0.25);
+  transition: transform 0.3s var(--ease-jelly), box-shadow 0.3s ease;
+  scroll-margin-top: 100px;
+}
+
+.help-card:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 24px 60px -20px rgba(255, 10, 108, 0.25), inset 0 0 0 1px var(--pink-600);
+}
+
+.help-card__icon {
+  font-size: 36px;
+  margin-bottom: 16px;
+}
+
+.help-card h3 {
+  margin: 0 0 10px;
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--plum);
+}
+
+.help-card p {
+  margin: 0;
+  font-size: 15px;
+  line-height: 1.6;
+  color: var(--plum-soft);
+}
+
+.help-cs-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  padding: 30px 36px;
+  border-radius: var(--radius-md);
+  background: linear-gradient(135deg, #fff0f7 0%, #fdf4ff 100%);
+  border: 1px solid rgba(255, 139, 198, 0.45);
+}
+
+.help-cs-text h4 {
+  margin: 0 0 6px;
+  font-size: 19px;
+  font-weight: 700;
+  color: var(--plum);
+}
+
+.help-cs-text p {
+  margin: 0;
+  font-size: 14px;
+  color: var(--plum-soft);
+}
+
 /* ============================== CTA ============================== */
 .about-cta__card {
   padding: clamp(48px, 6vw, 90px) clamp(30px, 4vw, 60px);

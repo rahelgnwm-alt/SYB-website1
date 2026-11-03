@@ -11,7 +11,7 @@ export class AuthModalComponent {
   protected readonly authService = inject(AuthService);
   private readonly router = inject(Router);
 
-  protected readonly username = signal('admin@sybindonesia.com');
+  protected readonly username = signal('admin@shevajordanbersama.com');
   protected readonly password = signal('sybadmin2026');
   protected readonly selectedDemoType = signal<'admin' | 'customer'>('admin');
 
@@ -25,7 +25,7 @@ export class AuthModalComponent {
 
   fillAdminDemo(): void {
     this.selectedDemoType.set('admin');
-    this.username.set('admin@sybindonesia.com');
+    this.username.set('admin@shevajordanbersama.com');
     this.password.set('sybadmin2026');
   }
 

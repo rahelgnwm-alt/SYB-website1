@@ -5,7 +5,7 @@ import {
   inject,
   viewChild,
 } from '@angular/core';
-import { RouterLink } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { RevealDirective, TiltDirective } from '../../../../../directives';
 import { PRODUCTS, Product, productUrl } from '../../../../../data';
 import { CartService } from '../../../../../services/cart.service';
@@ -20,40 +20,84 @@ import { CartService } from '../../../../../services/cart.service';
 })
 export class BestSeller {
   private readonly cart = inject(CartService);
+  private readonly router = inject(Router);
 
   protected readonly products = PRODUCTS;
   protected readonly productUrl = productUrl;
 
   private readonly rail = viewChild<ElementRef<HTMLElement>>('rail');
   private drag = { active: false, startX: 0, startScroll: 0, moved: false };
+  private suppressClick = false;
 
   protected railDown(e: PointerEvent) {
-    if (e.pointerType !== 'mouse') return;
-    const el = this.rail()!.nativeElement;
+    if (e.pointerType !== 'mouse' || e.button !== 0) return;
+    const el = this.rail()?.nativeElement;
+    if (!el) return;
     this.drag = { active: true, startX: e.clientX, startScroll: el.scrollLeft, moved: false };
-    el.classList.add('is-dragging');
+    // Do NOT add 'is-dragging' here so that clicks aren't intercepted by pointer-events: none
   }
 
   protected railMove(e: PointerEvent) {
     if (!this.drag.active) return;
-    const el = this.rail()!.nativeElement;
+    const el = this.rail()?.nativeElement;
+    if (!el) return;
     const dx = e.clientX - this.drag.startX;
-    if (Math.abs(dx) > 5) this.drag.moved = true;
-    el.scrollLeft = this.drag.startScroll - dx;
+    if (Math.abs(dx) > 12) {
+      if (!this.drag.moved) {
+        this.drag.moved = true;
+        el.classList.add('is-dragging');
+      }
+      el.scrollLeft = this.drag.startScroll - dx;
+    }
   }
 
   protected railUp() {
+    if (!this.drag.active) return;
+    const el = this.rail()?.nativeElement;
+    const hadMoved = this.drag.moved;
     this.drag.active = false;
-    this.rail()?.nativeElement.classList.remove('is-dragging');
+    this.drag.moved = false;
+
+    if (el) {
+      if (hadMoved) {
+        this.suppressClick = true;
+        setTimeout(() => {
+          this.suppressClick = false;
+          el.classList.remove('is-dragging');
+        }, 80);
+      } else {
+        el.classList.remove('is-dragging');
+      }
+    }
   }
 
   /** Prevent link navigation when user was dragging the rail. */
   protected railClick(e: MouseEvent) {
-    if (this.drag.moved) {
+    if (this.suppressClick || this.drag.moved) {
       e.preventDefault();
       e.stopPropagation();
+      this.suppressClick = false;
       this.drag.moved = false;
     }
+  }
+
+  protected onCardClick(e: MouseEvent, p: Product) {
+    if (this.suppressClick || this.drag.moved) {
+      e.preventDefault();
+      e.stopPropagation();
+      return;
+    }
+    // Ensures navigation is directly triggered
+    this.router.navigate(['/products', p.id]);
+  }
+
+  protected onMoreClick(e: MouseEvent) {
+    if (this.suppressClick || this.drag.moved) {
+      e.preventDefault();
+      e.stopPropagation();
+      return;
+    }
+    this.router.navigate(['/products']);
   }
 
   protected scrollRail(dir: 1 | -1) {

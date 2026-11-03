@@ -150,6 +150,11 @@
   color: #f472b6;
 }
 
+.nav-counter.reseller-badge {
+  background: #14322d;
+  color: #34d399;
+}
+
 .nav-counter.flash-badge {
   background: #451a03;
   color: #fbbf24;

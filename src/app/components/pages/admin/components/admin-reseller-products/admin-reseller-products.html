@@ -1,0 +1,516 @@
+<div class="reseller-admin-layout">
+  <!-- ==================== HEADER ==================== -->
+  <header class="page-header">
+    <div class="header-left">
+      <div class="header-badge-row">
+        <span class="hub-pill">🤝 B2B &amp; GROSIR RESMI</span>
+        <span class="hub-sub">Pabrik PT Sheva Jordan Bersama</span>
+      </div>
+      <h1 class="page-title">Manajemen Produk Reseller</h1>
+      <p class="page-subtitle">
+        Kelola khusus paket grosir, kartonan, dan starter kit untuk jaringan reseller &amp; distributor resmi SYB.
+      </p>
+    </div>
+
+    <div class="header-actions">
+      <button type="button" class="btn-secondary-dark" (click)="resetToDefault()" title="Reset ke katalog awal pabrik">
+        <span class="btn-icon">↺</span>
+        <span>Reset Default</span>
+      </button>
+
+      <button type="button" class="btn-primary-green" (click)="openAddModal()" id="btn-add-reseller-product">
+        <span class="btn-icon">+</span>
+        <span>Tambah Paket Reseller</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- ==================== METRIC CARDS ==================== -->
+  <section class="kpi-grid">
+    <div class="kpi-card">
+      <div class="kpi-header">
+        <span class="kpi-label">Total Paket Reseller</span>
+        <span class="kpi-icon">📦</span>
+      </div>
+      <div class="kpi-value-row">
+        <strong class="kpi-val">{{ totalProductsCount() }}</strong>
+        <span class="kpi-tag green">{{ activeCount() }} Aktif</span>
+      </div>
+      <span class="kpi-hint">Katalog khusus mitra &amp; reseller</span>
+    </div>
+
+    <div class="kpi-card">
+      <div class="kpi-header">
+        <span class="kpi-label">Paket Siap Jual</span>
+        <span class="kpi-icon">✅</span>
+      </div>
+      <div class="kpi-value-row">
+        <strong class="kpi-val green">{{ activeCount() }}</strong>
+        <span class="kpi-tag neutral">{{ draftCount() }} Draft</span>
+      </div>
+      <span class="kpi-hint">Tampil di halaman publik /reseller</span>
+    </div>
+
+    <div class="kpi-card">
+      <div class="kpi-header">
+        <span class="kpi-label">Total Stok Gudang Grosir</span>
+        <span class="kpi-icon">🏭</span>
+      </div>
+      <div class="kpi-value-row">
+        <strong class="kpi-val purple">{{ totalStockUnits() | number:'1.0-0' }}</strong>
+        <span class="kpi-tag blue">Paket / Box</span>
+      </div>
+      <span class="kpi-hint">Gudang Rungkut Industri Surabaya</span>
+    </div>
+
+    <div class="kpi-card">
+      <div class="kpi-header">
+        <span class="kpi-label">Program Kemitraan</span>
+        <span class="kpi-icon">⭐</span>
+      </div>
+      <div class="kpi-value-row">
+        <strong class="kpi-val gold">3 Level</strong>
+        <span class="kpi-tag gold">Silver &bull; Gold &bull; Platinum</span>
+      </div>
+      <span class="kpi-hint">Min. order mulai 1 paket/karton</span>
+    </div>
+  </section>
+
+  <!-- ==================== FILTER & SEARCH BAR ==================== -->
+  <section class="filter-card">
+    <div class="filter-row">
+      <div class="search-box">
+        <span class="search-icon">🔍</span>
+        <input
+          type="search"
+          placeholder="Cari nama paket, SKU grosir, atau isi kemasan..."
+          [ngModel]="searchQuery()"
+          (ngModelChange)="searchQuery.set($event)"
+          class="search-input"
+        />
+        @if (searchQuery()) {
+          <button class="clear-search" (click)="searchQuery.set('')">✕</button>
+        }
+      </div>
+
+      <div class="status-select-wrap">
+        <label>Status:</label>
+        <select
+          [ngModel]="selectedStatus()"
+          (ngModelChange)="selectedStatus.set($event)"
+          class="status-select"
+        >
+          <option value="All">Semua Status</option>
+          <option value="Active">Hanya Aktif</option>
+          <option value="Draft">Hanya Draft</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Category Chips -->
+    <div class="category-chips-row">
+      @for (cat of categories; track cat) {
+        <button
+          type="button"
+          class="cat-chip"
+          [class.active]="selectedCategory() === cat"
+          (click)="selectedCategory.set(cat)"
+        >
+          {{ cat }}
+        </button>
+      }
+    </div>
+  </section>
+
+  <!-- ==================== RESELLER PRODUCTS TABLE ==================== -->
+  <section class="table-container">
+    <table class="reseller-table">
+      <thead>
+        <tr>
+          <th class="col-product">Paket &amp; Produk Reseller</th>
+          <th class="col-contents">Isi Kemasan Grosir</th>
+          <th class="col-min">Min. Order</th>
+          <th class="col-price">Harga Grosir Reseller</th>
+          <th class="col-stock">Stok Gudang</th>
+          <th class="col-status">Status</th>
+          <th class="col-actions">Aksi</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (prod of filteredProducts(); track prod.id) {
+          <tr>
+            <!-- Product Info -->
+            <td class="col-product">
+              <div class="product-cell">
+                <img [src]="prod.image" [alt]="prod.title" class="product-thumb" />
+                <div class="product-info-wrap">
+                  <div class="product-badge-line">
+                    <span class="cat-tag">{{ prod.categoryLabel }}</span>
+                    @if (prod.badge) {
+                      <span class="badge-tag">{{ prod.badge }}</span>
+                    }
+                  </div>
+                  <strong class="product-title">{{ prod.title }}</strong>
+                  <span class="product-sku">SKU: {{ prod.sku }} &bull; {{ prod.bpomNumber }}</span>
+                </div>
+              </div>
+            </td>
+
+            <!-- Package Contents -->
+            <td class="col-contents">
+              <div class="package-desc-box">
+                <span class="box-icon">📦</span>
+                <span>{{ prod.packageContents }}</span>
+              </div>
+            </td>
+
+            <!-- Min Order -->
+            <td class="col-min">
+              <span class="min-order-pill">
+                Min. <b>{{ prod.minOrder }}</b> {{ prod.minOrderUnit }}
+              </span>
+            </td>
+
+            <!-- Pricing (Wholesale vs Retail) -->
+            <td class="col-price">
+              <div class="price-stack">
+                <strong class="price-wholesale">Rp {{ prod.wholesalePrice | number:'1.0-0' }}</strong>
+                @if (prod.retailPrice > prod.wholesalePrice) {
+                  <div class="price-retail-row">
+                    <s class="price-retail">Rp {{ prod.retailPrice | number:'1.0-0' }}</s>
+                    <span class="discount-badge">
+                      -{{ Math.round((1 - prod.wholesalePrice / prod.retailPrice) * 100) }}%
+                    </span>
+                  </div>
+                }
+              </div>
+            </td>
+
+            <!-- Stock -->
+            <td class="col-stock">
+              <div class="stock-pill" [class.low]="prod.inventory < 20">
+                <b>{{ prod.inventory | number:'1.0-0' }}</b> {{ prod.minOrderUnit }}
+              </div>
+            </td>
+
+            <!-- Status Toggle -->
+            <td class="col-status">
+              <button
+                type="button"
+                class="status-btn"
+                [class.active]="prod.status === 'Active'"
+                [class.draft]="prod.status === 'Draft'"
+                (click)="toggleStatus(prod)"
+                title="Klik untuk ubah status Active/Draft"
+              >
+                <span class="status-dot"></span>
+                {{ prod.status }}
+              </button>
+            </td>
+
+            <!-- Actions -->
+            <td class="col-actions">
+              <div class="action-btn-group">
+                <button
+                  type="button"
+                  class="btn-action edit"
+                  (click)="openEditModal(prod)"
+                  title="Edit Paket Reseller"
+                >
+                  ✏️ Edit
+                </button>
+                <button
+                  type="button"
+                  class="btn-action delete"
+                  (click)="deleteProduct(prod)"
+                  title="Hapus Paket Reseller"
+                >
+                  🗑️
+                </button>
+              </div>
+            </td>
+          </tr>
+        } @empty {
+          <tr>
+            <td colspan="7" class="empty-state-cell">
+              <div class="empty-box">
+                <span class="empty-icon">🤝</span>
+                <h3>Belum Ada Paket Reseller yang Cocok</h3>
+                <p>Coba sesuaikan kata kunci pencarian atau kategori filter.</p>
+                <button type="button" class="btn-primary-green" (click)="openAddModal()">
+                  + Buat Paket Reseller Baru
+                </button>
+              </div>
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </section>
+
+  <!-- ==================== MODAL: ADD / EDIT RESELLER PRODUCT ==================== -->
+  @if (isModalOpen()) {
+    <div class="modal-backdrop" (click)="closeModal()">
+      <div class="modal-card" (click)="$event.stopPropagation()">
+        <!-- Modal Header -->
+        <div class="modal-header">
+          <div>
+            <span class="modal-pre">{{ modalMode() === 'add' ? '✨ TAMBAH PAKET' : '✏️ EDIT PAKET' }}</span>
+            <h2 class="modal-title">{{ modalMode() === 'add' ? 'Paket Reseller & Grosir Baru' : formTitle() }}</h2>
+          </div>
+          <button type="button" class="modal-close-btn" (click)="closeModal()">✕</button>
+        </div>
+
+        <!-- Presets Bar (Add Mode only) -->
+        @if (modalMode() === 'add') {
+          <div class="preset-bar">
+            <span class="preset-label">💡 Template Cepat Pabrik:</span>
+            <div class="preset-btns">
+              @for (preset of wholesalePresets; track preset.label) {
+                <button type="button" class="preset-btn" (click)="applyPreset(preset)">
+                  {{ preset.label }}
+                </button>
+              }
+            </div>
+          </div>
+        }
+
+        <!-- Modal Body Form -->
+        <div class="modal-body">
+          <!-- Row 1: Nama Paket & Subtitle -->
+          <div class="form-grid-two">
+            <div class="form-group">
+              <label class="form-label">Nama Paket / Produk Reseller *</label>
+              <input
+                type="text"
+                [ngModel]="formTitle()"
+                (ngModelChange)="formTitle.set($event)"
+                placeholder="Contoh: 1 Karton FORTE Red Jelly Serum (48 Pcs)"
+                class="form-input"
+                required
+              />
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Kategori Paket</label>
+              <select
+                [ngModel]="formCategoryLabel()"
+                (ngModelChange)="formCategoryLabel.set($event)"
+                class="form-input"
+              >
+                <option value="Starter Kit">Starter Kit (Paket Usaha Pemula)</option>
+                <option value="Kartonan">Kartonan (Box Pabrik Segel)</option>
+                <option value="Paket Wajah">Paket Wajah (Serum &amp; Masker)</option>
+                <option value="Paket Tubuh">Paket Tubuh (Body Toner &amp; Serum)</option>
+                <option value="Paket Kosmetik">Paket Kosmetik (Lip Cream &amp; Lippy)</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Deskripsi Singkat / Tagline Paket</label>
+            <input
+              type="text"
+              [ngModel]="formSubtitle()"
+              (ngModelChange)="formSubtitle.set($event)"
+              placeholder="Contoh: Serum Niacinamide 10% Original Box Pabrik Resmi"
+              class="form-input"
+            />
+          </div>
+
+          <!-- Row 2: Rincian Kemasan & Minimal Pembelian -->
+          <div class="form-grid-three">
+            <div class="form-group span-two">
+              <label class="form-label">Rincian Isi Kemasan Grosir *</label>
+              <input
+                type="text"
+                [ngModel]="formPackageContents()"
+                (ngModelChange)="formPackageContents.set($event)"
+                placeholder="Contoh: 48 botol 20ml sealed + Display counter acrylic mini"
+                class="form-input"
+              />
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Min. Order</label>
+              <div class="min-order-input-group">
+                <input
+                  type="number"
+                  [ngModel]="formMinOrder()"
+                  (ngModelChange)="formMinOrder.set($event)"
+                  min="1"
+                  class="form-input min-num"
+                />
+                <select
+                  [ngModel]="formMinOrderUnit()"
+                  (ngModelChange)="formMinOrderUnit.set($event)"
+                  class="form-input min-unit"
+                >
+                  <option value="paket">paket</option>
+                  <option value="karton">karton</option>
+                  <option value="lusin">lusin</option>
+                  <option value="pcs">pcs</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <!-- Row 3: Penetapan Harga (Grosir Reseller & Harga Coret Asli) -->
+          <div class="pricing-card-box">
+            <div class="pricing-card-header">
+              <span class="icon">💰</span>
+              <div>
+                <strong>Penetapan Harga Grosir &amp; Eceran</strong>
+                <p>Hanya mencakup Harga Grosir Reseller dan Harga Coret Asli (tanpa hitung HPP/profit).</p>
+              </div>
+            </div>
+
+            <div class="form-grid-two">
+              <div class="form-group">
+                <label class="form-label">Harga Grosir Reseller (Rp) *</label>
+                <div class="prefix-input">
+                  <span class="prefix">Rp</span>
+                  <input
+                    type="number"
+                    [ngModel]="formWholesalePrice()"
+                    (ngModelChange)="formWholesalePrice.set($event)"
+                    min="1000"
+                    step="1000"
+                    class="form-input highlight-green"
+                    required
+                  />
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label">Harga Coret Asli (Nilai Eceran Rp)</label>
+                <div class="prefix-input">
+                  <span class="prefix">Rp</span>
+                  <input
+                    type="number"
+                    [ngModel]="formRetailPrice()"
+                    (ngModelChange)="formRetailPrice.set($event)"
+                    min="1000"
+                    step="1000"
+                    class="form-input"
+                  />
+                </div>
+              </div>
+            </div>
+
+            @if (discountPercent() > 0) {
+              <div class="discount-preview-bar">
+                <span>Diskon Grosir: <b>{{ discountPercent() }}% LEBIH HEMAT</b> dari harga eceran pasar</span>
+              </div>
+            }
+          </div>
+
+          <!-- Row 4: Stok Gudang, Status & SKU -->
+          <div class="form-grid-three">
+            <div class="form-group">
+              <label class="form-label">Stok Tersedia (Gudang)</label>
+              <input
+                type="number"
+                [ngModel]="formInventory()"
+                (ngModelChange)="formInventory.set($event)"
+                min="0"
+                class="form-input"
+              />
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">SKU Induk Grosir</label>
+              <input
+                type="text"
+                [ngModel]="formSku()"
+                (ngModelChange)="formSku.set($event)"
+                placeholder="SYB-RSL-01"
+                class="form-input font-mono"
+              />
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Status Tayang</label>
+              <select
+                [ngModel]="formStatus()"
+                (ngModelChange)="formStatus.set($event)"
+                class="form-input"
+              >
+                <option value="Active">Active (Tayang di Web)</option>
+                <option value="Draft">Draft (Arsip Internal)</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Row 5: BPOM, Badge, & Pilihan Gambar -->
+          <div class="form-grid-two">
+            <div class="form-group">
+              <label class="form-label">Pilih Gambar Paket</label>
+              <select
+                [ngModel]="formImage()"
+                (ngModelChange)="formImage.set($event)"
+                class="form-input"
+              >
+                @for (img of availableImages; track img.path) {
+                  <option [value]="img.path">{{ img.label }}</option>
+                }
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Badge Promosi (Opsional)</label>
+              <input
+                type="text"
+                [ngModel]="formBadge()"
+                (ngModelChange)="formBadge.set($event)"
+                placeholder="Contoh: Best Seller Pabrik, Margin Tinggi"
+                class="form-input"
+              />
+            </div>
+          </div>
+
+          <!-- Row 6: List Benefit / Fasilitas Reseller -->
+          <div class="form-group">
+            <label class="form-label">Fasilitas / Keunggulan Paket Ini:</label>
+            <div class="benefit-input-row">
+              <input
+                type="text"
+                [ngModel]="tempBenefitInput()"
+                (ngModelChange)="tempBenefitInput.set($event)"
+                (keydown.enter)="$event.preventDefault(); addBenefit()"
+                placeholder="Tambah keunggulan (contoh: Gratis brosur, foto katalog HD...)"
+                class="form-input"
+              />
+              <button type="button" class="btn-add-benefit" (click)="addBenefit()">+ Tambah</button>
+            </div>
+
+            <div class="benefits-chips">
+              @for (b of formBenefits(); track b; let i = $index) {
+                <span class="benefit-chip">
+                  <span>✓ {{ b }}</span>
+                  <button type="button" class="del-chip" (click)="removeBenefit(i)">✕</button>
+                </span>
+              }
+            </div>
+          </div>
+        </div>
+
+        <!-- Modal Footer -->
+        <div class="modal-footer">
+          <button type="button" class="btn-modal-cancel" (click)="closeModal()">Batal</button>
+          <button type="button" class="btn-primary-green" (click)="saveProduct()">
+            <span>💾 {{ modalMode() === 'add' ? 'Simpan & Publikasikan Paket' : 'Simpan Perubahan' }}</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- Toast Notification -->
+  @if (toastMessage(); as msg) {
+    <div class="toast-popup" role="alert">
+      <span>✓ {{ msg }}</span>
+    </div>
+  }
+</div>
+

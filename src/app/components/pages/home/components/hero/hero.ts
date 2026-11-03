@@ -5,13 +5,14 @@ import {
   inject,
   signal,
 } from '@angular/core';
+import { RouterLink } from '@angular/router';
 import { MagneticDirective } from '../../../../../directives';
 import { PLACES, SHOP_URL } from '../../../../../data';
 import { TimeService } from '../../../../../services/time.service';
 
 @Component({
   selector: 'app-hero',
-  imports: [MagneticDirective],
+  imports: [RouterLink, MagneticDirective],
   templateUrl: './hero.html',
   styleUrl: './hero.css',
   changeDetection: ChangeDetectionStrategy.OnPush,

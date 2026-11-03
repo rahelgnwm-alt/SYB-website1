@@ -39,6 +39,11 @@ export class Products {
 
   constructor() {
     this.route.queryParams.pipe(takeUntilDestroyed()).subscribe((params) => {
+      const q = params['q'] || params['search'];
+      if (q !== undefined) {
+        this.query.set(q.toString());
+      }
+
       const f = params['filter'];
       if (!f) {
         this.filter.set('all');

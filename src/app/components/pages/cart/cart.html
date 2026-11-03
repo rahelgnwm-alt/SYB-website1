@@ -15,13 +15,13 @@
         <ul class="items" aria-label="Isi keranjang">
           @for (l of cart.lines(); track l.product.id; let i = $index) {
             <li class="item" [style.--tint]="l.product.tint" appReveal [revealDelay]="i * 70" [id]="'cart-item-' + l.product.id">
-              <a class="item__media" [href]="productUrl(l.product.handle)" target="_blank" rel="noopener">
+              <a class="item__media" [routerLink]="['/products', l.product.id]" title="Lihat detail produk">
                 <img [src]="l.product.image" [alt]="l.product.name" />
               </a>
 
               <div class="item__body">
                 <p class="item__tag">{{ l.product.tagline }}</p>
-                <h2 class="item__name">{{ l.product.name }}</h2>
+                <h2 class="item__name"><a [routerLink]="['/products', l.product.id]">{{ l.product.name }}</a></h2>
                 <p class="item__price">
                   {{ rupiah(l.product.price) }}
                   <s>{{ rupiah(l.product.compareAt) }}</s>
@@ -196,11 +196,11 @@
         <div class="more__grid">
           @for (p of suggestions(); track p.id; let i = $index) {
             <article class="mini" [style.--tint]="p.tint" appReveal [revealDelay]="i * 80">
-              <a class="mini__media" [href]="productUrl(p.handle)" target="_blank" rel="noopener">
+              <a class="mini__media" [routerLink]="['/products', p.id]" title="Lihat detail produk">
                 <img [src]="p.image" [alt]="p.name" loading="lazy" />
                 <span class="mini__off">-{{ discount(p) }}%</span>
               </a>
-              <h3 class="mini__name">{{ p.name }}</h3>
+              <h3 class="mini__name"><a [routerLink]="['/products', p.id]">{{ p.name }}</a></h3>
               <div class="mini__row">
                 <p class="mini__price">{{ rupiah(p.price) }}</p>
                 <button type="button" class="mini__add" (click)="add($event, p)" [attr.aria-label]="'Tambah ' + p.name" [id]="'suggest-' + p.id">

@@ -128,17 +128,6 @@ export class AdminDiscountsComponent {
     return Math.round((diff / p.originalPrice) * 100);
   }
 
-  calcMarginPercent(p: Product): number {
-    const cost = p.costPrice || Math.round(p.originalPrice * 0.35); // fallback estimated HPP 35%
-    if (p.price <= 0) return 0;
-    return Math.round(((p.price - cost) / p.price) * 100);
-  }
-
-  calcProfitRupiah(p: Product): number {
-    const cost = p.costPrice || Math.round(p.originalPrice * 0.35);
-    return Math.max(0, p.price - cost);
-  }
-
   // Inline Discount Operations
   onDiscountPercentChange(product: Product, percentValue: number | string): void {
     const num = Math.max(0, Math.min(99, Number(percentValue) || 0));

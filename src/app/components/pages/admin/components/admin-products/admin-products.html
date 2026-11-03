@@ -199,7 +199,7 @@
                 </button>
               </td>
 
-              <!-- Inventory With Stepper -->
+              <!-- Inventory -->
               <td>
                 <div class="inventory-cell">
                   <div class="inventory-val-row">
@@ -214,10 +214,6 @@
                     } @else {
                       <span class="stock-badge empty-stock">Habis</span>
                     }
-                  </div>
-                  <div class="inventory-quick-stepper">
-                    <button class="step-btn minus" (click)="quickAdjustStock(prod, -10)" title="Kurangi 10 pcs">-10</button>
-                    <button class="step-btn plus" (click)="quickAdjustStock(prod, 10)" title="Tambah 10 pcs">+10</button>
                   </div>
                 </div>
               </td>
@@ -524,18 +520,18 @@
               </div>
             }
 
-            <!-- SECTION 2: Penetapan Harga, Margin & Inventaris -->
+            <!-- SECTION 2: Penetapan Harga & Inventaris -->
             @if (activeStudioTab() === 'all' || activeStudioTab() === 'pricing') {
               <div class="studio-section-card">
                 <div class="section-card-header">
                   <div class="section-icon-badge gold">💰</div>
                   <div class="section-title-wrap">
-                    <h4 class="section-heading">2. Penetapan Harga &amp; Profitabilitas Pabrik</h4>
-                    <p class="section-subheading">Kalkulasi laba bersih, diskon, modal pabrik (HPP), dan kontrol stok.</p>
+                    <h4 class="section-heading">2. Penetapan Harga &amp; Stok Produk</h4>
+                    <p class="section-subheading">Atur harga jual konsumen, harga coret asli, dan kontrol stok produk.</p>
                   </div>
                 </div>
 
-                <div class="form-grid-three">
+                <div class="form-grid-two">
                   <div class="form-field-group">
                     <label class="field-label">Harga Jual Konsumen (Rp) *</label>
                     <div class="input-with-prefix">
@@ -567,56 +563,6 @@
                         class="studio-input"
                       />
                     </div>
-                  </div>
-
-                  <div class="form-field-group">
-                    <label class="field-label">Harga Modal Pabrik / HPP (Rp)</label>
-                    <div class="input-with-prefix">
-                      <span class="currency-prefix">Rp</span>
-                      <input
-                        type="number"
-                        [ngModel]="formCostPrice()"
-                        (ngModelChange)="formCostPrice.set($event)"
-                        [ngModelOptions]="{standalone: true}"
-                        min="1000"
-                        step="500"
-                        class="studio-input"
-                      />
-                    </div>
-                  </div>
-                </div>
-
-                <!-- Financial Intelligence Dashboard Card -->
-                <div class="financial-card-grid">
-                  <div class="finance-metric-box">
-                    <span class="finance-label">Diskon Toko</span>
-                    <strong class="finance-value pink">{{ discountPercent() }}% OFF</strong>
-                    <span class="finance-sub">Berdasarkan harga coret</span>
-                  </div>
-
-                  <div class="finance-metric-box">
-                    <span class="finance-label">Margin Kotor Pabrik</span>
-                    <strong
-                      class="finance-value"
-                      [class.green]="grossProfitMargin() >= 40"
-                      [class.gold]="grossProfitMargin() < 40 && grossProfitMargin() >= 20"
-                      [class.orange]="grossProfitMargin() < 20"
-                    >
-                      {{ grossProfitMargin() }}%
-                    </strong>
-                    <span class="finance-sub">Target sehat &ge; 40%</span>
-                  </div>
-
-                  <div class="finance-metric-box">
-                    <span class="finance-label">Keuntungan Bersih / Pcs</span>
-                    <strong class="finance-value green">Rp {{ profitPerUnit() | number:'1.0-0' }}</strong>
-                    <span class="finance-sub">Selisih jual - modal HPP</span>
-                  </div>
-
-                  <div class="finance-metric-box">
-                    <span class="finance-label">Valuasi Stok Total</span>
-                    <strong class="finance-value purple">Rp {{ formTotalStockValuation() | number:'1.0-0' }}</strong>
-                    <span class="finance-sub">{{ formInventory() | number:'1.0-0' }} pcs di gudang</span>
                   </div>
                 </div>
 
@@ -1121,10 +1067,6 @@
                   <span class="tile-label">Stok Pabrik:</span>
                   <strong class="tile-val">{{ formInventory() | number:'1.0-0' }} pcs</strong>
                 </div>
-                <div class="spec-tile">
-                  <span class="tile-label">Est. Laba / Pcs:</span>
-                  <strong class="tile-val green">Rp {{ profitPerUnit() | number:'1.0-0' }}</strong>
-                </div>
               </div>
             </div>
           </div>
@@ -1135,10 +1077,6 @@
       <div class="studio-fixed-footer">
         <div class="footer-meta-info">
           <span class="footer-sku-tag">SKU: {{ formSku() || 'SYB-DEFAULT' }}</span>
-          <span class="footer-sep">•</span>
-          <span class="footer-profit-hint">
-            Margin: <strong>{{ grossProfitMargin() }}%</strong> (Untung <strong>Rp {{ profitPerUnit() | number:'1.0-0' }}</strong> / pcs)
-          </span>
         </div>
 
         <div class="footer-actions-group">

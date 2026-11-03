@@ -16,6 +16,10 @@ export class RevealDirective implements OnDestroy {
     afterNextRender(() => {
       const node = this.el.nativeElement;
       node.style.setProperty('--reveal-delay', `${this.revealDelay()}ms`);
+      if (typeof IntersectionObserver === 'undefined') {
+        node.classList.add('is-in');
+        return;
+      }
       this.observer = new IntersectionObserver(
         (entries) => {
           for (const e of entries) {

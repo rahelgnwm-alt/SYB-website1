@@ -1,0 +1,329 @@
+<main class="reseller-page">
+  <!-- ==================== HERO SECTION ==================== -->
+  <section class="reseller-hero">
+    <div class="hero-bg" aria-hidden="true">
+      <span class="blob blob-1"></span>
+      <span class="blob blob-2"></span>
+    </div>
+
+    <div class="container hero-content" appReveal>
+      <div class="hero-eyebrow">
+        <span class="sparkle">✦</span>
+        <span>Program Kemitraan &amp; Reseller Resmi SYB Official</span>
+        <span class="sparkle">✦</span>
+      </div>
+
+      <h1 class="display hero-title">
+        Mulai Usaha Skincare Sukses<br />
+        <span class="gradient-text">Langsung dari Pabrik Resmi</span>
+      </h1>
+
+      <p class="hero-desc">
+        Dapatkan harga grosir tangan pertama dari PT Sheva Jordan Bersama dengan margin menguntungkan,
+        produk 100% BPOM &amp; Halal, serta dukungan materi promosi foto &amp; video HD siap pakai.
+      </p>
+
+      <div class="hero-cta-group">
+        <a href="#katalog-reseller" class="btn btn--primary" appMagnetic>
+          <span>Lihat Paket Reseller</span>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M13 6l6 6-6 6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </a>
+
+        <a [href]="getWhatsAppLink()" target="_blank" rel="noopener" class="btn btn--secondary btn--wa" appMagnetic>
+          <span>💬 Konsultasi via WhatsApp</span>
+        </a>
+      </div>
+
+      <!-- Quick Trust Badges -->
+      <div class="trust-pills">
+        <div class="pill-item">
+          <span class="pill-icon">🏭</span>
+          <span>Harga Tangan Pertama Pabrik</span>
+        </div>
+        <div class="pill-item">
+          <span class="pill-icon">📜</span>
+          <span>100% Resmi BPOM RI &amp; CPKB</span>
+        </div>
+        <div class="pill-item">
+          <span class="pill-icon">📦</span>
+          <span>Minimal Order Fleksibel</span>
+        </div>
+        <div class="pill-item">
+          <span class="pill-icon">🚚</span>
+          <span>Kirim Cepat ke Seluruh Indonesia</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==================== KEUNTUNGAN SECTION ==================== -->
+  <section class="benefits-section">
+    <div class="container">
+      <div class="section-head" appReveal>
+        <p class="eyebrow">Mengapa Bermitra Dengan Kami?</p>
+        <h2 class="display section-head__title">Keuntungan Menjadi <span class="gradient-text">Mitra Resmi SYB</span></h2>
+      </div>
+
+      <div class="benefits-grid">
+        <div class="benefit-card" appReveal [revealDelay]="60" appTilt>
+          <div class="card-icon">💰</div>
+          <h3>Margin Laba Maksimal</h3>
+          <p>
+            Dapatkan harga modal kartonan/grosir terbaik langsung dari produsen, memberikan potensi keuntungan ritel yang sangat sehat.
+          </p>
+        </div>
+
+        <div class="benefit-card" appReveal [revealDelay]="120" appTilt>
+          <div class="card-icon">🔥</div>
+          <h3>Produk Viral &amp; Repeat Order Cepat</h3>
+          <p>
+            Brand SYB telah dikenal luas di media sosial (TikTok, Instagram) dengan jutaan testimoni pembeli yang puas dan rutin belanja ulang.
+          </p>
+        </div>
+
+        <div class="benefit-card" appReveal [revealDelay]="180" appTilt>
+          <div class="card-icon">📸</div>
+          <h3>Dukungan Pemasaran Lengkap</h3>
+          <p>
+            Tidak perlu pusing membuat konten! Kami sediakan foto katalog profesional, video review influencer, brosur cetak, dan materi promosi harian.
+          </p>
+        </div>
+
+        <div class="benefit-card" appReveal [revealDelay]="240" appTilt>
+          <div class="card-icon">🛡️</div>
+          <h3>Aman, Legal &amp; Berizin Resmi</h3>
+          <p>
+            Semua formula diproduksi sesuai standar CPKB (Cara Pembuatan Kosmetika yang Baik), tersertifikasi BPOM RI dan Halal Indonesia.
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==================== JENJANG RESELLER ==================== -->
+  <section class="tiers-section">
+    <div class="container">
+      <div class="section-head" appReveal>
+        <p class="eyebrow">Jenjang Kemitraan</p>
+        <h2 class="display section-head__title">Pilih Level <span class="gradient-text">Kemitraan Anda</span></h2>
+      </div>
+
+      <div class="tiers-grid">
+        <!-- Silver -->
+        <div class="tier-card" appReveal [revealDelay]="80">
+          <div class="tier-badge silver">Level Silver</div>
+          <h3 class="tier-name">Reseller Pemula</h3>
+          <p class="tier-desc">Cocok untuk toko kosmetik pemula, mahasiswa, atau penjual rumahan.</p>
+          <div class="tier-req">
+            <span>Min. Order:</span>
+            <strong>Mulai 1 Paket / Lusin</strong>
+          </div>
+          <ul class="tier-features">
+            <li>✓ Harga khusus reseller langsung pabrik</li>
+            <li>✓ Akses grup materi promosi foto &amp; video HD</li>
+            <li>✓ Bisa dropship tanpa modal stok besar</li>
+            <li>✓ Pembinaan berkala via admin kemitraan</li>
+          </ul>
+          <a [href]="getWhatsAppLink()" target="_blank" rel="noopener" class="btn btn--ghost tier-btn">Gabung Silver</a>
+        </div>
+
+        <!-- Gold (Popular) -->
+        <div class="tier-card highlight" appReveal [revealDelay]="140">
+          <div class="popular-ribbon">Paling Diminati</div>
+          <div class="tier-badge gold">Level Gold</div>
+          <h3 class="tier-name">Agen Resmi SYB</h3>
+          <p class="tier-desc">Cocok untuk pemilik toko kosmetik, reseller aktif, atau pemilik salon.</p>
+          <div class="tier-req">
+            <span>Min. Order:</span>
+            <strong>Mulai 3 - 5 Karton</strong>
+          </div>
+          <ul class="tier-features">
+            <li>✓ Harga grosir kartonan super hemat</li>
+            <li>✓ Bonus display acrylic &amp; banner toko fisik</li>
+            <li>✓ Terdaftar sebagai Agen Resmi di wilayah Anda</li>
+            <li>✓ Prioritas pengiriman langsung dari gudang utama</li>
+            <li>✓ Prioritas produk baru &amp; sample tester gratis</li>
+          </ul>
+          <a [href]="getWhatsAppLink()" target="_blank" rel="noopener" class="btn btn--primary tier-btn">Daftar Jadi Agen</a>
+        </div>
+
+        <!-- Platinum -->
+        <div class="tier-card" appReveal [revealDelay]="200">
+          <div class="tier-badge platinum">Level Platinum</div>
+          <h3 class="tier-name">Distributor Wilayah</h3>
+          <p class="tier-desc">Khusus pedagang besar, distributor kota/kabupaten, dan jaringan grosir.</p>
+          <div class="tier-req">
+            <span>Min. Order:</span>
+            <strong>Mulai 20 Karton</strong>
+          </div>
+          <ul class="tier-features">
+            <li>✓ Harga dasar pabrik (Best Wholesale Rate)</li>
+            <li>✓ Hak eksklusif distribusi per area tertentu</li>
+            <li>✓ Dedicated Key Account Manager pabrik</li>
+            <li>✓ Bantuan ekspedisi kargo khusus termurah</li>
+          </ul>
+          <a [href]="getWhatsAppLink()" target="_blank" rel="noopener" class="btn btn--ghost tier-btn">Ajukan Distributor</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==================== KATALOG PAKET RESELLER ==================== -->
+  <section id="katalog-reseller" class="catalog-section">
+    <div class="container">
+      <div class="section-head" appReveal>
+        <p class="eyebrow">Etalase Grosir &amp; Kartonan</p>
+        <h2 class="display section-head__title">Katalog Paket <span class="gradient-text">Reseller SYB</span></h2>
+        <p class="catalog-sub">Pilih paket yang paling cocok untuk etalase usaha Anda. Pembelian dapat dilakukan via web atau dipesan langsung melalui WhatsApp Kemitraan.</p>
+      </div>
+
+      <!-- Category Filter Chips -->
+      <div class="category-filter-chips" appReveal [revealDelay]="80">
+        @for (c of categories; track c) {
+          <button
+            type="button"
+            class="filter-chip"
+            [class.active]="selectedCategory() === c"
+            (click)="selectedCategory.set(c)"
+          >
+            {{ c }}
+          </button>
+        }
+      </div>
+
+      <!-- Products Grid -->
+      <div class="reseller-grid">
+        @for (p of products(); track p.id; let i = $index) {
+          <article class="r-card" appReveal [revealDelay]="(i % 3) * 80" appTilt>
+            <!-- Media & Badge -->
+            <div class="r-card__media">
+              <img [src]="p.image" [alt]="p.title" loading="lazy" />
+              @if (p.badge) {
+                <span class="r-card__badge">{{ p.badge }}</span>
+              }
+              <div class="r-card__min-tag">
+                Min. Order: <b>{{ p.minOrder }}</b> {{ p.minOrderUnit }}
+              </div>
+            </div>
+
+            <!-- Content -->
+            <div class="r-card__body">
+              <span class="r-card__category">{{ p.categoryLabel }}</span>
+              <h3 class="r-card__title">{{ p.title }}</h3>
+              <p class="r-card__desc">{{ p.subtitle }}</p>
+
+              <div class="r-card__box-content">
+                <span class="box-icon">📦</span>
+                <span>{{ p.packageContents }}</span>
+              </div>
+
+              <!-- Benefits list -->
+              @if (p.benefits && p.benefits.length > 0) {
+                <ul class="r-card__benefits">
+                  @for (b of p.benefits.slice(0, 2); track b) {
+                    <li>✓ {{ b }}</li>
+                  }
+                </ul>
+              }
+
+              <!-- Pricing -->
+              <div class="r-card__price-row">
+                <div>
+                  <span class="price-label">Harga Grosir Reseller:</span>
+                  <strong class="price-wholesale">Rp {{ p.wholesalePrice | number:'1.0-0' }}</strong>
+                </div>
+                @if (p.retailPrice > p.wholesalePrice) {
+                  <div class="price-retail-box">
+                    <span class="retail-label">Nilai Eceran:</span>
+                    <s class="price-retail">Rp {{ p.retailPrice | number:'1.0-0' }}</s>
+                    <span class="save-tag">-{{ Math.round((1 - p.wholesalePrice / p.retailPrice) * 100) }}%</span>
+                  </div>
+                }
+              </div>
+
+              <!-- Actions -->
+              <div class="r-card__actions">
+                <button
+                  type="button"
+                  class="btn-cart-package"
+                  (click)="addPackageToCart($event, p)"
+                  title="Tambah ke Keranjang Belanja"
+                >
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 8h14l-1.2 11.2a2 2 0 0 1-2 1.8H8.2a2 2 0 0 1-2-1.8L5 8Z"/><path d="M9 8V6a3 3 0 0 1 6 0v2"/></svg>
+                  <span>Keranjang</span>
+                </button>
+
+                <a
+                  [href]="getWhatsAppLink(p)"
+                  target="_blank"
+                  rel="noopener"
+                  class="btn-wa-package"
+                  title="Pesan via WhatsApp Kemitraan"
+                >
+                  <span>Pesan via WhatsApp</span>
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M13 6l6 6-6 6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                </a>
+              </div>
+            </div>
+          </article>
+        }
+      </div>
+    </div>
+  </section>
+
+  <!-- ==================== 3 LANGKAH BERGABUNG ==================== -->
+  <section class="steps-section">
+    <div class="container">
+      <div class="section-head" appReveal>
+        <p class="eyebrow">Mudah &amp; Transparan</p>
+        <h2 class="display section-head__title">3 Langkah Mudah <span class="gradient-text">Menjadi Reseller</span></h2>
+      </div>
+
+      <div class="steps-grid">
+        <div class="step-card" appReveal [revealDelay]="60">
+          <div class="step-num">01</div>
+          <h3>Pilih Paket Grosir</h3>
+          <p>Tentukan pilihan paket starter kit atau kartonan yang sesuai dengan target pasar &amp; modal toko Anda.</p>
+        </div>
+
+        <div class="step-card" appReveal [revealDelay]="120">
+          <div class="step-num">02</div>
+          <h3>Konfirmasi Pesanan</h3>
+          <p>Pesan langsung melalui website ini atau konfirmasi bersama admin WhatsApp untuk memilih opsi ekspedisi kargo termurah.</p>
+        </div>
+
+        <div class="step-card" appReveal [revealDelay]="180">
+          <div class="step-num">03</div>
+          <h3>Mulai Jualan &amp; Raih Profit</h3>
+          <p>Dapatkan materi promosi resmi, pasang display di toko Anda, dan raih omzet melimpah dari ribuan pelanggan setia SYB.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==================== CTA BANNER ==================== -->
+  <section class="cta-banner" appReveal>
+    <div class="container cta-banner__inner">
+      <div class="cta-content">
+        <span class="cta-pill">Konsultasi Gratis Tanpa Komitmen</span>
+        <h2 class="cta-title">Siap Memulai Kemitraan Sukses Bersama SYB?</h2>
+        <p class="cta-desc">Tim kemitraan kami siap membantu menghitungkan paket terbaik dan rekomendasi ekspedisi kargo paling hemat ke lokasi Anda.</p>
+      </div>
+
+      <div class="cta-action">
+        <a [href]="getWhatsAppLink()" target="_blank" rel="noopener" class="btn btn--primary btn-large-wa" appMagnetic>
+          <span>Chat Admin WhatsApp Kemitraan</span>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M13 6l6 6-6 6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Toast Notification -->
+  @if (addedNotification(); as msg) {
+    <div class="reseller-toast" role="alert">
+      <span>✓ {{ msg }}</span>
+    </div>
+  }
+</main>
+

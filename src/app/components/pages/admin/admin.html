@@ -15,8 +15,14 @@
 
       <a routerLink="/admin/products" routerLinkActive="active" class="nav-item" id="btn-nav-products">
         <span class="nav-icon">📦</span>
-        <span class="nav-text">Katalog Produk</span>
+        <span class="nav-text">Katalog Retail</span>
         <span class="nav-counter">{{ totalProductsCount() }}</span>
+      </a>
+
+      <a routerLink="/admin/reseller-products" routerLinkActive="active" class="nav-item" id="btn-nav-reseller-products">
+        <span class="nav-icon">🤝</span>
+        <span class="nav-text">Produk Reseller</span>
+        <span class="nav-counter reseller-badge">{{ totalResellerProductsCount() }}</span>
       </a>
 
       <a routerLink="/admin/discounts" routerLinkActive="active" class="nav-item" id="btn-nav-discounts">

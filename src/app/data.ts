@@ -12,8 +12,8 @@ export interface Product {
   isFlashSale?: boolean;
 }
 
-export const SHOP_URL = 'https://sybindonesia.com/id';
-export const productUrl = (handle: string) => `${SHOP_URL}/products/${handle}`;
+export const SHOP_URL = 'https://shevajordanbersama.com';
+export const productUrl = (handle: string) => `/products/${handle}`;
 
 export const PRODUCTS: Product[] = [
   {
@@ -179,11 +179,19 @@ export const RITUALS: Ritual[] = [
   },
 ];
 
-export const CATEGORIES = [
-  { name: 'Skin Care', note: 'Serum, toner & mask', image: 'products/red-jelly-serum.jpg', href: `${SHOP_URL}/collections/skincare` },
-  { name: 'Make Up', note: 'Lip cream & blush', image: 'products/lip-cream-matte.jpg', href: `${SHOP_URL}/collections/cosmetic` },
-  { name: 'Body Care', note: 'Body toner & serum', image: 'products/body-serum-booster.jpg', href: `${SHOP_URL}/collections/body-care` },
-  { name: 'Bundling', note: 'Hemat sampai 80%', image: 'products/glow-fresh-bundle.jpg', href: `${SHOP_URL}/collections/bundling` },
+export interface CategoryItem {
+  name: string;
+  note: string;
+  image: string;
+  filter?: string;
+  query?: string;
+}
+
+export const CATEGORIES: CategoryItem[] = [
+  { name: 'Skin Care', note: 'Serum, toner & mask', image: 'products/red-jelly-serum.jpg', filter: 'all', query: 'serum' },
+  { name: 'Make Up', note: 'Lip cream & blush', image: 'products/lip-cream-matte.jpg', filter: 'all', query: 'lip' },
+  { name: 'Body Care', note: 'Body toner & serum', image: 'products/body-serum-booster.jpg', filter: 'all', query: 'body' },
+  { name: 'Bundling', note: 'Hemat sampai 80%', image: 'products/glow-fresh-bundle.jpg', filter: 'bundling', query: '' },
 ];
 
 export const PLACES = [

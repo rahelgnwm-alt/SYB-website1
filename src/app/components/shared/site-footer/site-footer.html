@@ -19,19 +19,20 @@
     <nav class="footer__col" aria-label="Belanja">
       <h4>Belanja</h4>
       <a routerLink="/products">Semua Produk</a>
+      <a routerLink="/reseller">Paket Reseller &amp; Grosir</a>
       <a routerLink="/cart">Keranjang</a>
-      <a href="{{ shopUrl }}/collections/skincare">Skin Care</a>
-      <a href="{{ shopUrl }}/collections/cosmetic">Make Up</a>
-      <a href="{{ shopUrl }}/collections/body-care">Body Care</a>
-      <a href="{{ shopUrl }}/collections/bundling">Bundling</a>
+      <a routerLink="/products" [queryParams]="{ q: 'serum' }">Skin Care</a>
+      <a routerLink="/products" [queryParams]="{ q: 'lip' }">Make Up</a>
+      <a routerLink="/products" [queryParams]="{ q: 'body' }">Body Care</a>
+      <a routerLink="/products" [queryParams]="{ filter: 'bundling' }">Bundling</a>
     </nav>
     <nav class="footer__col" aria-label="Bantuan">
       <h4>Bantuan</h4>
-      <a href="{{ shopUrl }}/pages/shipping-deliveries/shipping-deliveries">Pengiriman</a>
-      <a href="{{ shopUrl }}/pages/shipping-deliveries/return">Pengembalian</a>
-      <a href="{{ shopUrl }}/pages/shipping-deliveries/exchange">Penukaran</a>
-      <a href="{{ shopUrl }}/pages/shipping-deliveries/payment">Pembayaran</a>
-      <a href="{{ shopUrl }}/pages/shipping-deliveries/faq">FAQ</a>
+      <a routerLink="/about" fragment="shipping">Pengiriman</a>
+      <a routerLink="/about" fragment="return">Pengembalian</a>
+      <a routerLink="/about" fragment="exchange">Penukaran</a>
+      <a routerLink="/about" fragment="payment">Pembayaran</a>
+      <a routerLink="/about" fragment="faq">FAQ</a>
     </nav>
     <nav class="footer__col" aria-label="Ikuti kami">
       <h4>Ikuti kami</h4>

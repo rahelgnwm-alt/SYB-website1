@@ -23,6 +23,7 @@
     <nav class="header__nav" aria-label="Navigasi utama">
       <a routerLink="/products" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }" id="nav-products">Semua Produk</a>
       <a routerLink="/products" [queryParams]="{ filter: 'flash-sale' }" routerLinkActive="active" id="nav-flash">Flash Sale</a>
+      <a routerLink="/reseller" routerLinkActive="active" id="nav-reseller">Reseller</a>
       <a routerLink="/about" routerLinkActive="active" id="nav-about">Tentang Kami</a>
     </nav>
 
@@ -63,18 +64,19 @@
 
   <div class="mobile-menu" [class.open]="menuOpen()">
     <a routerLink="/products" [style.--i]="0" (click)="menuOpen.set(false)">Semua Produk</a>
-    <a routerLink="/about" [style.--i]="1" (click)="menuOpen.set(false)">Tentang Kami (Profil Perusahaan)</a>
-    <a routerLink="/products" [queryParams]="{ filter: 'flash-sale' }" [style.--i]="2" (click)="menuOpen.set(false)">Flash Sale</a>
-    <a routerLink="/rituals" [style.--i]="3" (click)="menuOpen.set(false)">Glow O'Clock</a>
-    <a routerLink="/cart" [style.--i]="4" (click)="menuOpen.set(false)">Keranjang ({{ cart.count() }})</a>
+    <a routerLink="/reseller" [style.--i]="1" (click)="menuOpen.set(false)">Program Reseller &amp; Grosir</a>
+    <a routerLink="/about" [style.--i]="2" (click)="menuOpen.set(false)">Tentang Kami (Profil Perusahaan)</a>
+    <a routerLink="/products" [queryParams]="{ filter: 'flash-sale' }" [style.--i]="3" (click)="menuOpen.set(false)">Flash Sale</a>
+    <a routerLink="/rituals" [style.--i]="4" (click)="menuOpen.set(false)">Glow O'Clock</a>
+    <a routerLink="/cart" [style.--i]="5" (click)="menuOpen.set(false)">Keranjang ({{ cart.count() }})</a>
     @if (!auth.isAuthenticated()) {
-    <a (click)="handleAccountClick($event); menuOpen.set(false)" [style.--i]="5" id="mobile-account-btn">Masuk / Akun
+    <a (click)="handleAccountClick($event); menuOpen.set(false)" [style.--i]="6" id="mobile-account-btn">Masuk / Akun
       Saya</a>
     } @else if (auth.isAdmin()) {
-    <a routerLink="/admin/products" (click)="menuOpen.set(false)" [style.--i]="5" class="menu-admin-link">👑 Portal
+    <a routerLink="/admin/products" (click)="menuOpen.set(false)" [style.--i]="6" class="menu-admin-link">👑 Portal
       Admin SYB</a>
     } @else {
-    <a routerLink="/profile" (click)="menuOpen.set(false)" [style.--i]="5">Profil Saya ({{
+    <a routerLink="/profile" (click)="menuOpen.set(false)" [style.--i]="6">Profil Saya ({{
       auth.currentUser()?.fullName?.split(' ')?.[0] }})</a>
     }
   </div>

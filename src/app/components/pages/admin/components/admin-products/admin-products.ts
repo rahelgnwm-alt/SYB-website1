@@ -192,27 +192,12 @@ export class AdminProductsComponent {
   // Toast
   readonly toastMessage = signal<string | null>(null);
 
-  // Real-time financial calculations
+  // Real-time calculations
   readonly discountPercent = computed(() => {
     const orig = this.formOrigPrice();
     const curr = this.formPrice();
     if (orig <= 0 || curr >= orig) return 0;
     return Math.round(((orig - curr) / orig) * 100);
-  });
-
-  readonly grossProfitMargin = computed(() => {
-    const cost = this.formCostPrice();
-    const sell = this.formPrice();
-    if (sell <= 0) return 0;
-    return Math.round(((sell - cost) / sell) * 100);
-  });
-
-  readonly profitPerUnit = computed(() => {
-    return Math.max(0, this.formPrice() - this.formCostPrice());
-  });
-
-  readonly formTotalStockValuation = computed(() => {
-    return (this.formPrice() || 0) * (this.formInventory() || 0);
   });
 
   // Computeds

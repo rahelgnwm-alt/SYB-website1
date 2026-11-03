@@ -7,7 +7,8 @@
         @for (c of categories; track c.name; let i = $index) {
           <li appReveal [revealDelay]="i * 90">
             <a
-              [href]="c.href"
+              routerLink="/products"
+              [queryParams]="c.filter === 'bundling' ? { filter: 'bundling' } : (c.query ? { q: c.query } : {})"
               [class.active]="activeCategory() === i"
               (mouseenter)="activeCategory.set(i)"
               (focus)="activeCategory.set(i)"

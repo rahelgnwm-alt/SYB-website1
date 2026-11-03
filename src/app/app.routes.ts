@@ -33,6 +33,11 @@ export const routes: Routes = [
     title: 'Checkout — SYB Official',
   },
   {
+    path: 'reseller',
+    loadComponent: () => import('./components/pages/reseller/reseller').then((m) => m.ResellerComponent),
+    title: 'Program Reseller & Grosir — SYB Official',
+  },
+  {
     path: 'flash-sale',
     redirectTo: () => '/products?filter=flash-sale',
   },
@@ -58,6 +63,11 @@ export const routes: Routes = [
         path: 'products',
         loadComponent: () => import('./components/pages/admin/components/admin-products/admin-products').then((m) => m.AdminProductsComponent),
         title: 'Products — Shopify Admin SYBofficial',
+      },
+      {
+        path: 'reseller-products',
+        loadComponent: () => import('./components/pages/admin/components/admin-reseller-products/admin-reseller-products').then((m) => m.AdminResellerProductsComponent),
+        title: 'Reseller Products — Shopify Admin SYBofficial',
       },
       {
         path: 'discounts',

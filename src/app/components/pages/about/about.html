@@ -103,6 +103,63 @@
     </div>
   </section>
 
+  <!-- ============================== BANTUAN & FAQ ============================== -->
+  <section class="about-help container" id="bantuan" aria-labelledby="help-title">
+    <div class="section-head" appReveal>
+      <p class="eyebrow">Pusat Bantuan & Kebijakan</p>
+      <h2 id="help-title" class="display section-head__title">Informasi & <span class="gradient-text">Panduan Belanja</span></h2>
+    </div>
+
+    <div class="help-grid">
+      <article class="help-card" id="shipping" appReveal [revealDelay]="60" appTilt>
+        <div class="help-card__icon">📦</div>
+        <h3>Kebijakan Pengiriman</h3>
+        <p>
+          Pesanan diproses langsung dari gudang pusat Surabaya (SUB10000) menggunakan ekspedisi resmi <strong>JNE Express (REG, YES, OKE)</strong>.
+          Setiap paket dikemas dengan ekstra bubble wrap tebal dan box kokoh secara gratis agar kosmetik tiba dengan aman.
+        </p>
+      </article>
+
+      <article class="help-card" id="payment" appReveal [revealDelay]="120" appTilt>
+        <div class="help-card__icon">💳</div>
+        <h3>Metode Pembayaran</h3>
+        <p>
+          Mendukung berbagai metode pembayaran terverifikasi otomatis: Transfer Virtual Account, QRIS (Gopay, OVO, ShopeePay, Dana),
+          Kartu Debit/Kredit, serta layanan <strong>COD (Cash on Delivery / Bayar di Tempat)</strong>.
+        </p>
+      </article>
+
+      <article class="help-card" id="return" appReveal [revealDelay]="180" appTilt>
+        <div class="help-card__icon">🔄</div>
+        <h3>Pengembalian & Penukaran</h3>
+        <p id="exchange">
+          Garansi retur atau penukaran barang 100% jika produk yang diterima rusak, cacat produksi, atau tidak sesuai pesanan.
+          Harap sertakan video unboxing lengkap tanpa jeda dan laporkan dalam kurun waktu <strong>2x24 jam</strong> sejak paket diterima.
+        </p>
+      </article>
+
+      <article class="help-card" id="faq" appReveal [revealDelay]="240" appTilt>
+        <div class="help-card__icon">✨</div>
+        <h3>Keaslian & BPOM (FAQ)</h3>
+        <p>
+          Semua produk SYB Official 100% Asli, teregistrasi resmi di <strong>Badan POM RI</strong>, dan diproduksi sesuai standar CPKB.
+          Kamu bisa mengecek nomor notifikasi BPOM yang tertera di kemasan produk.
+        </p>
+      </article>
+    </div>
+
+    <div class="help-cs-banner" appReveal [revealDelay]="300">
+      <div class="help-cs-text">
+        <h4>Butuh bantuan lebih lanjut?</h4>
+        <p>Tim Customer Service SYB siap menjawab pertanyaan seputar produk, pemesanan, atau status pengiriman.</p>
+      </div>
+      <a href="https://wa.me/6281333369909?text=Halo%20Admin%20SYB,%20saya%20ingin%20bertanya%20seputar%20pesanan%20saya" target="_blank" rel="noopener" class="btn btn--primary" appMagnetic>
+        Chat CS WhatsApp
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M13 6l6 6-6 6" stroke-linecap="round" stroke-linejoin="round" /></svg>
+      </a>
+    </div>
+  </section>
+
   <!-- ============================== CTA ============================== -->
   <section class="about-cta container" appReveal>
     <div class="about-cta__card">

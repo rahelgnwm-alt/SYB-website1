@@ -26,7 +26,8 @@ export type AdminUser = UserSession;
   providedIn: 'root'
 })
 export class AuthService {
-  private readonly defaultAdminUsername = 'admin@sybindonesia.com';
+  private readonly defaultAdminUsername = 'admin@shevajordanbersama.com';
+  private readonly legacyAdminUsername = 'admin@sybindonesia.com';
   private readonly fallbackUsername = 'sybofficial';
   private readonly validAdminPasswords = ['sybadmin2026', 'admin123', 'admin'];
 
@@ -116,7 +117,11 @@ export class AuthService {
 
   isAdminCredentials(usernameInput: string, passwordInput: string): boolean {
     const u = usernameInput.trim().toLowerCase();
-    const isUser = u === this.defaultAdminUsername || u === this.fallbackUsername || u === 'admin';
+    const isUser =
+      u === this.defaultAdminUsername ||
+      u === this.legacyAdminUsername ||
+      u === this.fallbackUsername ||
+      u === 'admin';
     return isUser && this.validAdminPasswords.includes(passwordInput.trim());
   }
 
@@ -148,7 +153,7 @@ export class AuthService {
       const adminUser: UserSession = {
         id: 'usr_admin_01',
         username: cleanUsername.includes('@') ? cleanUsername.split('@')[0] : cleanUsername,
-        email: cleanUsername.includes('@') ? cleanUsername : 'admin@sybindonesia.com',
+        email: cleanUsername.includes('@') ? cleanUsername : 'admin@shevajordanbersama.com',
         fullName: 'Super Admin SYB Official',
         role: 'superadmin',
         storeName: 'SYBofficial Official Store',

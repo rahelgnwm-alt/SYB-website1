@@ -336,7 +336,7 @@ export class CheckoutComponent implements OnInit {
       orderNumber: nextOrderNum,
       createdAt: `${nowFormatted} WIB`,
       customerName: fullName,
-      customerEmail: this.email().trim() || this.auth.currentUser()?.email || 'customer@sybindonesia.com',
+      customerEmail: this.email().trim() || this.auth.currentUser()?.email || 'customer@shevajordanbersama.com',
       customerPhone: this.phone().trim(),
       shippingAddress: {
         street: fullStreet,
