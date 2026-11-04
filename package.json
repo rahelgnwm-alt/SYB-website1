@@ -8,7 +8,7 @@
     "proxy:php": "php -S localhost:8000 -t server",
     "build": "ng build --base-href /SYB-website1/",
     "build:local": "ng build",
-    "deploy": "ng build --base-href /SYB-website1/ && angular-cli-ghpages --dir=dist/SYB-Website/browser",
+    "deploy": "ng build --base-href /SYB-website1/ && npx angular-cli-ghpages --dir=dist/SYB-Website/browser",
     "watch": "ng build --watch --configuration development",
     "test": "ng test"
   },
