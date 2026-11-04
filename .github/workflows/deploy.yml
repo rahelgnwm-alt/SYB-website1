@@ -35,16 +35,11 @@ jobs:
           cache: 'npm'
 
       - name: Install dependencies
-        run: npm ci
+        run: npm ci || npm install
 
       - name: Build
         run: |
-          BASE_PATH="${{ steps.pages.outputs.base_path }}"
-          if [ -n "$BASE_PATH" ] && [ "$BASE_PATH" != "/" ]; then
-            npm run build -- --base-href "${BASE_PATH}/"
-          else
-            npm run build -- --base-href /SYB-website1/
-          fi
+          npx ng build --base-href /SYB-website1/
 
       - name: Duplicate index.html as 404.html for SPA routing
         run: cp dist/SYB-Website/browser/index.html dist/SYB-Website/browser/404.html
