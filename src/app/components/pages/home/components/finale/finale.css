@@ -36,7 +36,7 @@
   height: 40vw;
   right: -8vw;
   bottom: -12vw;
-  background: var(--lilac-500);
+  background: var(--pink-400);
   opacity: 0.55;
   animation-delay: -3s;
   transform: translateY(calc(var(--p) * -25vh));

@@ -52,7 +52,7 @@
 .cats__list small {
   font-size: 14px;
   font-weight: 700;
-  color: var(--lilac-900);
+  color: var(--pink-700);
   transition: color 0.4s;
 }
 

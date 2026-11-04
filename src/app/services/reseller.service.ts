@@ -74,7 +74,7 @@ export class ResellerService {
       sku: 'SYB-RSL-AHA-24',
       badge: 'Margin Tinggi ✦',
       bpomNumber: 'NA18200108392',
-      accentColor: '#c098f4',
+      accentColor: '#ff6bb0',
       benefits: [
         'Permintaan repeat order sangat tinggi di kalangan konsumen',
         'Ukuran jumbo 250ml bernilai jual tinggi',

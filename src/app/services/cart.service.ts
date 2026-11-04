@@ -99,7 +99,7 @@ export class CartService {
       h.style.top = `${r.top + r.height / 2}px`;
       h.style.setProperty('--tx', `${Math.cos(angle) * dist}px`);
       h.style.setProperty('--ty', `${Math.sin(angle) * dist - 30}px`);
-      h.style.setProperty('--c', i % 2 ? 'var(--lilac-700)' : 'var(--pink-900)');
+      h.style.setProperty('--c', i % 2 ? 'var(--pink-500)' : 'var(--pink-900)');
       document.body.appendChild(h);
       h.addEventListener('animationend', () => h.remove(), { once: true });
     }

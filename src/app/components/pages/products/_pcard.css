@@ -141,7 +141,7 @@
 }
 
 .p-card__badge.new {
-  background: var(--lilac-900);
+  background: var(--pink-700);
 }
 
 .p-card__badge.bundle {
@@ -164,7 +164,7 @@
   font-weight: 700;
   letter-spacing: 0.14em;
   text-transform: uppercase;
-  color: var(--lilac-900);
+  color: var(--pink-700);
 }
 
 .p-card__name {

@@ -612,7 +612,7 @@
   left: 0;
   right: 0;
   height: 4px;
-  background: linear-gradient(90deg, #ff0a6c, #c098f4);
+  background: linear-gradient(90deg, #ff0a6c, #ff8bc6);
 }
 
 .session-card-top {
@@ -1057,7 +1057,7 @@
 
 /* ==================== LIVE PREVIEW CARD ==================== */
 .live-preview-card {
-  background: linear-gradient(135deg, #2b0b24 0%, #4a154b 50%, #7c1d68 100%);
+  background: linear-gradient(135deg, #33081e 0%, #660c3b 50%, #a81559 100%);
   border-radius: 20px;
   padding: 1.75rem;
   color: #ffffff;
@@ -1065,7 +1065,7 @@
   flex-direction: column;
   justify-content: space-between;
   gap: 1.5rem;
-  box-shadow: 0 12px 30px -8px rgba(74, 21, 75, 0.45);
+  box-shadow: 0 12px 30px -8px rgba(102, 12, 59, 0.45);
 }
 
 .preview-badge-row {

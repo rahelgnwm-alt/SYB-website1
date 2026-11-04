@@ -5,6 +5,9 @@
   <title>SYB Official • Skincare, Bodycare & Make Up untuk Glowing Setiap Hari</title>
   <meta name="description" content="SYB Official Indonesia — skincare, bodycare & make up dengan bahan aktif seperti Niacinamide, AHA & DNA Salmon. 100% asli, diskon hingga 80%. Temukan ritual glowing pagi & malammu.">
   <meta name="theme-color" content="#ff8bc6">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
   <base href="/">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta property="og:title" content="SYB Official • Glowing Setiap Hari">
@@ -15,6 +18,28 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,100..1000;1,9..40,100..1000&display=swap" rel="stylesheet">
   <link rel="preload" as="image" href="images/hero.jpg">
+  <script>
+    (function () {
+      function handleChunkError(msg) {
+        if (/Failed to fetch dynamically imported module|Loading chunk|ERR_ABORTED/i.test(msg)) {
+          var key = 'syb_chunk_retry';
+          var last = sessionStorage.getItem(key);
+          var now = Date.now();
+          if (!last || (now - parseInt(last, 10)) > 8000) {
+            sessionStorage.setItem(key, String(now));
+            window.location.reload();
+          }
+        }
+      }
+      window.addEventListener('error', function (e) {
+        handleChunkError(e && e.message ? e.message : '');
+      });
+      window.addEventListener('unhandledrejection', function (e) {
+        var reason = e && e.reason ? (e.reason.message || String(e.reason)) : '';
+        handleChunkError(reason);
+      });
+    })();
+  </script>
 </head>
 <body>
   <app-root></app-root>

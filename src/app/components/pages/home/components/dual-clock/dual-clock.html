@@ -10,15 +10,15 @@
         <defs>
           <linearGradient id="clockGrad" x1="0" y1="0" x2="1" y2="1">
             <stop offset="0" stop-color="#ff8bc6" />
-            <stop offset="1" stop-color="#c098f4" />
+            <stop offset="1" stop-color="#ff358b" />
           </linearGradient>
         </defs>
         <circle cx="60" cy="60" r="56" fill="#fff" stroke="url(#clockGrad)" stroke-width="3" />
         @for (t of [0,1,2,3,4,5,6,7,8,9,10,11]; track t) {
           <line x1="60" y1="10" x2="60" [attr.y2]="t % 3 === 0 ? 18 : 14" stroke="#ff8bc6" [attr.stroke-width]="t % 3 === 0 ? 3 : 1.5" stroke-linecap="round" [attr.transform]="'rotate(' + t * 30 + ' 60 60)'" />
         }
-        <line x1="60" y1="60" x2="60" y2="34" stroke="#3d0f30" stroke-width="4" stroke-linecap="round" [attr.transform]="'rotate(' + time.hands().h + ' 60 60)'" />
-        <line x1="60" y1="60" x2="60" y2="22" stroke="#3d0f30" stroke-width="2.5" stroke-linecap="round" [attr.transform]="'rotate(' + time.hands().m + ' 60 60)'" />
+        <line x1="60" y1="60" x2="60" y2="34" stroke="#880e4f" stroke-width="4" stroke-linecap="round" [attr.transform]="'rotate(' + time.hands().h + ' 60 60)'" />
+        <line x1="60" y1="60" x2="60" y2="22" stroke="#880e4f" stroke-width="2.5" stroke-linecap="round" [attr.transform]="'rotate(' + time.hands().m + ' 60 60)'" />
         <line x1="60" y1="66" x2="60" y2="18" stroke="#ff0a6c" stroke-width="1.5" stroke-linecap="round" class="clock__sec" [attr.transform]="'rotate(' + time.hands().s + ' 60 60)'" />
         <circle cx="60" cy="60" r="3.5" fill="#ff0a6c" />
       </svg>

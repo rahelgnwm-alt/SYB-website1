@@ -4,12 +4,12 @@
 
 .ai-banner-card {
   position: relative;
-  background: linear-gradient(135deg, #2a0b3d 0%, #3e1248 50%, #681d4a 100%);
+  background: linear-gradient(135deg, #33071d 0%, #660c3b 45%, #a81559 100%);
   border-radius: var(--radius-lg);
   color: #ffffff;
   padding: 56px clamp(24px, 5vw, 64px);
   overflow: hidden;
-  box-shadow: 0 24px 60px rgba(42, 11, 61, 0.28);
+  box-shadow: 0 24px 60px rgba(51, 7, 29, 0.28);
 }
 
 .ai-banner-glow {
@@ -206,7 +206,7 @@
   left: 0;
   right: 0;
   height: 2px;
-  background: linear-gradient(90deg, transparent, #ff408a, #c098f4, transparent);
+  background: linear-gradient(90deg, transparent, #ff408a, #ff8bc6, transparent);
   box-shadow: 0 0 12px #ff408a;
   animation: bannerLaser 3s ease-in-out infinite alternate;
 }
@@ -223,7 +223,7 @@
 
 .hud-tag {
   position: absolute;
-  background: rgba(42, 11, 61, 0.8);
+  background: rgba(51, 7, 29, 0.85);
   font-size: 0.65rem;
   font-weight: 700;
   padding: 3px 8px;
@@ -239,7 +239,7 @@
   width: 72px;
   height: 72px;
   border-radius: 50%;
-  background: linear-gradient(135deg, rgba(255, 107, 176, 0.25), rgba(192, 152, 244, 0.25));
+  background: linear-gradient(135deg, rgba(255, 107, 176, 0.25), rgba(255, 139, 198, 0.35));
   border: 2px solid rgba(255, 255, 255, 0.3);
   display: flex;
   align-items: center;

@@ -1,32 +1,34 @@
 /* ==========================================================================
    SYB Design System — based on SYB brand guide
-   Font: DM Sans family · Primary #ff8bc6 · Secondary #c098f4
+   Font: DM Sans family · Primary #ff8bc6 · Pink Dominant Palette
    ========================================================================== */
 
 :root {
   /* Pink — extended */
+  --pink-950: #880e4f;
   --pink-900: #ff0a6c;
   --pink-700: #f0408a;
   --pink-500: #ff6bb0;
   --pink-400: #ff8bc6; /* brand primary */
+  --pink-300: #ff9ecf;
   --pink-200: #ffb3d6;
   --pink-100: #ffe1ef;
   --pink-50: #fff4f9;
 
-  /* Lilac — extended */
-  --lilac-900: #a05cff;
-  --lilac-700: #b07ef5;
-  --lilac-500: #c098f4; /* brand secondary */
-  --lilac-300: #d0b5f7;
-  --lilac-100: #ece0fc;
+  /* Accent Rose-Lilac — shifted to warm pink-rose tones */
+  --lilac-900: #d81b60;
+  --lilac-700: #e91e63;
+  --lilac-500: #ff6bb0;
+  --lilac-300: #ffb3d6;
+  --lilac-100: #ffe4f0;
 
-  --plum: #3d0f30;
-  --plum-soft: #6b3a5c;
+  --plum: #380720;
+  --plum-soft: #731b46;
   --white: #ffffff;
 
-  --grad-brand: linear-gradient(120deg, var(--pink-900) 0%, var(--pink-400) 45%, var(--lilac-500) 100%);
-  --grad-soft: linear-gradient(160deg, #fff4f9 0%, #ffe1ef 45%, #ece0fc 100%);
-  --grad-night: linear-gradient(160deg, #2a0b3d 0%, #5b2a8c 55%, #a05cff 100%);
+  --grad-brand: linear-gradient(120deg, var(--pink-900) 0%, var(--pink-500) 50%, var(--pink-400) 100%);
+  --grad-soft: linear-gradient(160deg, #fff4f9 0%, #ffe1ef 45%, #ffd4e8 100%);
+  --grad-night: linear-gradient(160deg, #33071d 0%, #690c3d 50%, #b81464 100%);
 
   --font: 'DM Sans', system-ui, -apple-system, 'Segoe UI', sans-serif;
 
@@ -254,21 +256,22 @@ button {
 }
 
 .btn--secondary {
-  color: var(--plum);
+  color: var(--pink-900);
   background: #ffffff;
-  border: 1.5px solid var(--pink-200);
-  box-shadow: 0 4px 16px rgba(61, 15, 48, 0.08);
+  border: 1.5px solid var(--pink-300);
+  box-shadow: 0 4px 16px rgba(255, 10, 108, 0.08);
 }
 
 .btn--secondary:hover {
-  color: var(--pink-900);
-  border-color: var(--pink-400);
-  background: linear-gradient(135deg, #ffffff 0%, #fff0f7 100%);
-  box-shadow: 0 10px 26px -4px rgba(255, 10, 108, 0.22);
+  color: #ffffff;
+  border-color: transparent;
+  background: linear-gradient(135deg, var(--pink-900) 0%, var(--pink-500) 100%);
+  box-shadow: 0 10px 26px -4px rgba(255, 10, 108, 0.35);
 }
 
 .btn--secondary:active {
-  background: var(--pink-100);
+  background: var(--pink-700);
+  border-color: var(--pink-700);
 }
 
 .btn--ghost {

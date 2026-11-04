@@ -39,7 +39,7 @@ export const PRODUCTS: Product[] = [
     badge: 'Best Seller',
     handle:
       'best-seller-new-netto-250ml-10ml-extra-new-syb-aha-skinboost-body-toner-melembabkan-mencerahkan-kulit-1pcs-new-syb-aha-skinboost-body-toner-250-ml',
-    tint: '#ece0fc',
+    tint: '#ffe4f0',
     isFlashSale: true,
   },
   {
@@ -74,7 +74,7 @@ export const PRODUCTS: Product[] = [
     price: 46060,
     compareAt: 98000,
     handle: '1-000-dapat-2pcs-new-syb-vitamin-lippy-oil-serum-serum-bibir-with-jojoba-oil-1pc-lippyserum',
-    tint: '#ece0fc',
+    tint: '#ffe1ef',
     isFlashSale: true,
   },
   {
@@ -108,7 +108,7 @@ export const PRODUCTS: Product[] = [
     compareAt: 87028,
     handle:
       'new-syb-original-body-serum-booster-30ml-tersedia-4-macam-varian-serum-badan-mencerahkan-melembapkan-brightening',
-    tint: '#ece0fc',
+    tint: '#ffe4f0',
     isFlashSale: false,
   },
   {
@@ -133,7 +133,7 @@ export const PRODUCTS: Product[] = [
     badge: 'Bundling',
     handle:
       'syb-paket-bundling-glow-fresh-aha-toner-peeling-gel-milk-snail-brightening-glow-serum-aha-toner-peeling-snail-brightening-glow-serum',
-    tint: '#ece0fc',
+    tint: '#ffe1ef',
     isFlashSale: true,
   },
 ];

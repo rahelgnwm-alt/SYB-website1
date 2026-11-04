@@ -71,7 +71,7 @@ export class ProductService {
       reviewsCount: 3120,
       badge: 'Best Seller ✦',
       bpomNumber: 'NA18200108392',
-      accentColor: '#c098f4',
+      accentColor: '#ff6bb0',
       image: 'products/aha-body-toner.jpg',
       handle: 'best-seller-aha-skinboost-body-toner-250ml',
       heroTagline: 'Bersihkan daki membandel, leher & ketiak auto cerah!',
