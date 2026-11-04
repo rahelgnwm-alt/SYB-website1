@@ -3,7 +3,7 @@
 }
 
 .reseller-page {
-  overflow-x: hidden;
+  overflow-x: clip;
   background: #fffbfe;
   color: #2b0b1c;
 }

@@ -4,7 +4,7 @@
 
 .about-page {
   background: var(--pink-50);
-  overflow: hidden;
+  overflow-x: clip;
   padding-bottom: clamp(80px, 10vw, 140px);
 }
 

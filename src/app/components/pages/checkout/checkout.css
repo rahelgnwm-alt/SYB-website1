@@ -16,7 +16,7 @@
   background: #fbf2ff;
   color: var(--plum);
   font-family: var(--font);
-  overflow: hidden;
+  overflow-x: clip;
 }
 
 /* ---------------- Ambient Floating Gradient Orbs ---------------- */
