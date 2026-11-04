@@ -9,3 +9,4 @@ export * from './ingredients/ingredients';
 export * from './categories/categories';
 export * from './trust/trust';
 export * from './finale/finale';
+export * from './ai-skin-banner/ai-skin-banner';

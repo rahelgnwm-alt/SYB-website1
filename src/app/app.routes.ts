@@ -38,6 +38,16 @@ export const routes: Routes = [
     title: 'Program Reseller & Grosir — SYB Official',
   },
   {
+    path: 'skin-analysis',
+    loadComponent: () => import('./components/pages/skin-analysis/skin-analysis').then((m) => m.SkinAnalysisComponent),
+    title: 'AI Skin Analysis & Consultation — SYB Official',
+  },
+  {
+    path: 'ai-skin-check',
+    redirectTo: 'skin-analysis',
+    pathMatch: 'full',
+  },
+  {
     path: 'flash-sale',
     redirectTo: () => '/products?filter=flash-sale',
   },

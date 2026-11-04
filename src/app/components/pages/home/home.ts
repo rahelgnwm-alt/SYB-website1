@@ -17,6 +17,7 @@ import {
   Categories,
   Trust,
   Finale,
+  AiSkinBannerComponent,
 } from './components';
 
 /**
@@ -31,6 +32,7 @@ import {
     Manifesto,
     DualClock,
     BestSeller,
+    AiSkinBannerComponent,
     FlashSale,
     GlowOnTheGo,
     Ingredients,

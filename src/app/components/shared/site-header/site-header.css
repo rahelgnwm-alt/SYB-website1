@@ -279,3 +279,33 @@
 .menu-admin-link {
   color: #e91e63 !important;
 }
+
+.nav-ai-glow {
+  position: relative;
+  font-weight: 700 !important;
+  color: #ff0a6c !important;
+  background: rgba(255, 139, 198, 0.2);
+  padding: 6px 14px !important;
+  border-radius: 999px;
+  box-shadow: 0 0 12px rgba(255, 107, 176, 0.25);
+  transition: all 0.25s var(--ease-out);
+}
+
+.header.is-scrolled .nav-ai-glow,
+.header.is-solid .nav-ai-glow {
+  background: rgba(255, 10, 108, 0.08);
+}
+
+.nav-ai-glow:hover {
+  background: var(--pink-500) !important;
+  color: #ffffff !important;
+  box-shadow: 0 4px 16px rgba(240, 64, 138, 0.4);
+}
+
+.menu-ai-glow {
+  font-weight: 800 !important;
+  color: #ff0a6c !important;
+  background: linear-gradient(90deg, rgba(255, 139, 198, 0.18), transparent);
+  border-radius: 8px;
+  padding-left: 12px !important;
+}
