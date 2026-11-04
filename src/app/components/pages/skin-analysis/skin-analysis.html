@@ -1,30 +1,30 @@
 <main class="ai-skin-page">
   <!-- Toast notification -->
   @if (toastMessage()) {
-    <div class="ai-toast" role="alert">
-      <span>{{ toastMessage() }}</span>
-    </div>
+  <div class="ai-toast" role="alert">
+    <span>{{ toastMessage() }}</span>
+  </div>
   }
 
   <!-- Processing State Overlay -->
   @if (isProcessing()) {
-    <div class="ai-processing-modal" role="dialog" aria-modal="true">
-      <div class="ai-processing-card">
-        <div class="ai-scanner-reticle">
-          <div class="reticle-ring"></div>
-          <div class="reticle-pulse"></div>
-          <div class="reticle-core">
-            <span class="sparkle-icon">✨</span>
-          </div>
+  <div class="ai-processing-modal" role="dialog" aria-modal="true">
+    <div class="ai-processing-card">
+      <div class="ai-scanner-reticle">
+        <div class="reticle-ring"></div>
+        <div class="reticle-pulse"></div>
+        <div class="reticle-core">
+          <span class="sparkle-icon">✨</span>
         </div>
-        <h3 class="processing-title">AI Sedang Memindai Kulitmu...</h3>
-        <p class="processing-status">{{ statusText() }}</p>
-        <div class="progress-bar-bg">
-          <div class="progress-bar-fill" [style.width.%]="progress()"></div>
-        </div>
-        <span class="progress-pct">{{ progress() }}%</span>
       </div>
+      <h3 class="processing-title">AI Sedang Memindai Kulitmu...</h3>
+      <p class="processing-status">{{ statusText() }}</p>
+      <div class="progress-bar-bg">
+        <div class="progress-bar-fill" [style.width.%]="progress()"></div>
+      </div>
+      <span class="progress-pct">{{ progress() }}%</span>
     </div>
+  </div>
   }
 
   <!-- Header Banner -->
@@ -41,675 +41,568 @@
     </p>
 
     @if (mode() !== 'result') {
-      <div class="mode-switcher" role="tablist">
-        <button
-          type="button"
-          class="switch-btn"
-          [class.active]="mode() === 'scan'"
-          (click)="setMode('scan')"
-          role="tab"
-          [attr.aria-selected]="mode() === 'scan'"
-        >
-          <span class="btn-icon">📸</span>
-          <span>AI Camera &amp; Foto Scan</span>
-        </button>
-        <button
-          type="button"
-          class="switch-btn"
-          [class.active]="mode() === 'quiz'"
-          (click)="setMode('quiz')"
-          role="tab"
-          [attr.aria-selected]="mode() === 'quiz'"
-        >
-          <span class="btn-icon">📋</span>
-          <span>Kuis Diagnostik Kulit</span>
-        </button>
-      </div>
+    <div class="mode-switcher" role="tablist">
+      <button type="button" class="switch-btn" [class.active]="mode() === 'scan'" (click)="setMode('scan')" role="tab"
+        [attr.aria-selected]="mode() === 'scan'">
+        <span class="btn-icon">📸</span>
+        <span>AI Camera &amp; Foto Scan</span>
+      </button>
+      <button type="button" class="switch-btn" [class.active]="mode() === 'quiz'" (click)="setMode('quiz')" role="tab"
+        [attr.aria-selected]="mode() === 'quiz'">
+        <span class="btn-icon">📋</span>
+        <span>Kuis Diagnostik Kulit</span>
+      </button>
+    </div>
     }
   </section>
 
   <!-- ======================== VIEW 1: SCANNER MODE ======================== -->
   @if (mode() === 'scan' && !isProcessing()) {
-    <section class="container scan-section">
-      <div class="scan-grid">
-        <!-- Visual Viewport Card -->
-        <div class="scan-viewport-card">
-          <div class="viewport-screen">
-            @if (uploadedPhoto()) {
-              <img [src]="uploadedPhoto()" alt="Foto wajah untuk analisis AI" class="uploaded-img-preview" />
-              <div class="scan-overlay-active">
-                <div class="scan-laser-line"></div>
-                <div class="face-mesh-box">
-                  <div class="mesh-corner tl"></div>
-                  <div class="mesh-corner tr"></div>
-                  <div class="mesh-corner bl"></div>
-                  <div class="mesh-corner br"></div>
-                  <div class="detection-pin pin-forehead">T-Zone: Sebum 65%</div>
-                  <div class="detection-pin pin-cheek">Cheek: Hydration 52%</div>
-                  <div class="detection-pin pin-chin">Texture: Smooth 78%</div>
-                </div>
-              </div>
-            } @else if (cameraActive()) {
-              <video #videoElement autoplay playsinline muted class="camera-stream"></video>
-              <div class="scan-overlay-active">
-                <div class="scan-laser-line"></div>
-                <div class="face-mesh-box">
-                  <div class="mesh-corner tl"></div>
-                  <div class="mesh-corner tr"></div>
-                  <div class="mesh-corner bl"></div>
-                  <div class="mesh-corner br"></div>
-                  <div class="reticle-center"></div>
-                </div>
-              </div>
-            } @else {
-              <!-- Empty state mockup -->
-              <div class="viewport-placeholder">
-                <div class="placeholder-icon-wrap">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" class="cam-svg">
-                    <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path>
-                    <circle cx="12" cy="13" r="4"></circle>
-                  </svg>
-                </div>
-                <p class="placeholder-main">Arahkan kamera ke wajah atau unggah foto selfie</p>
-                <p class="placeholder-sub">Pastikan pencahayaan cukup dan wajah terlihat jelas tanpa filter</p>
-              </div>
-            }
+  <section class="container scan-section">
+    <div class="scan-grid">
+      <!-- Visual Viewport Card -->
+      <div class="scan-viewport-card">
+        <div class="viewport-screen">
+          @if (uploadedPhoto()) {
+          <img [src]="uploadedPhoto()" alt="Foto wajah untuk analisis AI" class="uploaded-img-preview" />
+          <div class="scan-overlay-active">
+            <div class="scan-laser-line"></div>
+            <div class="face-mesh-box">
+              <div class="mesh-corner tl"></div>
+              <div class="mesh-corner tr"></div>
+              <div class="mesh-corner bl"></div>
+              <div class="mesh-corner br"></div>
+              <div class="detection-pin pin-forehead">T-Zone: Sebum 65%</div>
+              <div class="detection-pin pin-cheek">Cheek: Hydration 52%</div>
+              <div class="detection-pin pin-chin">Texture: Smooth 78%</div>
+            </div>
           </div>
-
-          <!-- Camera / Upload Actions -->
-          <div class="viewport-actions">
-            @if (!cameraActive() && !uploadedPhoto()) {
-              <button type="button" class="btn btn--primary" (click)="startCamera()">
-                <span>📷 Aktifkan Kamera</span>
-              </button>
-              <label class="btn btn--secondary file-upload-label">
-                <span>📁 Unggah Foto Selfie</span>
-                <input type="file" accept="image/*" (change)="onPhotoUpload($event)" class="sr-only" />
-              </label>
-            }
-
-            @if (cameraActive()) {
-              <button type="button" class="btn btn--primary" (click)="captureAndAnalyze()">
-                <span>⚡ Ambil Foto &amp; Analisis AI</span>
-              </button>
-              <button type="button" class="btn btn--ghost" (click)="stopCamera()">
-                <span>Batal Kamera</span>
-              </button>
-            }
-
-            @if (uploadedPhoto() && !cameraActive()) {
-              <button type="button" class="btn btn--primary" (click)="captureAndAnalyze()">
-                <span>✨ Jalankan Analisis AI Sekarang</span>
-              </button>
-              <label class="btn btn--ghost file-upload-label">
-                <span>Ganti Foto</span>
-                <input type="file" accept="image/*" (change)="onPhotoUpload($event)" class="sr-only" />
-              </label>
-            }
+          } @else if (cameraActive()) {
+          <video #videoElement autoplay playsinline muted class="camera-stream"></video>
+          <div class="scan-overlay-active">
+            <div class="scan-laser-line"></div>
+            <div class="face-mesh-box">
+              <div class="mesh-corner tl"></div>
+              <div class="mesh-corner tr"></div>
+              <div class="mesh-corner bl"></div>
+              <div class="mesh-corner br"></div>
+              <div class="reticle-center"></div>
+            </div>
           </div>
+          } @else {
+          <!-- Empty state mockup -->
+          <div class="viewport-placeholder">
+            <div class="placeholder-icon-wrap">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" class="cam-svg">
+                <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path>
+                <circle cx="12" cy="13" r="4"></circle>
+              </svg>
+            </div>
+            <p class="placeholder-main">Arahkan kamera ke wajah atau unggah foto selfie</p>
+            <p class="placeholder-sub">Pastikan pencahayaan cukup dan wajah terlihat jelas tanpa filter</p>
+          </div>
+          }
         </div>
 
-        <!-- Concern calibration side card -->
-        <div class="scan-side-card">
-          <div class="side-badge">KALIBRASI DETEKSI</div>
-          <h3 class="side-title">Keluhan Kulit Utama</h3>
-          <p class="side-desc">Pilih fokus perhatian utamamu agar AI dapat memprioritaskan rekomendasi formula aktif yang paling tepat:</p>
+        <!-- Camera / Upload Actions -->
+        <div class="viewport-actions">
+          @if (!cameraActive() && !uploadedPhoto()) {
+          <button type="button" class="btn btn--primary" (click)="startCamera()">
+            <span>📷 Aktifkan Kamera</span>
+          </button>
+          <label class="btn btn--secondary file-upload-label">
+            <span>📁 Unggah Foto Selfie</span>
+            <input type="file" accept="image/*" (change)="onPhotoUpload($event)" class="sr-only" />
+          </label>
+          }
 
-          <div class="concern-chips">
-            <button
-              type="button"
-              class="concern-chip"
-              [class.active]="scannerConcern() === 'dullness'"
-              (click)="scannerConcern.set('dullness')"
-            >
-              <span class="chip-emoji">✨</span>
-              <span>Wajah Kusam &amp; Belang</span>
-            </button>
-            <button
-              type="button"
-              class="concern-chip"
-              [class.active]="scannerConcern() === 'acne_pores'"
-              (click)="scannerConcern.set('acne_pores')"
-            >
-              <span class="chip-emoji">🫧</span>
-              <span>Pori-Pori &amp; Jerawat</span>
-            </button>
-            <button
-              type="button"
-              class="concern-chip"
-              [class.active]="scannerConcern() === 'dryness'"
-              (click)="scannerConcern.set('dryness')"
-            >
-              <span class="chip-emoji">💧</span>
-              <span>Kering &amp; Dehidrasi</span>
-            </button>
-            <button
-              type="button"
-              class="concern-chip"
-              [class.active]="scannerConcern() === 'dark_spots'"
-              (click)="scannerConcern.set('dark_spots')"
-            >
-              <span class="chip-emoji">🎯</span>
-              <span>Flek &amp; Bekas Jerawat</span>
-            </button>
-            <button
-              type="button"
-              class="concern-chip"
-              [class.active]="scannerConcern() === 'body_dark_areas'"
-              (click)="scannerConcern.set('body_dark_areas')"
-            >
-              <span class="chip-emoji">🧴</span>
-              <span>Daki &amp; Lipatan Tubuh Gelap</span>
-            </button>
-            <button
-              type="button"
-              class="concern-chip"
-              [class.active]="scannerConcern() === 'chapped_lips'"
-              (click)="scannerConcern.set('chapped_lips')"
-            >
-              <span class="chip-emoji">💋</span>
-              <span>Bibir Gelap &amp; Kering</span>
-            </button>
-          </div>
+          @if (cameraActive()) {
+          <button type="button" class="btn btn--primary" (click)="captureAndAnalyze()">
+            <span>⚡ Ambil Foto &amp; Analisis AI</span>
+          </button>
+          <button type="button" class="btn btn--ghost" (click)="stopCamera()">
+            <span>Batal Kamera</span>
+          </button>
+          }
 
-          <div class="ai-guarantee-box">
-            <span class="guarantee-shield">🔒</span>
-            <p>Privasi 100% Aman. Foto Anda diproses langsung di peramban dan tidak disimpan di server pihak ketiga.</p>
-          </div>
+          @if (uploadedPhoto() && !cameraActive()) {
+          <button type="button" class="btn btn--primary" (click)="captureAndAnalyze()">
+            <span>✨ Jalankan Analisis AI Sekarang</span>
+          </button>
+          <label class="btn btn--ghost file-upload-label">
+            <span>Ganti Foto</span>
+            <input type="file" accept="image/*" (change)="onPhotoUpload($event)" class="sr-only" />
+          </label>
+          }
         </div>
       </div>
-    </section>
+
+      <!-- Concern calibration side card -->
+      <div class="scan-side-card">
+        <div class="side-badge">KALIBRASI DETEKSI</div>
+        <h3 class="side-title">Keluhan Kulit Utama</h3>
+        <p class="side-desc">Pilih fokus perhatian utamamu agar AI dapat memprioritaskan rekomendasi formula aktif yang
+          paling tepat:</p>
+
+        <div class="concern-chips">
+          <button type="button" class="concern-chip" [class.active]="scannerConcern() === 'dullness'"
+            (click)="scannerConcern.set('dullness')">
+            <span class="chip-emoji">✨</span>
+            <span>Wajah Kusam &amp; Belang</span>
+          </button>
+          <button type="button" class="concern-chip" [class.active]="scannerConcern() === 'acne_pores'"
+            (click)="scannerConcern.set('acne_pores')">
+            <span class="chip-emoji">🫧</span>
+            <span>Pori-Pori &amp; Jerawat</span>
+          </button>
+          <button type="button" class="concern-chip" [class.active]="scannerConcern() === 'dryness'"
+            (click)="scannerConcern.set('dryness')">
+            <span class="chip-emoji">💧</span>
+            <span>Kering &amp; Dehidrasi</span>
+          </button>
+          <button type="button" class="concern-chip" [class.active]="scannerConcern() === 'dark_spots'"
+            (click)="scannerConcern.set('dark_spots')">
+            <span class="chip-emoji">🎯</span>
+            <span>Flek &amp; Bekas Jerawat</span>
+          </button>
+          <button type="button" class="concern-chip" [class.active]="scannerConcern() === 'body_dark_areas'"
+            (click)="scannerConcern.set('body_dark_areas')">
+            <span class="chip-emoji">🧴</span>
+            <span>Daki &amp; Lipatan Tubuh Gelap</span>
+          </button>
+          <button type="button" class="concern-chip" [class.active]="scannerConcern() === 'chapped_lips'"
+            (click)="scannerConcern.set('chapped_lips')">
+            <span class="chip-emoji">💋</span>
+            <span>Bibir Gelap &amp; Kering</span>
+          </button>
+        </div>
+
+        <div class="ai-guarantee-box">
+          <span class="guarantee-shield">🔒</span>
+          <p>Privasi 100% Aman. Foto Anda diproses langsung di peramban dan tidak disimpan di server pihak ketiga.</p>
+        </div>
+      </div>
+    </div>
+  </section>
   }
 
   <!-- ======================== VIEW 2: QUIZ MODE ======================== -->
   @if (mode() === 'quiz' && !isProcessing()) {
-    <section class="container quiz-section">
-      <div class="quiz-card">
-        <!-- Progress Steps -->
-        <div class="quiz-steps-header">
-          <div class="step-indicator">Pertanyaan {{ currentQuizStep() }} dari 4</div>
-          <div class="step-dots">
-            <span class="dot" [class.done]="currentQuizStep() >= 1" [class.active]="currentQuizStep() === 1"></span>
-            <span class="dot" [class.done]="currentQuizStep() >= 2" [class.active]="currentQuizStep() === 2"></span>
-            <span class="dot" [class.done]="currentQuizStep() >= 3" [class.active]="currentQuizStep() === 3"></span>
-            <span class="dot" [class.done]="currentQuizStep() >= 4" [class.active]="currentQuizStep() === 4"></span>
-          </div>
-        </div>
-
-        <!-- STEP 1: Skin Type -->
-        @if (currentQuizStep() === 1) {
-          <div class="quiz-step-content">
-            <h2 class="quiz-step-title">Bagaimana sensasi kulit wajahmu saat bangun tidur?</h2>
-            <p class="quiz-step-sub">Pilih opsi yang paling menggambarkan kondisi kulitmu secara alami:</p>
-
-            <div class="quiz-options-grid">
-              <button
-                type="button"
-                class="quiz-option"
-                [class.selected]="selectedSkinType() === 'combination'"
-                (click)="selectedSkinType.set('combination')"
-              >
-                <span class="option-icon">✨</span>
-                <span class="option-title">Kombinasi</span>
-                <span class="option-desc">Berminyak di dahi dan hidung (T-Zone), tapi normal atau kering di area pipi.</span>
-              </button>
-
-              <button
-                type="button"
-                class="quiz-option"
-                [class.selected]="selectedSkinType() === 'oily'"
-                (click)="selectedSkinType.set('oily')"
-              >
-                <span class="option-icon">💧</span>
-                <span class="option-title">Berminyak (Oily)</span>
-                <span class="option-desc">Seluruh wajah tampak mengkilap, pori-pori terlihat jelas, dan rentan komedo.</span>
-              </button>
-
-              <button
-                type="button"
-                class="quiz-option"
-                [class.selected]="selectedSkinType() === 'dry'"
-                (click)="selectedSkinType.set('dry')"
-              >
-                <span class="option-icon">🍂</span>
-                <span class="option-title">Kering (Dry)</span>
-                <span class="option-desc">Terasa kencang atau tertarik, bersisik ringan, dan kurang kelembapan.</span>
-              </button>
-
-              <button
-                type="button"
-                class="quiz-option"
-                [class.selected]="selectedSkinType() === 'sensitive'"
-                (click)="selectedSkinType.set('sensitive')"
-              >
-                <span class="option-icon">🌸</span>
-                <span class="option-title">Sensitif</span>
-                <span class="option-desc">Mudah memerah, terasa gatal atau perih bila terpapar formula yang terlalu kuat.</span>
-              </button>
-
-              <button
-                type="button"
-                class="quiz-option"
-                [class.selected]="selectedSkinType() === 'normal'"
-                (click)="selectedSkinType.set('normal')"
-              >
-                <span class="option-icon">🌟</span>
-                <span class="option-title">Normal Seimbang</span>
-                <span class="option-desc">Tidak terlalu berminyak maupun kering, kenyal, dan jarang berjerawat.</span>
-              </button>
-            </div>
-          </div>
-        }
-
-        <!-- STEP 2: Concern -->
-        @if (currentQuizStep() === 2) {
-          <div class="quiz-step-content">
-            <h2 class="quiz-step-title">Apa keluhan kulit utama yang paling ingin kamu perbaiki?</h2>
-            <p class="quiz-step-sub">AI SYB akan mengutamakan bahan aktif spesifik untuk mengatasi masalah ini:</p>
-
-            <div class="quiz-options-grid">
-              <button
-                type="button"
-                class="quiz-option"
-                [class.selected]="selectedConcern() === 'dullness'"
-                (click)="selectedConcern.set('dullness')"
-              >
-                <span class="option-icon">✨</span>
-                <span class="option-title">Wajah Kusam &amp; Belang</span>
-                <span class="option-desc">Warna kulit tidak merata, tampak lelah, dan kurang glowing merona.</span>
-              </button>
-
-              <button
-                type="button"
-                class="quiz-option"
-                [class.selected]="selectedConcern() === 'acne_pores'"
-                (click)="selectedConcern.set('acne_pores')"
-              >
-                <span class="option-icon">🫧</span>
-                <span class="option-title">Pori-Pori &amp; Jerawat</span>
-                <span class="option-desc">Pori-pori tersumbat, komedo hitam/putih, dan beruntusan yang mengganggu.</span>
-              </button>
-
-              <button
-                type="button"
-                class="quiz-option"
-                [class.selected]="selectedConcern() === 'dryness'"
-                (click)="selectedConcern.set('dryness')"
-              >
-                <span class="option-icon">💧</span>
-                <span class="option-title">Dehidrasi &amp; Kasar</span>
-                <span class="option-desc">Kulit terasa kasar saat disentuh, mengelupas, dan tampak garis halus dehidrasi.</span>
-              </button>
-
-              <button
-                type="button"
-                class="quiz-option"
-                [class.selected]="selectedConcern() === 'dark_spots'"
-                (click)="selectedConcern.set('dark_spots')"
-              >
-                <span class="option-icon">🎯</span>
-                <span class="option-title">Flek &amp; Bekas Jerawat (PIH)</span>
-                <span class="option-desc">Noda kecokelatan atau kehitaman sisa jerawat yang sulit pudar.</span>
-              </button>
-
-              <button
-                type="button"
-                class="quiz-option"
-                [class.selected]="selectedConcern() === 'body_dark_areas'"
-                (click)="selectedConcern.set('body_dark_areas')"
-              >
-                <span class="option-icon">🧴</span>
-                <span class="option-title">Lipatan Tubuh &amp; Daki</span>
-                <span class="option-desc">Ketiak, leher, siku, atau selangkangan gelap dan daki membandel.</span>
-              </button>
-
-              <button
-                type="button"
-                class="quiz-option"
-                [class.selected]="selectedConcern() === 'chapped_lips'"
-                (click)="selectedConcern.set('chapped_lips')"
-              >
-                <span class="option-icon">💋</span>
-                <span class="option-title">Bibir Kering &amp; Gelap</span>
-                <span class="option-desc">Bibir pecah-pecah berdarah dan warna bibir yang menghitam kusam.</span>
-              </button>
-            </div>
-          </div>
-        }
-
-        <!-- STEP 3: Lifestyle -->
-        @if (currentQuizStep() === 3) {
-          <div class="quiz-step-content">
-            <h2 class="quiz-step-title">Bagaimana rutinitas dan lingkungan harianmu?</h2>
-            <p class="quiz-step-sub">Faktor eksternal sangat memengaruhi kecepatan regenerasi kulitmu:</p>
-
-            <div class="quiz-options-grid">
-              <button
-                type="button"
-                class="quiz-option"
-                [class.selected]="selectedLifestyle() === 'ac_room'"
-                (click)="selectedLifestyle.set('ac_room')"
-              >
-                <span class="option-icon">❄️</span>
-                <span class="option-title">Ruangan Ber-AC Seharian</span>
-                <span class="option-desc">Bekerja atau beraktivitas dalam ruangan pendingin yang menyerap kelembapan alami.</span>
-              </button>
-
-              <button
-                type="button"
-                class="quiz-option"
-                [class.selected]="selectedLifestyle() === 'sun_outdoor'"
-                (click)="selectedLifestyle.set('sun_outdoor')"
-              >
-                <span class="option-icon">☀️</span>
-                <span class="option-title">Banyak di Luar / Terik Panas</span>
-                <span class="option-desc">Sering bepergian, terkena sinar UV matahari langsung, dan berkeringat.</span>
-              </button>
-
-              <button
-                type="button"
-                class="quiz-option"
-                [class.selected]="selectedLifestyle() === 'night_owl'"
-                (click)="selectedLifestyle.set('night_owl')"
-              >
-                <span class="option-icon">🌙</span>
-                <span class="option-title">Sering Begadang / Kurang Tidur</span>
-                <span class="option-desc">Tidur larut malam, stres aktivitas, yang memperlambat perbaikan sel alami.</span>
-              </button>
-
-              <button
-                type="button"
-                class="quiz-option"
-                [class.selected]="selectedLifestyle() === 'pollution'"
-                (click)="selectedLifestyle.set('pollution')"
-              >
-                <span class="option-icon">🛵</span>
-                <span class="option-title">Polusi Udara &amp; Debu Jalanan</span>
-                <span class="option-desc">Sering naik motor atau beraktivitas di perkotaan dengan partikel debu tinggi.</span>
-              </button>
-            </div>
-          </div>
-        }
-
-        <!-- STEP 4: Goal -->
-        @if (currentQuizStep() === 4) {
-          <div class="quiz-step-content">
-            <h2 class="quiz-step-title">Apa impian kecantikan kulit yang paling kamu dambakan?</h2>
-            <p class="quiz-step-sub">Hasil akhir yang ingin kamu capai bersama produk SYB Official:</p>
-
-            <div class="quiz-options-grid">
-              <button
-                type="button"
-                class="quiz-option"
-                [class.selected]="selectedGoal() === 'glass_skin'"
-                (click)="selectedGoal.set('glass_skin')"
-              >
-                <span class="option-icon">💎</span>
-                <span class="option-title">Glass Skin Glowing</span>
-                <span class="option-desc">Wajah berkilau sehat memantulkan cahaya seperti embun pagi.</span>
-              </button>
-
-              <button
-                type="button"
-                class="quiz-option"
-                [class.selected]="selectedGoal() === 'clear_pores'"
-                (click)="selectedGoal.set('clear_pores')"
-              >
-                <span class="option-icon">🧼</span>
-                <span class="option-title">Pori Mulus &amp; Bebas Noda</span>
-                <span class="option-desc">Tekstur wajah lembut tanpa komedo kasar dan bebas jerawat.</span>
-              </button>
-
-              <button
-                type="button"
-                class="quiz-option"
-                [class.selected]="selectedGoal() === 'even_tone'"
-                (click)="selectedGoal.set('even_tone')"
-              >
-                <span class="option-icon">🌷</span>
-                <span class="option-title">Cerah Merata Wajah &amp; Tubuh</span>
-                <span class="option-desc">Bebas belang, cerah alami tanpa ada area lipatan gelap.</span>
-              </button>
-
-              <button
-                type="button"
-                class="quiz-option"
-                [class.selected]="selectedGoal() === 'plump_elastic'"
-                (click)="selectedGoal.set('plump_elastic')"
-              >
-                <span class="option-icon">🥚</span>
-                <span class="option-title">Kenyal &amp; Awet Muda (Plumpy)</span>
-                <span class="option-desc">Kulit kenyal terhidrasi seperti kulit bayi dengan elastisitas tinggi.</span>
-              </button>
-            </div>
-          </div>
-        }
-
-        <!-- Quiz Navigation Controls -->
-        <div class="quiz-nav">
-          @if (currentQuizStep() > 1) {
-            <button type="button" class="btn btn--secondary" (click)="currentQuizStep.set(currentQuizStep() - 1)">
-              <span>← Kembali</span>
-            </button>
-          }
-
-          @if (currentQuizStep() < 4) {
-            <button type="button" class="btn btn--primary" (click)="currentQuizStep.set(currentQuizStep() + 1)">
-              <span>Lanjut Langkah Berikutnya →</span>
-            </button>
-          } @else {
-            <button type="button" class="btn btn--primary btn--highlight" (click)="submitQuiz()">
-              <span>✨ Dapatkan Hasil Analisis AI Saya</span>
-            </button>
-          }
+  <section class="container quiz-section">
+    <div class="quiz-card">
+      <!-- Progress Steps -->
+      <div class="quiz-steps-header">
+        <div class="step-indicator">Pertanyaan {{ currentQuizStep() }} dari 4</div>
+        <div class="step-dots">
+          <span class="dot" [class.done]="currentQuizStep() >= 1" [class.active]="currentQuizStep() === 1"></span>
+          <span class="dot" [class.done]="currentQuizStep() >= 2" [class.active]="currentQuizStep() === 2"></span>
+          <span class="dot" [class.done]="currentQuizStep() >= 3" [class.active]="currentQuizStep() === 3"></span>
+          <span class="dot" [class.done]="currentQuizStep() >= 4" [class.active]="currentQuizStep() === 4"></span>
         </div>
       </div>
-    </section>
+
+      <!-- STEP 1: Skin Type -->
+      @if (currentQuizStep() === 1) {
+      <div class="quiz-step-content">
+        <h2 class="quiz-step-title">Bagaimana sensasi kulit wajahmu saat bangun tidur?</h2>
+        <p class="quiz-step-sub">Pilih opsi yang paling menggambarkan kondisi kulitmu secara alami:</p>
+
+        <div class="quiz-options-grid">
+          <button type="button" class="quiz-option" [class.selected]="selectedSkinType() === 'combination'"
+            (click)="selectedSkinType.set('combination')">
+            <span class="option-icon">✨</span>
+            <span class="option-title">Kombinasi</span>
+            <span class="option-desc">Berminyak di dahi dan hidung (T-Zone), tapi normal atau kering di area
+              pipi.</span>
+          </button>
+
+          <button type="button" class="quiz-option" [class.selected]="selectedSkinType() === 'oily'"
+            (click)="selectedSkinType.set('oily')">
+            <span class="option-icon">💧</span>
+            <span class="option-title">Berminyak (Oily)</span>
+            <span class="option-desc">Seluruh wajah tampak mengkilap, pori-pori terlihat jelas, dan rentan
+              komedo.</span>
+          </button>
+
+          <button type="button" class="quiz-option" [class.selected]="selectedSkinType() === 'dry'"
+            (click)="selectedSkinType.set('dry')">
+            <span class="option-icon">🍂</span>
+            <span class="option-title">Kering (Dry)</span>
+            <span class="option-desc">Terasa kencang atau tertarik, bersisik ringan, dan kurang kelembapan.</span>
+          </button>
+
+          <button type="button" class="quiz-option" [class.selected]="selectedSkinType() === 'sensitive'"
+            (click)="selectedSkinType.set('sensitive')">
+            <span class="option-icon">🌸</span>
+            <span class="option-title">Sensitif</span>
+            <span class="option-desc">Mudah memerah, terasa gatal atau perih bila terpapar formula yang terlalu
+              kuat.</span>
+          </button>
+
+          <button type="button" class="quiz-option" [class.selected]="selectedSkinType() === 'normal'"
+            (click)="selectedSkinType.set('normal')">
+            <span class="option-icon">🌟</span>
+            <span class="option-title">Normal Seimbang</span>
+            <span class="option-desc">Tidak terlalu berminyak maupun kering, kenyal, dan jarang berjerawat.</span>
+          </button>
+        </div>
+      </div>
+      }
+
+      <!-- STEP 2: Concern -->
+      @if (currentQuizStep() === 2) {
+      <div class="quiz-step-content">
+        <h2 class="quiz-step-title">Apa keluhan kulit utama yang paling ingin kamu perbaiki?</h2>
+        <p class="quiz-step-sub">AI SYB akan mengutamakan bahan aktif spesifik untuk mengatasi masalah ini:</p>
+
+        <div class="quiz-options-grid">
+          <button type="button" class="quiz-option" [class.selected]="selectedConcern() === 'dullness'"
+            (click)="selectedConcern.set('dullness')">
+            <span class="option-icon">✨</span>
+            <span class="option-title">Wajah Kusam &amp; Belang</span>
+            <span class="option-desc">Warna kulit tidak merata, tampak lelah, dan kurang glowing merona.</span>
+          </button>
+
+          <button type="button" class="quiz-option" [class.selected]="selectedConcern() === 'acne_pores'"
+            (click)="selectedConcern.set('acne_pores')">
+            <span class="option-icon">🫧</span>
+            <span class="option-title">Pori-Pori &amp; Jerawat</span>
+            <span class="option-desc">Pori-pori tersumbat, komedo hitam/putih, dan beruntusan yang mengganggu.</span>
+          </button>
+
+          <button type="button" class="quiz-option" [class.selected]="selectedConcern() === 'dryness'"
+            (click)="selectedConcern.set('dryness')">
+            <span class="option-icon">💧</span>
+            <span class="option-title">Dehidrasi &amp; Kasar</span>
+            <span class="option-desc">Kulit terasa kasar saat disentuh, mengelupas, dan tampak garis halus
+              dehidrasi.</span>
+          </button>
+
+          <button type="button" class="quiz-option" [class.selected]="selectedConcern() === 'dark_spots'"
+            (click)="selectedConcern.set('dark_spots')">
+            <span class="option-icon">🎯</span>
+            <span class="option-title">Flek &amp; Bekas Jerawat (PIH)</span>
+            <span class="option-desc">Noda kecokelatan atau kehitaman sisa jerawat yang sulit pudar.</span>
+          </button>
+
+          <button type="button" class="quiz-option" [class.selected]="selectedConcern() === 'body_dark_areas'"
+            (click)="selectedConcern.set('body_dark_areas')">
+            <span class="option-icon">🧴</span>
+            <span class="option-title">Lipatan Tubuh &amp; Daki</span>
+            <span class="option-desc">Ketiak, leher, siku, atau selangkangan gelap dan daki membandel.</span>
+          </button>
+
+          <button type="button" class="quiz-option" [class.selected]="selectedConcern() === 'chapped_lips'"
+            (click)="selectedConcern.set('chapped_lips')">
+            <span class="option-icon">💋</span>
+            <span class="option-title">Bibir Kering &amp; Gelap</span>
+            <span class="option-desc">Bibir pecah-pecah berdarah dan warna bibir yang menghitam kusam.</span>
+          </button>
+        </div>
+      </div>
+      }
+
+      <!-- STEP 3: Lifestyle -->
+      @if (currentQuizStep() === 3) {
+      <div class="quiz-step-content">
+        <h2 class="quiz-step-title">Bagaimana rutinitas dan lingkungan harianmu?</h2>
+        <p class="quiz-step-sub">Faktor eksternal sangat memengaruhi kecepatan regenerasi kulitmu:</p>
+
+        <div class="quiz-options-grid">
+          <button type="button" class="quiz-option" [class.selected]="selectedLifestyle() === 'ac_room'"
+            (click)="selectedLifestyle.set('ac_room')">
+            <span class="option-icon">❄️</span>
+            <span class="option-title">Ruangan Ber-AC Seharian</span>
+            <span class="option-desc">Bekerja atau beraktivitas dalam ruangan pendingin yang menyerap kelembapan
+              alami.</span>
+          </button>
+
+          <button type="button" class="quiz-option" [class.selected]="selectedLifestyle() === 'sun_outdoor'"
+            (click)="selectedLifestyle.set('sun_outdoor')">
+            <span class="option-icon">☀️</span>
+            <span class="option-title">Banyak di Luar / Terik Panas</span>
+            <span class="option-desc">Sering bepergian, terkena sinar UV matahari langsung, dan berkeringat.</span>
+          </button>
+
+          <button type="button" class="quiz-option" [class.selected]="selectedLifestyle() === 'night_owl'"
+            (click)="selectedLifestyle.set('night_owl')">
+            <span class="option-icon">🌙</span>
+            <span class="option-title">Sering Begadang / Kurang Tidur</span>
+            <span class="option-desc">Tidur larut malam, stres aktivitas, yang memperlambat perbaikan sel alami.</span>
+          </button>
+
+          <button type="button" class="quiz-option" [class.selected]="selectedLifestyle() === 'pollution'"
+            (click)="selectedLifestyle.set('pollution')">
+            <span class="option-icon">🛵</span>
+            <span class="option-title">Polusi Udara &amp; Debu Jalanan</span>
+            <span class="option-desc">Sering naik motor atau beraktivitas di perkotaan dengan partikel debu
+              tinggi.</span>
+          </button>
+        </div>
+      </div>
+      }
+
+      <!-- STEP 4: Goal -->
+      @if (currentQuizStep() === 4) {
+      <div class="quiz-step-content">
+        <h2 class="quiz-step-title">Apa impian kecantikan kulit yang paling kamu dambakan?</h2>
+        <p class="quiz-step-sub">Hasil akhir yang ingin kamu capai bersama produk SYB Official:</p>
+
+        <div class="quiz-options-grid">
+          <button type="button" class="quiz-option" [class.selected]="selectedGoal() === 'glass_skin'"
+            (click)="selectedGoal.set('glass_skin')">
+            <span class="option-icon">💎</span>
+            <span class="option-title">Glass Skin Glowing</span>
+            <span class="option-desc">Wajah berkilau sehat memantulkan cahaya seperti embun pagi.</span>
+          </button>
+
+          <button type="button" class="quiz-option" [class.selected]="selectedGoal() === 'clear_pores'"
+            (click)="selectedGoal.set('clear_pores')">
+            <span class="option-icon">🧼</span>
+            <span class="option-title">Pori Mulus &amp; Bebas Noda</span>
+            <span class="option-desc">Tekstur wajah lembut tanpa komedo kasar dan bebas jerawat.</span>
+          </button>
+
+          <button type="button" class="quiz-option" [class.selected]="selectedGoal() === 'even_tone'"
+            (click)="selectedGoal.set('even_tone')">
+            <span class="option-icon">🌷</span>
+            <span class="option-title">Cerah Merata Wajah &amp; Tubuh</span>
+            <span class="option-desc">Bebas belang, cerah alami tanpa ada area lipatan gelap.</span>
+          </button>
+
+          <button type="button" class="quiz-option" [class.selected]="selectedGoal() === 'plump_elastic'"
+            (click)="selectedGoal.set('plump_elastic')">
+            <span class="option-icon">🥚</span>
+            <span class="option-title">Kenyal &amp; Awet Muda (Plumpy)</span>
+            <span class="option-desc">Kulit kenyal terhidrasi seperti kulit bayi dengan elastisitas tinggi.</span>
+          </button>
+        </div>
+      </div>
+      }
+
+      <!-- Quiz Navigation Controls -->
+      <div class="quiz-nav">
+        @if (currentQuizStep() > 1) {
+        <button type="button" class="btn btn--secondary" (click)="currentQuizStep.set(currentQuizStep() - 1)">
+          <span>← Kembali</span>
+        </button>
+        }
+
+        @if (currentQuizStep() < 4) { <button type="button" class="btn btn--primary"
+          (click)="currentQuizStep.set(currentQuizStep() + 1)">
+          <span>Lanjut Langkah Berikutnya →</span>
+          </button>
+          } @else {
+          <button type="button" class="btn btn--primary btn--highlight" (click)="submitQuiz()">
+            <span>✨ Dapatkan Hasil Analisis AI Saya</span>
+          </button>
+          }
+      </div>
+    </div>
+  </section>
   }
 
   <!-- ======================== VIEW 3: RESULTS DASHBOARD ======================== -->
   @if (mode() === 'result' && analysisService.latestResult(); as res) {
-    <section class="container result-section">
-      <!-- Main Score & Summary Card -->
-      <div class="result-card">
-        <div class="result-card__grid">
-          <!-- Left: Glowing Gauge -->
-          <div class="result-gauge-wrap">
-            <div class="gauge-circle" [style.--score]="res.glowingScore">
-              <svg viewBox="0 0 160 160" class="gauge-svg">
-                <circle cx="80" cy="80" r="70" class="gauge-track"></circle>
-                <circle
-                  cx="80"
-                  cy="80"
-                  r="70"
-                  class="gauge-value"
-                  [attr.stroke-dashoffset]="440 - (440 * res.glowingScore) / 100"
-                ></circle>
-              </svg>
-              <div class="gauge-content">
-                <span class="gauge-num">{{ res.glowingScore }}</span>
-                <span class="gauge-denom">/100</span>
-                <span class="gauge-label">GLOW SCORE</span>
-              </div>
-            </div>
-
-            <div class="gauge-badge-box">
-              <span class="badge-status">{{ res.glowingStatus }}</span>
-              <span class="badge-type">Tipe: <strong>{{ res.skinTypeLabel }}</strong></span>
+  <section class="container result-section">
+    <!-- Main Score & Summary Card -->
+    <div class="result-card">
+      <div class="result-card__grid">
+        <!-- Left: Glowing Gauge -->
+        <div class="result-gauge-wrap">
+          <div class="gauge-circle" [style.--score]="res.glowingScore">
+            <svg viewBox="0 0 160 160" class="gauge-svg">
+              <circle cx="80" cy="80" r="70" class="gauge-track"></circle>
+              <circle cx="80" cy="80" r="70" class="gauge-value"
+                [attr.stroke-dashoffset]="440 - (440 * res.glowingScore) / 100"></circle>
+            </svg>
+            <div class="gauge-content">
+              <span class="gauge-num">{{ res.glowingScore }}</span>
+              <span class="gauge-denom">/100</span>
+              <span class="gauge-label">GLOW SCORE</span>
             </div>
           </div>
 
-          <!-- Right: Metrics Breakdown -->
-          <div class="result-metrics-wrap">
-            <h2 class="metrics-title">Parameter Kesehatan Kulitmu</h2>
-
-            <div class="metric-row">
-              <div class="metric-meta">
-                <span class="m-label">{{ res.metrics.hydration.label }}</span>
-                <span class="m-status">{{ res.metrics.hydration.status }} ({{ res.metrics.hydration.value }}%)</span>
-              </div>
-              <div class="metric-bar">
-                <div class="m-fill hydration" [style.width.%]="res.metrics.hydration.value"></div>
-              </div>
-              <p class="m-desc">{{ res.metrics.hydration.description }}</p>
-            </div>
-
-            <div class="metric-row">
-              <div class="metric-meta">
-                <span class="m-label">{{ res.metrics.sebumControl.label }}</span>
-                <span class="m-status">{{ res.metrics.sebumControl.status }} ({{ res.metrics.sebumControl.value }}%)</span>
-              </div>
-              <div class="metric-bar">
-                <div class="m-fill sebum" [style.width.%]="res.metrics.sebumControl.value"></div>
-              </div>
-              <p class="m-desc">{{ res.metrics.sebumControl.description }}</p>
-            </div>
-
-            <div class="metric-row">
-              <div class="metric-meta">
-                <span class="m-label">{{ res.metrics.radiance.label }}</span>
-                <span class="m-status">{{ res.metrics.radiance.status }} ({{ res.metrics.radiance.value }}%)</span>
-              </div>
-              <div class="metric-bar">
-                <div class="m-fill radiance" [style.width.%]="res.metrics.radiance.value"></div>
-              </div>
-              <p class="m-desc">{{ res.metrics.radiance.description }}</p>
-            </div>
-
-            <div class="metric-row">
-              <div class="metric-meta">
-                <span class="m-label">{{ res.metrics.texture.label }}</span>
-                <span class="m-status">{{ res.metrics.texture.status }} ({{ res.metrics.texture.value }}%)</span>
-              </div>
-              <div class="metric-bar">
-                <div class="m-fill texture" [style.width.%]="res.metrics.texture.value"></div>
-              </div>
-              <p class="m-desc">{{ res.metrics.texture.description }}</p>
-            </div>
-
-            <div class="metric-row">
-              <div class="metric-meta">
-                <span class="m-label">{{ res.metrics.barrier.label }}</span>
-                <span class="m-status">{{ res.metrics.barrier.status }} ({{ res.metrics.barrier.value }}%)</span>
-              </div>
-              <div class="metric-bar">
-                <div class="m-fill barrier" [style.width.%]="res.metrics.barrier.value"></div>
-              </div>
-              <p class="m-desc">{{ res.metrics.barrier.description }}</p>
-            </div>
+          <div class="gauge-badge-box">
+            <span class="badge-status">{{ res.glowingStatus }}</span>
+            <span class="badge-type">Tipe: <strong>{{ res.skinTypeLabel }}</strong></span>
           </div>
         </div>
 
-        <!-- AI Dermatologist Advice Note -->
-        <div class="ai-consultation-box">
-          <div class="box-header">
-            <span class="box-icon">💡</span>
-            <h4>Catatan Dokter &amp; Konsultan AI SYB</h4>
-          </div>
-          <p class="box-text">{{ res.aiDermatologistNote }}</p>
-          <div class="box-actives">
-            <span class="actives-title">Bahan Aktif yang Sangat Cocok untukmu:</span>
-            <div class="actives-tags">
-              @for (act of res.keyActives; track act) {
-                <span class="active-tag">✦ {{ act }}</span>
-              }
+        <!-- Right: Metrics Breakdown -->
+        <div class="result-metrics-wrap">
+          <h2 class="metrics-title">Parameter Kesehatan Kulitmu</h2>
+
+          <div class="metric-row">
+            <div class="metric-meta">
+              <span class="m-label">{{ res.metrics.hydration.label }}</span>
+              <span class="m-status">{{ res.metrics.hydration.status }} ({{ res.metrics.hydration.value }}%)</span>
             </div>
+            <div class="metric-bar">
+              <div class="m-fill hydration" [style.width.%]="res.metrics.hydration.value"></div>
+            </div>
+            <p class="m-desc">{{ res.metrics.hydration.description }}</p>
+          </div>
+
+          <div class="metric-row">
+            <div class="metric-meta">
+              <span class="m-label">{{ res.metrics.sebumControl.label }}</span>
+              <span class="m-status">{{ res.metrics.sebumControl.status }} ({{ res.metrics.sebumControl.value
+                }}%)</span>
+            </div>
+            <div class="metric-bar">
+              <div class="m-fill sebum" [style.width.%]="res.metrics.sebumControl.value"></div>
+            </div>
+            <p class="m-desc">{{ res.metrics.sebumControl.description }}</p>
+          </div>
+
+          <div class="metric-row">
+            <div class="metric-meta">
+              <span class="m-label">{{ res.metrics.radiance.label }}</span>
+              <span class="m-status">{{ res.metrics.radiance.status }} ({{ res.metrics.radiance.value }}%)</span>
+            </div>
+            <div class="metric-bar">
+              <div class="m-fill radiance" [style.width.%]="res.metrics.radiance.value"></div>
+            </div>
+            <p class="m-desc">{{ res.metrics.radiance.description }}</p>
+          </div>
+
+          <div class="metric-row">
+            <div class="metric-meta">
+              <span class="m-label">{{ res.metrics.texture.label }}</span>
+              <span class="m-status">{{ res.metrics.texture.status }} ({{ res.metrics.texture.value }}%)</span>
+            </div>
+            <div class="metric-bar">
+              <div class="m-fill texture" [style.width.%]="res.metrics.texture.value"></div>
+            </div>
+            <p class="m-desc">{{ res.metrics.texture.description }}</p>
+          </div>
+
+          <div class="metric-row">
+            <div class="metric-meta">
+              <span class="m-label">{{ res.metrics.barrier.label }}</span>
+              <span class="m-status">{{ res.metrics.barrier.status }} ({{ res.metrics.barrier.value }}%)</span>
+            </div>
+            <div class="metric-bar">
+              <div class="m-fill barrier" [style.width.%]="res.metrics.barrier.value"></div>
+            </div>
+            <p class="m-desc">{{ res.metrics.barrier.description }}</p>
           </div>
         </div>
       </div>
 
-      <!-- Matched Products Recommendation -->
-      <div class="recommendations-container">
-        <div class="recom-header">
-          <p class="eyebrow">Personalized Skincare Match</p>
-          <h2 class="display recom-title">Rekomendasi Produk <span class="gradient-text">Terbaik untuk Kulitmu</span></h2>
-          <p class="recom-sub">Dihitung secara akurat berdasarkan bahan aktif BPOM yang menargetkan keluhan kulitmu.</p>
+      <!-- AI Dermatologist Advice Note -->
+      <div class="ai-consultation-box">
+        <div class="box-header">
+          <span class="box-icon">💡</span>
+          <h4>Catatan Dokter &amp; Konsultan AI SYB</h4>
         </div>
+        <p class="box-text">{{ res.aiDermatologistNote }}</p>
+        <div class="box-actives">
+          <span class="actives-title">Bahan Aktif yang Sangat Cocok untukmu:</span>
+          <div class="actives-tags">
+            @for (act of res.keyActives; track act) {
+            <span class="active-tag">✦ {{ act }}</span>
+            }
+          </div>
+        </div>
+      </div>
+    </div>
 
-        <div class="recom-grid">
-          @for (item of res.matchedProducts; track item.product.id; let idx = $index) {
-            <div class="product-match-card" [class.hero-match]="idx === 0">
-              @if (idx === 0) {
-                <div class="match-crown-badge">👑 REKOMENDASI UTAMA</div>
-              }
-              <div class="match-score-badge">{{ item.badge }}</div>
+    <!-- Matched Products Recommendation -->
+    <div class="recommendations-container">
+      <div class="recom-header">
+        <p class="eyebrow">Personalized Skincare Match</p>
+        <h2 class="display recom-title">Rekomendasi Produk <span class="gradient-text">Terbaik untuk Kulitmu</span></h2>
+        <p class="recom-sub">Dihitung secara akurat berdasarkan bahan aktif BPOM yang menargetkan keluhan kulitmu.</p>
+      </div>
 
-              <a [routerLink]="['/products', item.product.id]" class="card-media-wrap" [title]="'Lihat detail ' + item.product.name">
-                <img [src]="item.product.image" [alt]="item.product.name" loading="lazy" class="product-match-img" />
-              </a>
-
-              <div class="card-info">
-                <a [routerLink]="['/products', item.product.id]">
-                  <h3 class="product-title">{{ item.product.name }}</h3>
-                </a>
-                <p class="product-tagline">{{ item.product.tagline }}</p>
-
-                <div class="match-reason-box">
-                  <span class="reason-tag">Alasan Cocok:</span>
-                  <p class="reason-text">{{ item.reason }}</p>
-                </div>
-
-                <div class="card-pricing">
-                  <div class="prices">
-                    <span class="price-now">Rp {{ item.product.price | number:'1.0-0' }}</span>
-                    @if (item.product.compareAt > item.product.price) {
-                      <span class="price-original">Rp {{ item.product.compareAt | number:'1.0-0' }}</span>
-                    }
-                  </div>
-                  <button type="button" class="btn btn--primary btn-sm" (click)="addToCart(item.product, $event)">
-                    <span>+ Keranjang</span>
-                  </button>
-                </div>
-              </div>
-            </div>
+      <div class="recom-grid">
+        @for (item of res.matchedProducts; track item.product.id; let idx = $index) {
+        <div class="product-match-card" [class.hero-match]="idx === 0">
+          @if (idx === 0) {
+          <div class="match-crown-badge">👑 REKOMENDASI UTAMA</div>
           }
-        </div>
+          <div class="match-score-badge">{{ item.badge }}</div>
 
-        <!-- 1-Click Complete Routine Bundle CTA -->
-        <div class="bundle-cta-card">
-          <div class="bundle-cta-content">
-            <span class="bundle-badge">✦ PAKET HEMAT AI</span>
-            <h3>Beli Seluruh Resep Kulit Rekomendasi</h3>
-            <p>Dapatkan semua {{ res.matchedProducts.length }} produk di atas untuk hasil perawatan terpadu yang maksimal.</p>
-          </div>
-          <button type="button" class="btn btn--primary btn-lg" (click)="addAllToCart(res.matchedProducts)">
-            <span>🛒 Masukkan Semua ke Keranjang ({{ res.matchedProducts.length }} Produk)</span>
-          </button>
-        </div>
-      </div>
+          <a [routerLink]="['/products', item.product.id]" class="card-media-wrap"
+            [title]="'Lihat detail ' + item.product.name">
+            <img [src]="item.product.image" [alt]="item.product.name" loading="lazy" class="product-match-img" />
+          </a>
 
-      <!-- Step-by-Step Personalized Routine Ritual -->
-      <div class="routine-container">
-        <h3 class="routine-title">Ritual Skincare Harian Khusus Kulitmu</h3>
-        <p class="routine-sub">Urutan pemakaian pagi dan malam untuk efektivitas penyerapan bahan aktif tertinggi.</p>
+          <div class="card-info">
+            <a [routerLink]="['/products', item.product.id]">
+              <h3 class="product-title">{{ item.product.name }}</h3>
+            </a>
+            <p class="product-tagline">{{ item.product.tagline }}</p>
 
-        <div class="routine-grid">
-          @for (step of res.routine; track step.step) {
-            <div class="routine-step-card">
-              <div class="step-header">
-                <span class="step-num">Step {{ step.step }}</span>
-                <span class="step-time" [class.pm]="step.time === 'Malam'">{{ step.time }}</span>
-              </div>
-              <h4 class="step-action">{{ step.action }}</h4>
-              <p class="step-product">Produk: <strong>{{ step.product.name }}</strong></p>
-              <p class="step-note">{{ step.note }}</p>
+            <div class="match-reason-box">
+              <span class="reason-tag">Alasan Cocok:</span>
+              <p class="reason-text">{{ item.reason }}</p>
             </div>
-          }
+
+            <div class="card-pricing">
+              <div class="prices">
+                <span class="price-now">Rp {{ item.product.price | number:'1.0-0' }}</span>
+                @if (item.product.compareAt > item.product.price) {
+                <span class="price-original">Rp {{ item.product.compareAt | number:'1.0-0' }}</span>
+                }
+              </div>
+              <button type="button" class="btn btn--primary btn-sm" (click)="addToCart(item.product, $event)">
+                <span>+ Keranjang</span>
+              </button>
+            </div>
+          </div>
         </div>
+        }
       </div>
 
-      <!-- Action Bar -->
-      <div class="result-actions-bar">
-        <button type="button" class="btn btn--secondary" (click)="restartAnalysis()">
-          <span>🔄 Ulangi Analisis</span>
-        </button>
-        <button type="button" class="btn btn--secondary" (click)="copyPrescription()">
-          <span>📋 Salin Resep Kulit</span>
-        </button>
-        <button type="button" class="btn btn--primary" (click)="consultWhatsApp()">
-          <span>💬 Konsultasi Lanjutan via WhatsApp</span>
+      <!-- 1-Click Complete Routine Bundle CTA -->
+      <div class="bundle-cta-card">
+        <div class="bundle-cta-content">
+          <span class="bundle-badge">✦ PAKET HEMAT AI</span>
+          <h3>Beli Seluruh Resep Kulit Rekomendasi</h3>
+          <p>Dapatkan semua {{ res.matchedProducts.length }} produk di atas untuk hasil perawatan terpadu yang maksimal.
+          </p>
+        </div>
+        <button type="button" class="btn btn--primary btn-lg" (click)="addAllToCart(res.matchedProducts)">
+          <span>🛒 Masukkan Semua ke Keranjang ({{ res.matchedProducts.length }} Produk)</span>
         </button>
       </div>
-    </section>
+    </div>
+
+    <!-- Step-by-Step Personalized Routine Ritual -->
+    <div class="routine-container">
+      <h3 class="routine-title">Ritual Skincare Harian Khusus Kulitmu</h3>
+      <p class="routine-sub">Urutan pemakaian pagi dan malam untuk efektivitas penyerapan bahan aktif tertinggi.</p>
+
+      <div class="routine-grid">
+        @for (step of res.routine; track step.step) {
+        <div class="routine-step-card">
+          <div class="step-header">
+            <span class="step-num">Step {{ step.step }}</span>
+            <span class="step-time" [class.pm]="step.time === 'Malam'">{{ step.time }}</span>
+          </div>
+          <h4 class="step-action">{{ step.action }}</h4>
+          <p class="step-product">Produk: <strong>{{ step.product.name }}</strong></p>
+          <p class="step-note">{{ step.note }}</p>
+        </div>
+        }
+      </div>
+    </div>
+
+    <!-- Action Bar -->
+    <div class="result-actions-bar">
+      <button type="button" class="btn btn--secondary" (click)="restartAnalysis()">
+        <span>🔄 Ulangi Analisis</span>
+      </button>
+      <button type="button" class="btn btn--secondary" (click)="copyPrescription()">
+        <span>📋 Salin Resep Kulit</span>
+      </button>
+      <button type="button" class="btn btn--primary" (click)="consultWhatsApp()">
+        <span>💬 Konsultasi Lanjutan via WhatsApp</span>
+      </button>
+    </div>
+  </section>
   }
 </main>

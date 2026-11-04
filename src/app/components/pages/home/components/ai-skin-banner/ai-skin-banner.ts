@@ -10,3 +10,4 @@ import { RouterLink } from '@angular/router';
   styleUrl: './ai-skin-banner.css'
 })
 export class AiSkinBannerComponent {}
+

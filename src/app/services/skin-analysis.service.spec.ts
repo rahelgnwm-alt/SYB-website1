@@ -81,3 +81,4 @@ describe('SkinAnalysisService', () => {
     expect(service.latestResult()).toBeNull();
   });
 });
+

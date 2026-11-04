@@ -252,3 +252,4 @@ export class SkinAnalysisComponent implements OnInit, OnDestroy {
     }, 3500);
   }
 }
+

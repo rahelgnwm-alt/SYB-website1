@@ -215,17 +215,20 @@
   font-size: 0.95rem;
   font-weight: 700;
   color: var(--plum-soft);
-  transition: all 0.25s var(--ease-out);
+  cursor: pointer;
+  transition: all 0.25s var(--ease-jelly);
 }
 
 .switch-btn:hover {
   color: var(--plum);
+  transform: translateY(-2px);
 }
 
 .switch-btn.active {
   background: var(--grad-brand);
   color: #ffffff;
   box-shadow: 0 4px 14px rgba(240, 64, 138, 0.35);
+  transform: translateY(-1px);
 }
 
 /* ================= SCANNER SECTION ================= */
@@ -449,11 +452,14 @@
   font-weight: 700;
   color: var(--plum);
   text-align: left;
-  transition: all 0.2s var(--ease-out);
+  cursor: pointer;
+  transition: all 0.25s var(--ease-jelly);
 }
 
 .concern-chip:hover {
   background: var(--pink-100);
+  transform: translateX(4px);
+  border-color: var(--pink-200);
 }
 
 .concern-chip.active {
@@ -558,12 +564,15 @@
   border: 2px solid transparent;
   border-radius: var(--radius-md);
   text-align: left;
-  transition: all 0.2s var(--ease-out);
+  cursor: pointer;
+  transition: all 0.25s var(--ease-jelly);
 }
 
 .quiz-option:hover {
-  background: var(--pink-100);
-  transform: translateY(-2px);
+  background: #ffffff;
+  border-color: var(--pink-300);
+  transform: translateY(-4px) scale(1.02);
+  box-shadow: 0 10px 24px rgba(61, 15, 48, 0.1);
 }
 
 .quiz-option.selected {
@@ -1010,8 +1019,14 @@
 }
 
 .btn-sm {
-  padding: 8px 16px;
+  padding: 8px 18px;
   font-size: 0.85rem;
+  border-radius: var(--radius-pill);
+  transition: transform 0.25s var(--ease-jelly), box-shadow 0.25s var(--ease-out);
+}
+
+.btn-sm:hover {
+  transform: translateY(-2px) scale(1.05);
 }
 
 /* Bundle CTA Card */
@@ -1054,6 +1069,16 @@
   font-size: 0.92rem;
   color: rgba(255, 255, 255, 0.8);
   margin: 0;
+}
+
+.bundle-cta-card .btn {
+  white-space: nowrap;
+  box-shadow: 0 8px 24px rgba(240, 64, 138, 0.4);
+}
+
+.bundle-cta-card .btn:hover {
+  transform: translateY(-3px) scale(1.02);
+  box-shadow: 0 14px 36px rgba(240, 64, 138, 0.65);
 }
 
 /* ================= ROUTINE SECTION ================= */
@@ -1144,5 +1169,49 @@
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
-  gap: 14px;
+  gap: 16px;
+  padding: 16px 0;
 }
+
+.result-actions-bar .btn {
+  padding: 16px 32px;
+  font-size: 1rem;
+  font-weight: 700;
+  border-radius: var(--radius-pill);
+  cursor: pointer;
+  transition: transform 0.28s var(--ease-jelly), box-shadow 0.28s var(--ease-out), background 0.25s ease, color 0.25s ease, border-color 0.25s ease;
+}
+
+.result-actions-bar .btn:hover {
+  transform: translateY(-4px) scale(1.03);
+}
+
+.result-actions-bar .btn:active {
+  transform: translateY(-1px) scale(0.98);
+}
+
+.result-actions-bar .btn--secondary {
+  background: #ffffff;
+  color: var(--plum);
+  border: 1.5px solid var(--pink-200);
+  box-shadow: 0 4px 16px rgba(61, 15, 48, 0.08);
+}
+
+.result-actions-bar .btn--secondary:hover {
+  color: var(--pink-900);
+  border-color: var(--pink-400);
+  background: linear-gradient(135deg, #ffffff 0%, #fff0f7 100%);
+  box-shadow: 0 12px 28px -4px rgba(255, 10, 108, 0.24);
+}
+
+.result-actions-bar .btn--primary {
+  background: var(--grad-brand);
+  color: #ffffff;
+  box-shadow: 0 10px 28px -6px rgba(255, 10, 108, 0.55);
+}
+
+.result-actions-bar .btn--primary:hover {
+  box-shadow: 0 16px 38px -6px rgba(255, 10, 108, 0.75), 0 0 20px rgba(255, 139, 198, 0.45);
+  filter: brightness(1.04);
+}
+

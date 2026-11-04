@@ -63,3 +63,4 @@ describe('SkinAnalysisComponent', () => {
     expect(component.isProcessing()).toBe(true);
   });
 });
+

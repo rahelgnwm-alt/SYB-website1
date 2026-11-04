@@ -21,3 +21,4 @@ describe('AiSkinBannerComponent', () => {
     expect(component).toBeTruthy();
   });
 });
+
