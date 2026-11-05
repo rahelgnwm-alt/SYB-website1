@@ -5,6 +5,7 @@ import { MagneticDirective, RevealDirective, TiltDirective } from '../../../dire
 import { PRODUCTS, Product, SHOP_URL, productUrl } from '../../../data';
 import { CartService } from '../../../services/cart.service';
 import { ProductService } from '../../../services/product.service';
+import { FlashSaleService } from '../../../services/flash-sale.service';
 
 type Sort = 'featured' | 'price-asc' | 'price-desc' | 'discount';
 type Filter = 'all' | 'Flash Sale' | 'Best Seller' | 'New' | 'Bundling';
@@ -19,19 +20,25 @@ type Filter = 'all' | 'Flash Sale' | 'Best Seller' | 'New' | 'Bundling';
 })
 export class Products {
   private readonly productService = inject(ProductService);
+  protected readonly flashSaleService = inject(FlashSaleService);
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   protected readonly cart = inject(CartService);
   protected readonly productUrl = productUrl;
   protected readonly shopUrl = SHOP_URL;
 
-  protected readonly filters: { key: Filter; label: string }[] = [
-    { key: 'all', label: 'Semua' },
-    { key: 'Flash Sale', label: '⚡ Flash Sale' },
-    { key: 'Best Seller', label: 'Best Seller' },
-    { key: 'New', label: 'New' },
-    { key: 'Bundling', label: 'Bundling' },
-  ];
+  protected readonly filters = computed<{ key: Filter; label: string }[]>(() => {
+    const list: { key: Filter; label: string }[] = [{ key: 'all', label: 'Semua' }];
+    if (this.flashSaleService.isFlashSaleLive()) {
+      list.push({ key: 'Flash Sale', label: '⚡ Flash Sale' });
+    }
+    list.push(
+      { key: 'Best Seller', label: 'Best Seller' },
+      { key: 'New', label: 'New' },
+      { key: 'Bundling', label: 'Bundling' }
+    );
+    return list;
+  });
 
   protected readonly query = signal('');
   protected readonly filter = signal<Filter>('all');
@@ -77,17 +84,18 @@ export class Products {
 
   protected readonly visible = computed(() => {
     const q = this.query().trim().toLowerCase();
-    const f = this.filter();
+    const isLive = this.flashSaleService.isFlashSaleLive();
+    const f = (this.filter() === 'Flash Sale' && !isLive) ? 'all' : this.filter();
     const liveMap = new Map(this.productService.products().map((p) => [p.id, p]));
 
     let list = PRODUCTS.map((p) => {
       const live = liveMap.get(p.id);
-      if (!live) return p;
+      if (!live) return { ...p, isFlashSale: false };
       return {
         ...p,
         price: live.price,
-        compareAt: live.originalPrice,
-        isFlashSale: live.isFlashSale ?? p.isFlashSale,
+        compareAt: live.originalPrice || p.compareAt,
+        isFlashSale: isLive && Boolean(live.isFlashSale),
       };
     });
 
@@ -103,7 +111,7 @@ export class Products {
           badge: (p.badge?.replace(' ✦', '') || '') as any,
           image: p.image,
           tint: 'rgba(255, 10, 108, 0.08)',
-          isFlashSale: p.isFlashSale,
+          isFlashSale: isLive && Boolean(p.isFlashSale),
         } as any);
       }
     }

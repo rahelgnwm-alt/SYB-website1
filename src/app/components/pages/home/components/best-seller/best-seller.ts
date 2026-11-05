@@ -2,6 +2,7 @@ import {
   ChangeDetectionStrategy,
   Component,
   ElementRef,
+  computed,
   inject,
   viewChild,
 } from '@angular/core';
@@ -9,6 +10,8 @@ import { Router, RouterLink } from '@angular/router';
 import { RevealDirective, TiltDirective } from '../../../../../directives';
 import { PRODUCTS, Product, productUrl } from '../../../../../data';
 import { CartService } from '../../../../../services/cart.service';
+import { ProductService } from '../../../../../services/product.service';
+import { FlashSaleService } from '../../../../../services/flash-sale.service';
 
 /** Best Seller products interactive rail */
 @Component({
@@ -21,8 +24,25 @@ import { CartService } from '../../../../../services/cart.service';
 export class BestSeller {
   private readonly cart = inject(CartService);
   private readonly router = inject(Router);
+  private readonly productService = inject(ProductService);
+  protected readonly flashSaleService = inject(FlashSaleService);
 
-  protected readonly products = PRODUCTS;
+  protected readonly products = computed<Product[]>(() => {
+    const isLive = this.flashSaleService.isFlashSaleLive();
+    const liveMap = new Map(this.productService.products().map((p) => [p.id, p]));
+    return PRODUCTS.map((p) => {
+      const live = liveMap.get(p.id);
+      if (!live) {
+        return { ...p, isFlashSale: false };
+      }
+      return {
+        ...p,
+        price: live.price,
+        compareAt: live.originalPrice || p.compareAt,
+        isFlashSale: isLive && Boolean(live.isFlashSale),
+      };
+    });
+  });
   protected readonly productUrl = productUrl;
 
   private readonly rail = viewChild<ElementRef<HTMLElement>>('rail');

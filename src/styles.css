@@ -15,12 +15,13 @@
   --pink-100: #ffe1ef;
   --pink-50: #fff4f9;
 
-  /* Accent Rose-Lilac — shifted to warm pink-rose tones */
-  --lilac-900: #d81b60;
-  --lilac-700: #e91e63;
-  --lilac-500: #ff6bb0;
-  --lilac-300: #ffb3d6;
-  --lilac-100: #ffe4f0;
+  /* Accent Lilac / Lavender — brand secondary palette (#c098f4) */
+  --lilac-900: #7b45ba;
+  --lilac-700: #9c67db;
+  --lilac-500: #c098f4; /* brand palette secondary */
+  --lilac-300: #d7bdf8;
+  --lilac-100: #ede3fc;
+  --lilac-50: #f8f4fe;
 
   --plum: #380720;
   --plum-soft: #731b46;

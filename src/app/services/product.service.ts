@@ -47,7 +47,7 @@ export class ProductService {
         'Gunakan pagi dan malam hari sebelum pelembap'
       ],
       isFeatured: true,
-      isFlashSale: true
+      isFlashSale: false
     },
     {
       id: 'aha-body-toner',
@@ -89,7 +89,7 @@ export class ProductService {
         'Gunakan teratur sehabis mandi tanpa perlu dibilas'
       ],
       isFeatured: true,
-      isFlashSale: true
+      isFlashSale: false
     },
     {
       id: 'golden-egg-mask',
@@ -213,7 +213,7 @@ export class ProductService {
         'Oleskan tipis-tipis pada bibir setiap sebelum tidur atau sebagai lip topper'
       ],
       isFeatured: false,
-      isFlashSale: true
+      isFlashSale: false
     },
     {
       id: 'jelly-mask',
@@ -420,7 +420,7 @@ export class ProductService {
         'Malam: Gunakan Peeling Serum 2x seminggu, lalu kunci kelembapan dengan Red Jelly'
       ],
       isFeatured: true,
-      isFlashSale: true
+      isFlashSale: false
     }
   ];
 

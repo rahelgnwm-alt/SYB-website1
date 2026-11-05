@@ -51,7 +51,7 @@
 
             <!-- Main Image with Cross-Fade Transition -->
             <div class="pdp__img-wrap">
-              @if (p.isFlashSale) {
+              @if (p.isFlashSale && flashSaleService.isFlashSaleLive()) {
                 <div class="pdp-flash-ribbon" title="Promo Flash Sale Terbatas">
                   <span class="bolt">⚡</span>
                   <span>FLASH SALE</span>
@@ -125,7 +125,7 @@
             </div>
 
             <!-- Flash Sale Countdown if active -->
-            @if (p.isFlashSale) {
+            @if (p.isFlashSale && flashSaleService.isFlashSaleLive()) {
               <div class="flash-alert">
                 <span class="flash-alert__dot"></span>
                 <span><b>Flash Sale Aktif:</b> Berakhir dalam <b>{{ time.countdown().h }}:{{ time.countdown().m }}:{{ time.countdown().s }}</b></span>
@@ -354,16 +354,16 @@
               <div class="p-card__media">
                 <span class="p-card__glow"></span>
                 <img [src]="rel.image" [alt]="rel.name" loading="lazy" />
-                @if (rel.isFlashSale) {
+                @if (rel.isFlashSale && flashSaleService.isFlashSaleLive()) {
                   <div class="p-card__ribbon-flash" title="Produk Promo Flash Sale">
                     <span class="ribbon-bolt">⚡</span>
                     <span class="ribbon-text">Flash Sale</span>
                   </div>
                 }
                 @if (rel.badge) {
-                  <span class="p-card__badge" [class.has-flash-ribbon]="rel.isFlashSale">{{ rel.badge }}</span>
+                  <span class="p-card__badge" [class.has-flash-ribbon]="rel.isFlashSale && flashSaleService.isFlashSaleLive()">{{ rel.badge }}</span>
                 }
-                <span class="p-card__off" [class.flash]="rel.isFlashSale">-{{ discount(rel) }}%</span>
+                <span class="p-card__off" [class.flash]="rel.isFlashSale && flashSaleService.isFlashSaleLive()">-{{ discount(rel) }}%</span>
               </div>
               <div class="p-card__info">
                 <p class="p-card__tag">{{ rel.tagline }}</p>

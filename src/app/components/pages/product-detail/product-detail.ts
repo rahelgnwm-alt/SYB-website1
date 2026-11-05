@@ -15,6 +15,7 @@ import { Product, ProductVariant } from '../../../models/product.model';
 import { ProductService } from '../../../services/product.service';
 import { CartService } from '../../../services/cart.service';
 import { TimeService } from '../../../services/time.service';
+import { FlashSaleService } from '../../../services/flash-sale.service';
 import { MagneticDirective, RevealDirective, TiltDirective } from '../../../directives';
 
 @Component({
@@ -28,6 +29,7 @@ export class ProductDetail {
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly productService = inject(ProductService);
+  protected readonly flashSaleService = inject(FlashSaleService);
   protected readonly cart = inject(CartService);
   protected readonly time = inject(TimeService);
 
@@ -39,10 +41,13 @@ export class ProductDetail {
   protected readonly product = computed<Product | null>(() => {
     const id = this.idParam();
     if (!id) return null;
-    return (
-      this.productService.products().find((p) => p.id === id || p.handle === id) ??
-      null
-    );
+    const p = this.productService.products().find((it) => it.id === id || it.handle === id);
+    if (!p) return null;
+    const isLive = this.flashSaleService.isFlashSaleLive();
+    return {
+      ...p,
+      isFlashSale: isLive && Boolean(p.isFlashSale),
+    };
   });
 
   /** Selected variant (defaults to first variant when available) */
@@ -117,7 +122,17 @@ export class ProductDetail {
   /** Related products recommendations */
   protected readonly related = computed<DataProduct[]>(() => {
     const curr = this.product();
-    return PRODUCTS.filter((p) => p.id !== curr?.id).slice(0, 4);
+    const isLive = this.flashSaleService.isFlashSaleLive();
+    const liveMap = new Map(this.productService.products().map((p) => [p.id, p]));
+    return PRODUCTS.filter((p) => p.id !== curr?.id).slice(0, 4).map((p) => {
+      const live = liveMap.get(p.id);
+      return {
+        ...p,
+        price: live ? live.price : p.price,
+        compareAt: live?.originalPrice || p.compareAt,
+        isFlashSale: isLive && Boolean(live?.isFlashSale),
+      };
+    });
   });
 
   constructor() {

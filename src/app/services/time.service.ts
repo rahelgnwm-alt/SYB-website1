@@ -86,11 +86,18 @@ export class TimeService {
     return 'Malam ini, saatnya me-time 🌙';
   });
 
+  readonly isFlashSaleActive = computed<boolean>(() => {
+    return this.fsService.isFlashSaleLive();
+  });
+
   /** Flash sale countdown matching the active session or admin-configured end hour. */
   readonly countdown = computed(() => {
     const pad = (n: number) => String(Math.max(0, n)).padStart(2, '0');
-    const active = this.fsService.activeSession();
+    if (!this.fsService.isFlashSaleLive()) {
+      return { h: '00', m: '00', s: '00' };
+    }
 
+    const active = this.fsService.activeSession();
     if (active && active.isActive) {
       const end = new Date(`${active.endDate}T${active.endTime}:00`);
       const diffSec = Math.max(0, Math.floor((end.getTime() - this.now().getTime()) / 1000));
@@ -122,11 +129,7 @@ export class TimeService {
     const targetHour = config.endHour === 0 ? 24 : config.endHour;
     const targetSec = targetHour * 3600 + config.endMinute * 60;
 
-    let left = targetSec - nowSec;
-    if (left <= 0) {
-      // If end hour has passed today, roll over to the same end hour tomorrow
-      left += 24 * 3600;
-    }
+    const left = Math.max(0, targetSec - nowSec);
 
     return {
       h: pad(Math.floor(left / 3600)),

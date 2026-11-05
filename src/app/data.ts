@@ -27,7 +27,7 @@ export const PRODUCTS: Product[] = [
     handle:
       'best-seller-new-syb-forte-red-jelly-serum-20ml-with-niacinamide-10-untuk-mencerahkan-kulit-wajah-mengurangi-kusam-1-redjellyserum',
     tint: '#ffe1ef',
-    isFlashSale: true,
+    isFlashSale: false,
   },
   {
     id: 'aha-body-toner',
@@ -40,7 +40,7 @@ export const PRODUCTS: Product[] = [
     handle:
       'best-seller-new-netto-250ml-10ml-extra-new-syb-aha-skinboost-body-toner-melembabkan-mencerahkan-kulit-1pcs-new-syb-aha-skinboost-body-toner-250-ml',
     tint: '#ffe4f0',
-    isFlashSale: true,
+    isFlashSale: false,
   },
   {
     id: 'golden-egg-mask',
@@ -75,7 +75,7 @@ export const PRODUCTS: Product[] = [
     compareAt: 98000,
     handle: '1-000-dapat-2pcs-new-syb-vitamin-lippy-oil-serum-serum-bibir-with-jojoba-oil-1pc-lippyserum',
     tint: '#ffe1ef',
-    isFlashSale: true,
+    isFlashSale: false,
   },
   {
     id: 'jelly-mask',
@@ -134,7 +134,7 @@ export const PRODUCTS: Product[] = [
     handle:
       'syb-paket-bundling-glow-fresh-aha-toner-peeling-gel-milk-snail-brightening-glow-serum-aha-toner-peeling-snail-brightening-glow-serum',
     tint: '#ffe1ef',
-    isFlashSale: true,
+    isFlashSale: false,
   },
 ];
 

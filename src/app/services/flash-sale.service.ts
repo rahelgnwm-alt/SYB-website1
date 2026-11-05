@@ -1,4 +1,4 @@
-import { Injectable, computed, inject, signal } from '@angular/core';
+import { Injectable, computed, effect, inject, signal, untracked } from '@angular/core';
 import { FlashSaleItem, FlashSaleSession } from '../models/product.model';
 import { ProductService } from './product.service';
 
@@ -93,22 +93,30 @@ export class FlashSaleService {
     return found || list[0] || DEFAULT_SESSIONS[0];
   });
 
+  readonly currentTime = signal<Date>(new Date());
+
   /**
-   * Determine which session is currently active (running right now).
+   * Determine which session is currently active (running right now, not ended, and not empty).
    */
   readonly activeSession = computed<FlashSaleSession | null>(() => {
     if (!this.isMasterActive()) return null;
 
-    const list = this.sessions().filter((s) => s.isActive);
+    const list = this.sessions().filter((s) => s.isActive && s.items && s.items.length > 0);
     if (list.length === 0) return null;
 
-    // Prioritize the currently selected session if active
+    const now = this.currentTime();
+
+    // 1. Check if the currently selected session is running right now and not empty
     const selected = list.find((s) => s.id === this.selectedSessionId());
     if (selected) {
-      return selected;
+      const start = new Date(`${selected.startDate}T${selected.startTime}:00`);
+      const end = new Date(`${selected.endDate}T${selected.endTime}:00`);
+      if (now >= start && now <= end) {
+        return selected;
+      }
     }
 
-    const now = new Date();
+    // 2. Check any other active session that is running right now
     for (const s of list) {
       const start = new Date(`${s.startDate}T${s.startTime}:00`);
       const end = new Date(`${s.endDate}T${s.endTime}:00`);
@@ -117,11 +125,33 @@ export class FlashSaleService {
       }
     }
 
-    return list[0] || null;
+    return null;
+  });
+
+  /**
+   * True only if there is an active session running right now with products.
+   * If ended, empty, or master switch is off, this is FALSE.
+   */
+  readonly isFlashSaleLive = computed<boolean>(() => {
+    return this.activeSession() !== null;
   });
 
   constructor() {
+    if (typeof window !== 'undefined') {
+      setInterval(() => {
+        this.currentTime.set(new Date());
+      }, 1000);
+    }
+
     this.syncActiveSessionToStore();
+
+    effect(() => {
+      const live = this.activeSession();
+      const items = live ? live.items : [];
+      untracked(() => {
+        this.productService.syncFlashSaleItems(items);
+      });
+    }, { allowSignalWrites: true });
   }
 
   private loadMasterActive(): boolean {
@@ -372,7 +402,7 @@ export class FlashSaleService {
 
   syncActiveSessionToStore(): void {
     const active = this.activeSession();
-    if (!active || !active.isActive || !this.isMasterActive()) {
+    if (!active || !active.isActive || !this.isMasterActive() || !active.items || active.items.length === 0) {
       this.productService.syncFlashSaleItems([]);
       return;
     }
@@ -383,7 +413,7 @@ export class FlashSaleService {
     if (!s.isActive || !this.isMasterActive()) {
       return { code: 'paused', label: '⏸️ Non-Aktif' };
     }
-    const now = new Date();
+    const now = this.currentTime();
     const start = new Date(`${s.startDate}T${s.startTime}:00`);
     const end = new Date(`${s.endDate}T${s.endTime}:00`);
 
@@ -392,6 +422,9 @@ export class FlashSaleService {
     }
     if (now > end) {
       return { code: 'ended', label: '⚪ Selesai' };
+    }
+    if (!s.items || s.items.length === 0) {
+      return { code: 'ended', label: '⚪ Kosong (0 Produk)' };
     }
     return { code: 'live', label: '🟢 Sedang Berlangsung' };
   }

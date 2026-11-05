@@ -3,6 +3,7 @@ import { Router, RouterLink, RouterLinkActive } from '@angular/router';
 import { SHOP_URL } from '../../../data';
 import { CartService } from '../../../services/cart.service';
 import { AuthService } from '../../../services/auth.service';
+import { TimeService } from '../../../services/time.service';
 
 /** Announcement bar + persistent sticky header. `solid` = always show frosted style (inner pages). */
 @Component({
@@ -24,6 +25,7 @@ export class SiteHeader {
 
   protected readonly cart = inject(CartService);
   protected readonly auth = inject(AuthService);
+  protected readonly time = inject(TimeService);
   private readonly router = inject(Router);
   private readonly destroyRef = inject(DestroyRef);
   protected readonly shopUrl = SHOP_URL;

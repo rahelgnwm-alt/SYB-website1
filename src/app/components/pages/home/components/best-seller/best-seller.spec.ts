@@ -30,7 +30,7 @@ describe('BestSeller Component', () => {
   });
 
   it('should have products available', () => {
-    expect(component['products'].length).toBeGreaterThan(0);
+    expect(component['products']().length).toBeGreaterThan(0);
   });
 
   it('should navigate to product detail on card click when not dragging', () => {

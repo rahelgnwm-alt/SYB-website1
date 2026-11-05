@@ -25,8 +25,10 @@
         id="nav-products">Semua Produk</a>
       <a routerLink="/skin-analysis" routerLinkActive="active" id="nav-skin-analysis" class="nav-ai-glow">✨ AI Skin
         Check</a>
+      @if (time.isFlashSaleActive()) {
       <a routerLink="/products" [queryParams]="{ filter: 'flash-sale' }" routerLinkActive="active" id="nav-flash">Flash
         Sale</a>
+      }
       <a routerLink="/reseller" routerLinkActive="active" id="nav-reseller">Reseller</a>
       <a routerLink="/about" routerLinkActive="active" id="nav-about">Tentang Kami</a>
     </nav>
@@ -73,8 +75,10 @@
       (Tes Kulit)</a>
     <a routerLink="/reseller" [style.--i]="2" (click)="menuOpen.set(false)">Program Reseller &amp; Grosir</a>
     <a routerLink="/about" [style.--i]="3" (click)="menuOpen.set(false)">Tentang Kami (Profil Perusahaan)</a>
+    @if (time.isFlashSaleActive()) {
     <a routerLink="/products" [queryParams]="{ filter: 'flash-sale' }" [style.--i]="4"
       (click)="menuOpen.set(false)">Flash Sale</a>
+    }
     <a routerLink="/rituals" [style.--i]="5" (click)="menuOpen.set(false)">Glow O'Clock</a>
     <a routerLink="/cart" [style.--i]="6" (click)="menuOpen.set(false)">Keranjang ({{ cart.count() }})</a>
     @if (!auth.isAuthenticated()) {
