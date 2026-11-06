@@ -1,22 +1,12 @@
 <?php
 /**
- * SYB Official Store - JNE API Gateway Router (PHP)
+ * SYB Official Store - Central PHP REST API Gateway
+ * PT Sheva Jordan Bersama
  */
 
+require_once __DIR__ . '/routes/api.php';
+
 $uri = parse_url($_SERVER['REQUEST_URI'] ?? '', PHP_URL_PATH);
+$method = $_SERVER['REQUEST_METHOD'] ?? 'GET';
 
-if (str_contains($uri, 'generatecnote')) {
-    require __DIR__ . '/generatecnote.php';
-} elseif (str_contains($uri, 'pricedev')) {
-    require __DIR__ . '/pricedev.php';
-} else {
-    header('Content-Type: application/json');
-    echo json_encode([
-        'service' => 'SYB JNE API Gateway',
-        'endpoints' => [
-            'generatecnote' => '/generatecnote.php',
-            'pricedev'      => '/pricedev.php'
-        ]
-    ]);
-}
-
+dispatchApiRequest($uri, $method);

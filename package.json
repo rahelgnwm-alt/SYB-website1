@@ -4,6 +4,7 @@
   "scripts": {
     "ng": "ng",
     "start": "ng serve",
+    "server": "node server/server.mjs",
     "proxy:jne": "node server/jne-proxy.mjs",
     "proxy:php": "php -S localhost:8000 -t server",
     "build": "ng build --base-href /SYB-website1/",
