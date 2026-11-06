@@ -398,3 +398,4 @@ if (php_sapi_name() === 'cli' || isset($_GET['run'])) {
     $result = runSeeder();
     echo json_encode(['status' => 'success', 'seeded' => $result], JSON_PRETTY_PRINT);
 }
+

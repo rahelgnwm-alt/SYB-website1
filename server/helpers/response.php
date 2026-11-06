@@ -52,3 +52,4 @@ function getBearerToken(): ?string {
     }
     return null;
 }
+

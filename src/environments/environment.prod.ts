@@ -3,3 +3,4 @@ export const environment = {
   apiUrl: 'https://shevajordanbersama.com/api',
   localApiUrl: 'https://shevajordanbersama.com/api'
 };
+

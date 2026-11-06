@@ -39,3 +39,4 @@ define('JNE_HOST_DEV', 'https://apiv2.jne.co.id:10202/tracing/api');
 
 // Timezone
 date_default_timezone_set('Asia/Jakarta');
+

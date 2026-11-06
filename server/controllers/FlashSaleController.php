@@ -230,3 +230,4 @@ class FlashSaleController {
         sendSuccess(['is_master_active' => (bool)$active], 'Master flash sale switch berhasil diperbarui.');
     }
 }
+

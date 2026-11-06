@@ -107,3 +107,4 @@ class DiscountController {
         sendSuccess(null, 'Voucher berhasil dihapus.');
     }
 }
+

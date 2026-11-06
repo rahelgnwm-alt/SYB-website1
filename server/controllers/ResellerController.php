@@ -98,3 +98,4 @@ class ResellerController {
         sendSuccess($stmt->fetchAll());
     }
 }
+

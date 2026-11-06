@@ -305,3 +305,4 @@ class ProductController {
         sendSuccess($stmt->fetchAll());
     }
 }
+

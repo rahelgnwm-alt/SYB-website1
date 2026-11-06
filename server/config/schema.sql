@@ -234,3 +234,4 @@ CREATE TABLE IF NOT EXISTS `skin_analyses` (
   `whatsapp_text` LONGTEXT DEFAULT NULL,
   `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP
 );
+

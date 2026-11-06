@@ -79,3 +79,4 @@ function ensureDatabaseTablesExist(PDO $pdo, string $driver): void {
         error_log('[SYB Schema Init Error] ' . $e->getMessage());
     }
 }
+

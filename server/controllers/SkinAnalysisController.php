@@ -196,3 +196,4 @@ class SkinAnalysisController {
         sendSuccess($list);
     }
 }
+
