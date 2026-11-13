@@ -159,5 +159,32 @@ class ShippingController {
             ]
         ]);
     }
+
+    // ==========================================
+    // J&T EXPRESS LOGISTICS METHODS
+    // ==========================================
+    public static function jntTariff(): void {
+        $_GET['action'] = 'tariff';
+        require __DIR__ . '/../jnt.php';
+        exit;
+    }
+
+    public static function jntCreateOrder(): void {
+        $_GET['action'] = 'order';
+        require __DIR__ . '/../jnt.php';
+        exit;
+    }
+
+    public static function jntTrackOrder(): void {
+        $_GET['action'] = 'track';
+        require __DIR__ . '/../jnt.php';
+        exit;
+    }
+
+    public static function jntCancelOrder(): void {
+        $_GET['action'] = 'cancel';
+        require __DIR__ . '/../jnt.php';
+        exit;
+    }
 }
 

@@ -27,7 +27,7 @@ interface Particle {
     <div #dot class="dot" aria-hidden="true"></div>
   `,
   styles: `
-    :host { position: fixed; inset: 0; pointer-events: none; z-index: 9999; }
+    :host { position: fixed; inset: 0; pointer-events: none; z-index: 999999; }
     .trail { position: absolute; inset: 0; width: 100%; height: 100%; }
     .dot, .ring {
       position: absolute; top: 0; left: 0; border-radius: 50%;

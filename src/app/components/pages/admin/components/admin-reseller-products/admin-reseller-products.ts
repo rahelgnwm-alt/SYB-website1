@@ -3,16 +3,27 @@ import {
   inject,
   signal,
   computed,
+  WritableSignal,
   ChangeDetectionStrategy,
 } from '@angular/core';
-import { CommonModule, DecimalPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ResellerService } from '../../../../../services/reseller.service';
 import { ResellerProduct } from '../../../../../models/reseller-product.model';
 
+export interface ResellerConfirmDialogState {
+  isOpen: boolean;
+  title: string;
+  message: string;
+  confirmLabel: string;
+  cancelLabel?: string;
+  isDanger?: boolean;
+  product?: ResellerProduct;
+  onConfirm: () => void;
+}
+
 @Component({
   selector: 'app-admin-reseller-products',
-  imports: [CommonModule, FormsModule, DecimalPipe],
+  imports: [FormsModule],
   templateUrl: './admin-reseller-products.html',
   styleUrl: './admin-reseller-products.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -20,6 +31,37 @@ import { ResellerProduct } from '../../../../../models/reseller-product.model';
 export class AdminResellerProductsComponent {
   readonly resellerService = inject(ResellerService);
   protected readonly Math = Math;
+
+  formatThousand(n: number | string | null | undefined): string {
+    if (n === null || n === undefined || n === '') return '';
+    const num = typeof n === 'number' ? Math.round(n) : parseInt(n.toString().replace(/\D/g, ''), 10);
+    if (isNaN(num)) return '';
+    return num.toLocaleString('id-ID');
+  }
+
+  parseThousand(val: string | number | null | undefined): number {
+    if (typeof val === 'number') return val;
+    if (!val) return 0;
+    const clean = val.toString().replace(/\D/g, '');
+    return clean ? parseInt(clean, 10) : 0;
+  }
+
+  handleNumericInput(
+    event: Event,
+    targetSignal: WritableSignal<number>,
+    fallbackValue = 0
+  ): void {
+    const input = event.target as HTMLInputElement;
+    const rawDigits = input.value.replace(/\D/g, '');
+    if (!rawDigits) {
+      targetSignal.set(fallbackValue);
+      input.value = '';
+      return;
+    }
+    const parsed = parseInt(rawDigits, 10);
+    targetSignal.set(parsed);
+    input.value = this.formatThousand(parsed);
+  }
 
   // Filter & Search
   readonly searchQuery = signal<string>('');
@@ -55,6 +97,38 @@ export class AdminResellerProductsComponent {
 
   // Toast
   readonly toastMessage = signal<string | null>(null);
+
+  // Custom Luxury Confirmation Dialog
+  readonly confirmDialog = signal<ResellerConfirmDialogState | null>(null);
+
+  openConfirm(options: {
+    title: string;
+    message: string;
+    confirmLabel?: string;
+    cancelLabel?: string;
+    isDanger?: boolean;
+    product?: ResellerProduct;
+    onConfirm: () => void;
+  }): void {
+    this.confirmDialog.set({
+      isOpen: true,
+      title: options.title,
+      message: options.message,
+      confirmLabel: options.confirmLabel || 'Ya, Lanjutkan',
+      cancelLabel: options.cancelLabel || 'Batal',
+      isDanger: options.isDanger ?? true,
+      product: options.product,
+      onConfirm: () => {
+        const action = options.onConfirm;
+        this.closeConfirm();
+        action();
+      },
+    });
+  }
+
+  closeConfirm(): void {
+    this.confirmDialog.set(null);
+  }
 
   // Category list
   readonly categories: Array<ResellerProduct['categoryLabel'] | 'Semua'> = [
@@ -246,7 +320,7 @@ export class AdminResellerProductsComponent {
 
   saveProduct(): void {
     if (!this.formTitle().trim()) {
-      alert('Mohon isi nama paket reseller!');
+      this.showToast('⚠️ Mohon isi nama paket reseller!');
       return;
     }
 
@@ -319,16 +393,31 @@ export class AdminResellerProductsComponent {
   }
 
   deleteProduct(p: ResellerProduct): void {
-    if (confirm(`Apakah Anda yakin ingin menghapus paket reseller "${p.title}"?`)) {
-      this.resellerService.deleteResellerProduct(p.id);
-      this.showToast(`Paket "${p.title}" telah dihapus.`);
-    }
+    this.openConfirm({
+      title: 'Hapus Paket Kemitraan Reseller?',
+      message: `Apakah Anda yakin ingin menghapus paket reseller "${p.title}"? Paket ini tidak akan dapat dipesan lagi oleh calon mitra toko.`,
+      confirmLabel: 'Ya, Hapus Paket',
+      cancelLabel: 'Batal',
+      isDanger: true,
+      product: p,
+      onConfirm: () => {
+        this.resellerService.deleteResellerProduct(p.id);
+        this.showToast(`Paket "${p.title}" telah dihapus.`);
+      }
+    });
   }
 
   resetToDefault(): void {
-    if (confirm('Kembalikan katalog paket reseller ke data awal pabrik?')) {
-      this.resellerService.resetToDefault();
-      this.showToast('Katalog paket reseller berhasil direset!');
-    }
+    this.openConfirm({
+      title: 'Kembalikan ke Data Awal Pabrik?',
+      message: 'Apakah Anda yakin ingin mengembalikan seluruh katalog paket reseller ke data bawaan pabrik SYB? Perubahan khusus yang telah dibuat akan diganti.',
+      confirmLabel: 'Ya, Reset Data',
+      cancelLabel: 'Batal',
+      isDanger: true,
+      onConfirm: () => {
+        this.resellerService.resetToDefault();
+        this.showToast('Katalog paket reseller berhasil direset!');
+      }
+    });
   }
 }

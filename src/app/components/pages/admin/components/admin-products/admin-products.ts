@@ -3,10 +3,22 @@ import { DecimalPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ProductService } from '../../../../../services/product.service';
 import { Product, ProductVariant } from '../../../../../models/product.model';
+import { MAX_PRODUCT_IMAGES, normalizeProductGallery, resolveImgUrl } from '../../../../../data';
+
+export interface ProductConfirmDialogState {
+  isOpen: boolean;
+  title: string;
+  message: string;
+  confirmLabel: string;
+  cancelLabel?: string;
+  isDanger?: boolean;
+  product?: Product;
+  onConfirm: () => void;
+}
 
 @Component({
   selector: 'app-admin-products',
-  imports: [DecimalPipe, FormsModule],
+  imports: [FormsModule],
   templateUrl: './admin-products.html',
   styleUrl: './admin-products.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -19,22 +31,8 @@ export class AdminProductsComponent {
   readonly searchProductQuery = signal<string>('');
   readonly productCategoryFilter = signal<string>('Semua');
   readonly productStatusFilter = signal<'All' | 'Active' | 'Draft'>('All');
-  readonly productStockFilter = signal<'All' | 'LowStock' | 'OutOfStock'>('All');
+  readonly productStockFilter = signal<'All' | 'LowStock' | 'OutOfStock' | 'PreOrder'>('All');
   readonly productSortBy = signal<'default' | 'price-asc' | 'price-desc' | 'stock-desc' | 'name'>('default');
-
-  // Pre-stocked authentic SYB beauty images
-  readonly availableImages = [
-    { name: 'Red Jelly Serum', path: 'products/red-jelly-serum.jpg' },
-    { name: 'AHA Body Toner', path: 'products/aha-body-toner.jpg' },
-    { name: 'Body Serum Booster', path: 'products/body-serum-booster.jpg' },
-    { name: 'Golden Egg Jelly Mask', path: 'products/golden-egg-mask.jpg' },
-    { name: 'Lip Cream Matte', path: 'products/lip-cream-matte.jpg' },
-    { name: 'Vitamin Lippy Oil', path: 'products/lippy-oil-serum.jpg' },
-    { name: 'Peeling Serum', path: 'products/peeling-serum.jpg' },
-    { name: 'Jelly Mask Cherry', path: 'products/jelly-mask.jpg' },
-    { name: 'Powder Mask Sakura', path: 'products/powder-mask.jpg' },
-    { name: 'Paket Glow 3in1', path: 'products/glow-fresh-bundle.jpg' }
-  ];
 
   // Quick preset templates for rapid product curation
   readonly beautyPresets = [
@@ -129,12 +127,14 @@ export class AdminProductsComponent {
   readonly isProductModalOpen = signal<boolean>(false);
   readonly modalMode = signal<'add' | 'edit'>('add');
   readonly editingProductId = signal<string | null>(null);
-  readonly activeStudioTab = signal<'all' | 'basic' | 'pricing' | 'media' | 'formula' | 'variants'>('all');
+  readonly activeStudioTab = signal<'all' | 'basic' | 'preorder' | 'pricing' | 'media' | 'formula' | 'variants'>('all');
   readonly isPreviewVisible = signal<boolean>(true);
 
-  // Uploaded Image State
-  readonly uploadedFileName = signal<string | null>(null);
+  // Product Media Upload State (up to 10 pictures per product)
+  readonly maxProductImages = MAX_PRODUCT_IMAGES;
   readonly isDraggingImage = signal<boolean>(false);
+  readonly draggedGalleryIndex = signal<number | null>(null);
+  readonly dragOverGalleryIndex = signal<number | null>(null);
 
   readonly suggestedIngredients = [
     'Niacinamide 10%',
@@ -172,6 +172,7 @@ export class AdminProductsComponent {
   formBpom = signal<string>('NA18230109999');
   formBadge = signal<string>('New Arrival ✦');
   formImage = signal<string>('products/red-jelly-serum.jpg');
+  formGallery = signal<string[]>([]);
   formAccentColor = signal<string>('#ff2a7a');
   formHeroTagline = signal<string>('Formula pencerah intensif teruji klinis!');
   formDescription = signal<string>('');
@@ -180,6 +181,10 @@ export class AdminProductsComponent {
   formHowToUse = signal<string[]>(['Teteskan 2-3 tetes ke seluruh wajah bersih', 'Gunakan teratur pagi dan malam hari']);
   formIsFeatured = signal<boolean>(false);
   formIsFlashSale = signal<boolean>(false);
+  formIsPreOrder = signal<boolean>(false);
+  formPreOrderDays = signal<number>(7);
+  formPreOrderNote = signal<string>('');
+  readonly maxPreOrderDaysLimit = 30;
   formVariants = signal<ProductVariant[]>([
     { id: 'v1', name: 'Regular Size 20ml', price: 35000, stock: 500, sku: 'SYB-REG-01' }
   ]);
@@ -191,6 +196,38 @@ export class AdminProductsComponent {
 
   // Toast
   readonly toastMessage = signal<string | null>(null);
+
+  // Custom Confirmation Popup Dialog
+  readonly confirmDialog = signal<ProductConfirmDialogState | null>(null);
+
+  openConfirm(options: {
+    title: string;
+    message: string;
+    confirmLabel?: string;
+    cancelLabel?: string;
+    isDanger?: boolean;
+    product?: Product;
+    onConfirm: () => void;
+  }): void {
+    this.confirmDialog.set({
+      isOpen: true,
+      title: options.title,
+      message: options.message,
+      confirmLabel: options.confirmLabel || 'Ya, Hapus Produk',
+      cancelLabel: options.cancelLabel || 'Batal',
+      isDanger: options.isDanger ?? true,
+      product: options.product,
+      onConfirm: () => {
+        const action = options.onConfirm;
+        this.closeConfirm();
+        action();
+      },
+    });
+  }
+
+  closeConfirm(): void {
+    this.confirmDialog.set(null);
+  }
 
   // Real-time calculations
   readonly discountPercent = computed(() => {
@@ -204,6 +241,7 @@ export class AdminProductsComponent {
   readonly totalProductsCount = computed(() => this.productService.products().length);
   readonly activeProductsCount = computed(() => this.productService.products().filter(p => p.status === 'Active').length);
   readonly lowStockProductsCount = computed(() => this.productService.products().filter(p => p.inventory < 500).length);
+  readonly preOrderProductsCount = computed(() => this.productService.products().filter(p => p.isPreOrder).length);
   readonly totalInventoryValue = computed(() =>
     this.productService.products().reduce((acc, p) => acc + (p.price * p.inventory), 0)
   );
@@ -231,6 +269,8 @@ export class AdminProductsComponent {
         matchStock = p.inventory > 0 && p.inventory < 500;
       } else if (stock === 'OutOfStock') {
         matchStock = p.inventory === 0;
+      } else if (stock === 'PreOrder') {
+        matchStock = Boolean(p.isPreOrder);
       }
 
       return matchStatus && matchCat && matchQuery && matchStock;
@@ -249,10 +289,85 @@ export class AdminProductsComponent {
     return filtered;
   });
 
-  getImgUrl(path?: string): string {
-    if (!path) return 'products/red-jelly-serum.jpg';
-    if (path.startsWith('http://') || path.startsWith('https://')) return path;
-    return path.replace(/^\//, '');
+  readonly getImgUrl = resolveImgUrl;
+
+  formatThousand(n: number | string | null | undefined): string {
+    if (n === null || n === undefined || n === '') return '';
+    const num = typeof n === 'number' ? Math.round(n) : parseInt(n.toString().replace(/\D/g, ''), 10);
+    if (isNaN(num)) return '';
+    return num.toLocaleString('id-ID');
+  }
+
+  parseThousand(val: string | number | null | undefined): number {
+    if (typeof val === 'number') return val;
+    if (!val) return 0;
+    const clean = val.toString().replace(/\D/g, '');
+    return clean ? parseInt(clean, 10) : 0;
+  }
+
+  handlePriceInput(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const rawDigits = input.value.replace(/\D/g, '');
+    if (!rawDigits) {
+      this.formPrice.set(0);
+      input.value = '';
+      return;
+    }
+    const parsed = parseInt(rawDigits, 10);
+    this.formPrice.set(parsed);
+    input.value = this.formatThousand(parsed);
+  }
+
+  handleOrigPriceInput(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const rawDigits = input.value.replace(/\D/g, '');
+    if (!rawDigits) {
+      this.formOrigPrice.set(0);
+      input.value = '';
+      return;
+    }
+    const parsed = parseInt(rawDigits, 10);
+    this.formOrigPrice.set(parsed);
+    input.value = this.formatThousand(parsed);
+  }
+
+  handleInventoryInput(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const rawDigits = input.value.replace(/\D/g, '');
+    if (!rawDigits) {
+      this.formInventory.set(0);
+      input.value = '';
+      return;
+    }
+    const parsed = parseInt(rawDigits, 10);
+    this.formInventory.set(parsed);
+    input.value = this.formatThousand(parsed);
+  }
+
+  handleVariantPriceInput(event: Event, variant: ProductVariant): void {
+    const input = event.target as HTMLInputElement;
+    const rawDigits = input.value.replace(/\D/g, '');
+    if (!rawDigits) {
+      variant.price = 0;
+      input.value = '';
+      return;
+    }
+    const parsed = parseInt(rawDigits, 10);
+    variant.price = parsed;
+    input.value = this.formatThousand(parsed);
+  }
+
+  handleVariantStockInput(event: Event, variant: ProductVariant): void {
+    const input = event.target as HTMLInputElement;
+    const rawDigits = input.value.replace(/\D/g, '');
+    if (!rawDigits) {
+      variant.stock = 0;
+      input.value = '';
+      return;
+    }
+    const parsed = parseInt(rawDigits, 10);
+    variant.stock = parsed;
+    input.value = this.formatThousand(parsed);
   }
 
   showToast(msg: string): void {
@@ -275,8 +390,7 @@ export class AdminProductsComponent {
     this.formSku.set(`SYB-${Math.floor(1000 + Math.random() * 9000)}`);
     this.formBpom.set('NA182301' + Math.floor(10000 + Math.random() * 90000));
     this.formBadge.set('New Arrival ✦');
-    this.formImage.set('products/red-jelly-serum.jpg');
-    this.uploadedFileName.set(null);
+    this.setFormGallery([]);
     this.formAccentColor.set('#ff0a6c');
     this.formHeroTagline.set('Formula pencerah kulit intensif teruji klinis!');
     this.formDescription.set('Diformulasikan lembut dengan konsentrat bahan aktif untuk hasil glowing maksimal.');
@@ -285,6 +399,9 @@ export class AdminProductsComponent {
     this.formHowToUse.set(['Teteskan 2-3 tetes ke wajah bersih', 'Gunakan teratur pagi dan malam hari']);
     this.formIsFeatured.set(false);
     this.formIsFlashSale.set(false);
+    this.formIsPreOrder.set(false);
+    this.formPreOrderDays.set(this.productService.defaultPreOrderDays());
+    this.formPreOrderNote.set('');
     this.formVariants.set([
       { id: 'v1', name: 'Regular Size 20ml', price: 35000, stock: 500, sku: 'SYB-REG-01' }
     ]);
@@ -308,8 +425,7 @@ export class AdminProductsComponent {
     this.formSku.set(prod.variants[0]?.sku || `SYB-${Math.floor(1000 + Math.random() * 9000)}`);
     this.formBpom.set(prod.bpomNumber || 'NA18230109999');
     this.formBadge.set(prod.badge || 'Best Seller ✦');
-    this.formImage.set(prod.image || 'products/red-jelly-serum.jpg');
-    this.uploadedFileName.set(prod.image?.startsWith('data:image') ? 'Foto Kustom Terunggah' : null);
+    this.setFormGallery(normalizeProductGallery(prod.image, prod.gallery));
     this.formAccentColor.set(prod.accentColor || '#ff0a6c');
     this.formHeroTagline.set(prod.heroTagline || prod.subtitle);
     this.formDescription.set(prod.description || prod.subtitle);
@@ -318,6 +434,9 @@ export class AdminProductsComponent {
     this.formHowToUse.set([...(prod.howToUse || ['Gunakan secara teratur setiap hari'])]);
     this.formIsFeatured.set(!!prod.isFeatured);
     this.formIsFlashSale.set(!!prod.isFlashSale);
+    this.formIsPreOrder.set(!!prod.isPreOrder);
+    this.formPreOrderDays.set(Math.max(1, Math.min(30, prod.preOrderDays || this.productService.defaultPreOrderDays())));
+    this.formPreOrderNote.set(prod.preOrderNote || '');
     this.formVariants.set(prod.variants?.length ? [...prod.variants] : [
       { id: 'v1', name: 'Regular Size', price: prod.price, stock: prod.inventory, sku: 'SYB-01' }
     ]);
@@ -335,7 +454,7 @@ export class AdminProductsComponent {
     this.formInventory.set(preset.inventory);
     this.formBpom.set(preset.bpom);
     this.formBadge.set(preset.badge);
-    this.formImage.set(preset.image);
+    this.setFormGallery([preset.image]);
     this.formAccentColor.set(preset.accentColor);
     this.formKeyIngredients.set([...preset.ingredients]);
     this.formBenefits.set([...preset.benefits]);
@@ -350,7 +469,7 @@ export class AdminProductsComponent {
 
   saveProduct(): void {
     if (!this.formTitle().trim()) {
-      alert('Mohon isi nama produk!');
+      this.showToast('⚠️ Mohon isi nama produk terlebih dahulu!');
       return;
     }
 
@@ -361,6 +480,9 @@ export class AdminProductsComponent {
     const inventory = Number(this.formInventory()) || 0;
     const catLabel = this.formCategoryLabel();
     const bpom = this.formBpom().trim();
+    const cleanedGallery = this.formGallery().filter(Boolean).slice(0, this.maxProductImages);
+    const finalGallery = cleanedGallery.length > 0 ? cleanedGallery : ['products/red-jelly-serum.jpg'];
+    const primaryImage = finalGallery[0];
 
     if (this.modalMode() === 'edit' && this.editingProductId()) {
       const existing = this.productService.products().find(p => p.id === this.editingProductId());
@@ -379,7 +501,8 @@ export class AdminProductsComponent {
           inventory,
           bpomNumber: bpom,
           badge: this.formBadge(),
-          image: this.formImage(),
+          image: primaryImage,
+          gallery: finalGallery,
           accentColor: this.formAccentColor(),
           heroTagline: this.formHeroTagline() || title,
           description: this.formDescription() || this.formSubtitle(),
@@ -388,6 +511,9 @@ export class AdminProductsComponent {
           howToUse: this.formHowToUse(),
           isFeatured: this.formIsFeatured(),
           isFlashSale: this.formIsFlashSale(),
+          isPreOrder: this.formIsPreOrder(),
+          preOrderDays: Math.max(1, Math.min(30, Math.round(Number(this.formPreOrderDays()) || 7))),
+          preOrderNote: this.formPreOrderNote().trim() || undefined,
           variants: this.formVariants().map((v, i) => ({
             ...v,
             price: i === 0 ? price : v.price,
@@ -432,7 +558,8 @@ export class AdminProductsComponent {
       badge: this.formBadge(),
       bpomNumber: bpom,
       accentColor: this.formAccentColor(),
-      image: this.formImage(),
+      image: primaryImage,
+      gallery: finalGallery,
       handle: title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, ''),
       heroTagline: this.formHeroTagline() || title,
       description: this.formDescription() || this.formSubtitle(),
@@ -440,7 +567,10 @@ export class AdminProductsComponent {
       keyIngredients: this.formKeyIngredients(),
       howToUse: this.formHowToUse(),
       isFeatured: this.formIsFeatured(),
-      isFlashSale: this.formIsFlashSale()
+      isFlashSale: this.formIsFlashSale(),
+      isPreOrder: this.formIsPreOrder(),
+      preOrderDays: Math.max(1, Math.min(30, Math.round(Number(this.formPreOrderDays()) || 7))),
+      preOrderNote: this.formPreOrderNote().trim() || undefined
     };
 
     this.productService.addProduct(newProd);
@@ -464,21 +594,19 @@ export class AdminProductsComponent {
   deleteProduct(id: string): void {
     const prod = this.productService.products().find(p => p.id === id);
     if (!prod) return;
-    if (confirm(`Apakah Anda yakin ingin menghapus produk "${prod.title}"?`)) {
-      this.productService.deleteProduct(id);
-      this.showToast(`Produk telah dihapus.`);
-    }
-  }
 
-  quickAdjustStock(prod: Product, delta: number): void {
-    const newStock = Math.max(0, prod.inventory + delta);
-    const updated: Product = {
-      ...prod,
-      inventory: newStock,
-      variants: prod.variants.map((v, i) => i === 0 ? { ...v, stock: newStock } : v)
-    };
-    this.productService.updateProduct(updated);
-    this.showToast(`Stok "${prod.title}" diupdate: ${newStock} pcs`);
+    this.openConfirm({
+      title: 'Hapus Produk dari Toko?',
+      message: `Apakah Anda yakin ingin menghapus "${prod.title}"? Tindakan ini akan menghapus produk secara permanen dari etalase toko dan database SQL.`,
+      confirmLabel: 'Ya, Hapus Produk',
+      cancelLabel: 'Batal',
+      isDanger: true,
+      product: prod,
+      onConfirm: () => {
+        this.productService.deleteProduct(id);
+        this.showToast(`Produk "${prod.title}" berhasil dihapus.`);
+      }
+    });
   }
 
   toggleProductStatus(prod: Product): void {
@@ -538,13 +666,13 @@ export class AdminProductsComponent {
 
   removeVariantItem(index: number): void {
     if (this.formVariants().length <= 1) {
-      alert('Produk harus memiliki setidaknya satu varian utama.');
+      this.showToast('⚠️ Produk harus memiliki setidaknya satu varian utama.');
       return;
     }
     this.formVariants.update(list => list.filter((_, i) => i !== index));
   }
 
-  setStudioTab(tab: 'all' | 'basic' | 'pricing' | 'media' | 'formula' | 'variants'): void {
+  setStudioTab(tab: 'all' | 'basic' | 'preorder' | 'pricing' | 'media' | 'formula' | 'variants'): void {
     this.activeStudioTab.set(tab);
   }
 
@@ -556,10 +684,120 @@ export class AdminProductsComponent {
     this.formInventory.update(curr => Math.max(0, curr + delta));
   }
 
+  onPreOrderDaysInput(value: number | string): void {
+    const parsed = Math.round(Number(value));
+    if (Number.isNaN(parsed) || parsed < 1) {
+      this.formPreOrderDays.set(1);
+      return;
+    }
+    this.formPreOrderDays.set(Math.min(30, parsed));
+  }
+
+  /** Sets normalized gallery list (max 10) and syncs primary cover `formImage`. */
+  setFormGallery(images: string[]): void {
+    const cleaned = normalizeProductGallery(undefined, images, this.maxProductImages);
+    this.formGallery.set(cleaned);
+    this.formImage.set(cleaned[0] || '');
+  }
+
+  /** Appends one or more image URLs/data URIs up to the 10-photo cap. */
+  addGalleryImages(newImages: string[]): number {
+    const current = this.formGallery();
+    const remaining = this.maxProductImages - current.length;
+    if (remaining <= 0) {
+      this.showToast(`⚠️ Maksimal ${this.maxProductImages} foto per produk telah tercapai.`);
+      return 0;
+    }
+
+    const existingSet = new Set(current);
+    const toAdd: string[] = [];
+    for (const raw of newImages) {
+      const val = (raw || '').trim();
+      if (!val || existingSet.has(val)) continue;
+      existingSet.add(val);
+      toAdd.push(val);
+      if (toAdd.length >= remaining) break;
+    }
+
+    if (toAdd.length > 0) {
+      this.setFormGallery([...current, ...toAdd]);
+    }
+    return toAdd.length;
+  }
+
+  reorderGalleryImage(fromIndex: number, toIndex: number): void {
+    const list = [...this.formGallery()];
+    if (
+      fromIndex === toIndex ||
+      fromIndex < 0 ||
+      fromIndex >= list.length ||
+      toIndex < 0 ||
+      toIndex >= list.length
+    ) {
+      return;
+    }
+    const [moved] = list.splice(fromIndex, 1);
+    list.splice(toIndex, 0, moved);
+    this.setFormGallery(list);
+    if (toIndex === 0) {
+      this.showToast('✓ Foto utama (Slot #1) berhasil diperbarui.');
+    }
+  }
+
+  onGalleryDragStart(event: DragEvent, index: number): void {
+    this.draggedGalleryIndex.set(index);
+    if (event.dataTransfer) {
+      event.dataTransfer.effectAllowed = 'move';
+      event.dataTransfer.setData('text/plain', String(index));
+    }
+  }
+
+  onGalleryDragOver(event: DragEvent, index: number): void {
+    if (this.draggedGalleryIndex() === null) return;
+    event.preventDefault();
+    if (event.dataTransfer) {
+      event.dataTransfer.dropEffect = 'move';
+    }
+    if (this.dragOverGalleryIndex() !== index) {
+      this.dragOverGalleryIndex.set(index);
+    }
+  }
+
+  onGalleryDragLeave(index: number): void {
+    if (this.dragOverGalleryIndex() === index) {
+      this.dragOverGalleryIndex.set(null);
+    }
+  }
+
+  onGalleryDrop(event: DragEvent, targetIndex: number): void {
+    event.preventDefault();
+    event.stopPropagation();
+    const raw = event.dataTransfer?.getData('text/plain');
+    const parsed = raw !== undefined && raw !== '' ? Number(raw) : NaN;
+    const fromIndex = this.draggedGalleryIndex() ?? (Number.isInteger(parsed) ? parsed : null);
+    this.draggedGalleryIndex.set(null);
+    this.dragOverGalleryIndex.set(null);
+    if (fromIndex !== null) {
+      this.reorderGalleryImage(fromIndex, targetIndex);
+    }
+  }
+
+  onGalleryDragEnd(): void {
+    this.draggedGalleryIndex.set(null);
+    this.dragOverGalleryIndex.set(null);
+  }
+
+  removeGalleryImage(index: number): void {
+    const list = this.formGallery();
+    if (index < 0 || index >= list.length) return;
+    this.setFormGallery(list.filter((_, i) => i !== index));
+    this.showToast('Foto telah dihapus dari galeri produk.');
+  }
+
   onFileSelected(event: Event): void {
     const input = event.target as HTMLInputElement;
-    if (input.files && input.files[0]) {
-      this.processImageFile(input.files[0]);
+    if (input.files && input.files.length > 0) {
+      void this.processImageFiles(Array.from(input.files));
       input.value = '';
     }
   }
@@ -567,12 +805,14 @@ export class AdminProductsComponent {
   onImageDrop(event: DragEvent): void {
     event.preventDefault();
     this.isDraggingImage.set(false);
-    if (event.dataTransfer?.files && event.dataTransfer.files[0]) {
-      this.processImageFile(event.dataTransfer.files[0]);
+    if (this.draggedGalleryIndex() !== null) return;
+    if (event.dataTransfer?.files && event.dataTransfer.files.length > 0) {
+      void this.processImageFiles(Array.from(event.dataTransfer.files));
     }
   }
 
   onImageDragOver(event: DragEvent): void {
+    if (this.draggedGalleryIndex() !== null) return;
     event.preventDefault();
     this.isDraggingImage.set(true);
   }
@@ -581,36 +821,94 @@ export class AdminProductsComponent {
     this.isDraggingImage.set(false);
   }
 
-  private processImageFile(file: File): void {
-    if (!file.type.startsWith('image/')) {
-      this.showToast('Format file harus berupa gambar (JPG, PNG, WEBP)');
+  private async processImageFiles(files: File[]): Promise<void> {
+    const remaining = this.maxProductImages - this.formGallery().length;
+    if (remaining <= 0) {
+      this.showToast(`⚠️ Maksimal ${this.maxProductImages} foto per produk telah tercapai.`);
       return;
     }
 
-    if (file.size > 5 * 1024 * 1024) {
-      this.showToast('Ukuran gambar maksimal 5 MB');
-      return;
+    const validFiles: File[] = [];
+    for (const file of files) {
+      if (!file.type.startsWith('image/')) {
+        this.showToast(`⚠️ "${file.name}" bukan file gambar (JPG, PNG, WEBP).`);
+        continue;
+      }
+      if (file.size > 5 * 1024 * 1024) {
+        this.showToast(`⚠️ Ukuran "${file.name}" melebihi batas 5 MB.`);
+        continue;
+      }
+      validFiles.push(file);
     }
 
-    const reader = new FileReader();
-    reader.onload = () => {
-      const result = reader.result as string;
-      this.formImage.set(result);
-      this.uploadedFileName.set(file.name);
-      this.showToast(`✓ Foto "${file.name}" berhasil diunggah ke website!`);
-    };
-    reader.readAsDataURL(file);
+    if (validFiles.length === 0) return;
+
+    const sliced = validFiles.slice(0, remaining);
+    const truncated = validFiles.length > remaining;
+
+    const dataUrls = await Promise.all(sliced.map((file) => this.readAndOptimizeImageFile(file)));
+    const addedCount = this.addGalleryImages(dataUrls.filter((u): u is string => Boolean(u)));
+
+    if (addedCount > 0) {
+      const limitNote = truncated ? ` (dibatasi maksimal ${this.maxProductImages} foto)` : '';
+      this.showToast(`✓ ${addedCount} foto ditambahkan (${this.formGallery().length}/${this.maxProductImages})${limitNote}`);
+    }
   }
 
-  removeUploadedImage(): void {
-    this.formImage.set('products/red-jelly-serum.jpg');
-    this.uploadedFileName.set(null);
-    this.showToast('Foto custom telah dihapus.');
-  }
+  private readAndOptimizeImageFile(file: File): Promise<string | null> {
+    return new Promise((resolve) => {
+      const reader = new FileReader();
+      reader.onerror = () => resolve(null);
+      reader.onload = () => {
+        const rawUrl = reader.result as string;
+        if (!rawUrl || file.size <= 350 * 1024 || typeof Image === 'undefined' || typeof document === 'undefined') {
+          resolve(rawUrl);
+          return;
+        }
 
-  selectOfficialImage(path: string): void {
-    this.formImage.set(path);
-    this.uploadedFileName.set(null);
+        let settled = false;
+        const finish = (val: string) => {
+          if (settled) return;
+          settled = true;
+          resolve(val);
+        };
+
+        const timer = setTimeout(() => finish(rawUrl), 1500);
+        const img = new Image();
+        img.onerror = () => {
+          clearTimeout(timer);
+          finish(rawUrl);
+        };
+        img.onload = () => {
+          clearTimeout(timer);
+          const maxDim = 1080;
+          let { width, height } = img;
+          if (!width || !height) {
+            finish(rawUrl);
+            return;
+          }
+          if (width > maxDim || height > maxDim) {
+            const scale = maxDim / Math.max(width, height);
+            width = Math.round(width * scale);
+            height = Math.round(height * scale);
+          }
+          const canvas = document.createElement('canvas');
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext('2d');
+          if (!ctx) {
+            finish(rawUrl);
+            return;
+          }
+          ctx.drawImage(img, 0, 0, width, height);
+          const outMime = file.type === 'image/png' ? 'image/png' : 'image/jpeg';
+          const compressed = canvas.toDataURL(outMime, 0.85);
+          finish(compressed.length < rawUrl.length ? compressed : rawUrl);
+        };
+        img.src = rawUrl;
+      };
+      reader.readAsDataURL(file);
+    });
   }
 
   onImgError(event: Event): void {

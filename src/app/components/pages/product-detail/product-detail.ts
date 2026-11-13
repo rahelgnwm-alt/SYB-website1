@@ -10,7 +10,7 @@ import { DecimalPipe } from '@angular/common';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { map } from 'rxjs';
-import { PRODUCTS, Product as DataProduct } from '../../../data';
+import { Product as DataProduct, calcDiscount, formatRupiah, normalizeProductGallery, resolveImgUrl } from '../../../data';
 import { Product, ProductVariant } from '../../../models/product.model';
 import { ProductService } from '../../../services/product.service';
 import { CartService } from '../../../services/cart.service';
@@ -53,6 +53,31 @@ export class ProductDetail {
   /** Selected variant (defaults to first variant when available) */
   protected readonly selectedVariant = signal<ProductVariant | null>(null);
 
+  /** Active image index inside product multi-photo gallery (0 = primary cover) */
+  protected readonly activeImageIndex = signal<number>(0);
+
+  /** True briefly while swapping main showcase photo */
+  protected readonly imageChanging = signal<boolean>(false);
+
+  /** Normalized multi-image gallery list (max 10 photos per product) */
+  protected readonly galleryImages = computed<string[]>(() => {
+    const p = this.product();
+    if (!p) return [];
+    const list = normalizeProductGallery(p.image, p.gallery);
+    return list.map((img) => resolveImgUrl(img));
+  });
+
+  /** Currently displayed image URL */
+  protected readonly activeImage = computed<string>(() => {
+    const imgs = this.galleryImages();
+    if (imgs.length === 0) {
+      const p = this.product();
+      return p?.image ? resolveImgUrl(p.image) : '';
+    }
+    const safeIdx = Math.min(Math.max(0, this.activeImageIndex()), imgs.length - 1);
+    return imgs[safeIdx];
+  });
+
   /** Quantity counter */
   protected readonly qty = signal<number>(1);
 
@@ -78,6 +103,12 @@ export class ProductDetail {
     const curr = this.currentPrice();
     if (!orig || orig <= curr) return 0;
     return Math.round(((orig - curr) / orig) * 100);
+  });
+
+  protected readonly estimatedShipDate = computed<string>(() => {
+    const p = this.product();
+    if (!p?.isPreOrder) return '';
+    return this.productService.getEstimatedShipDateLabel(p.preOrderDays || 7);
   });
 
   /** Real customer reviews */
@@ -122,18 +153,13 @@ export class ProductDetail {
   /** Related products recommendations */
   protected readonly related = computed<DataProduct[]>(() => {
     const curr = this.product();
-    const isLive = this.flashSaleService.isFlashSaleLive();
-    const liveMap = new Map(this.productService.products().map((p) => [p.id, p]));
-    return PRODUCTS.filter((p) => p.id !== curr?.id).slice(0, 4).map((p) => {
-      const live = liveMap.get(p.id);
-      return {
-        ...p,
-        price: live ? live.price : p.price,
-        compareAt: live?.originalPrice || p.compareAt,
-        isFlashSale: isLive && Boolean(live?.isFlashSale),
-      };
-    });
+    return this.productService.storefrontProducts()
+      .filter((p) => p.id !== curr?.id)
+      .slice(0, 4);
   });
+
+  protected readonly rupiah = formatRupiah;
+  protected readonly discount = calcDiscount;
 
   constructor() {
     // When product changes, smooth scroll to top and trigger silky-smooth transition
@@ -151,6 +177,7 @@ export class ProductDetail {
         this.selectedVariant.set(null);
       }
       this.qty.set(1);
+      this.activeImageIndex.set(0);
 
       setTimeout(() => {
         this.isTransitioning.set(false);
@@ -186,6 +213,9 @@ export class ProductDetail {
       badge: p.badge?.includes('Best') ? 'Best Seller' : p.badge?.includes('New') ? 'New' : undefined,
       handle: p.handle,
       tint: p.accentColor || '#ffe1ef',
+      isPreOrder: Boolean(p.isPreOrder),
+      preOrderDays: p.preOrderDays || 7,
+      preOrderNote: p.preOrderNote,
     };
 
     // Add specified quantity
@@ -205,12 +235,50 @@ export class ProductDetail {
     this.cart.add(p, e.currentTarget as HTMLElement);
   }
 
-  protected rupiah(n: number) {
-    return 'Rp' + Math.round(n).toLocaleString('id-ID');
+  private imageTouchStartX = 0;
+  private imageTouchStartY = 0;
+  private imageSwapTimer: ReturnType<typeof setTimeout> | null = null;
+
+  /** Switch main showcase image to a specific gallery index */
+  protected selectImage(index: number) {
+    const imgs = this.galleryImages();
+    if (imgs.length <= 1) return;
+    const nextIdx = (index + imgs.length) % imgs.length;
+    if (nextIdx === this.activeImageIndex()) return;
+    this.activeImageIndex.set(nextIdx);
+    this.triggerImageTransition();
   }
 
-  protected discount(p: DataProduct) {
-    return Math.round((1 - p.price / p.compareAt) * 100);
+  /** Show previous image in product gallery */
+  protected prevImage() {
+    this.selectImage(this.activeImageIndex() - 1);
+  }
+
+  /** Show next image in product gallery */
+  protected nextImage() {
+    this.selectImage(this.activeImageIndex() + 1);
+  }
+
+  private triggerImageTransition() {
+    this.imageChanging.set(true);
+    if (this.imageSwapTimer) {
+      clearTimeout(this.imageSwapTimer);
+    }
+    this.imageSwapTimer = setTimeout(() => {
+      this.imageChanging.set(false);
+    }, 260);
+  }
+
+  protected onImageTouchStart(e: TouchEvent) {
+    if (e.touches.length !== 1) return;
+    this.imageTouchStartX = e.touches[0].clientX;
+    this.imageTouchStartY = e.touches[0].clientY;
+  }
+
+  protected onImageTouchEnd(e: TouchEvent) {
+    const dir = this.detectHorizontalSwipe(this.imageTouchStartX, this.imageTouchStartY, e);
+    if (dir === -1) this.nextImage();
+    else if (dir === 1) this.prevImage();
   }
 
   protected onTabTouchStart(e: TouchEvent) {
@@ -220,16 +288,21 @@ export class ProductDetail {
   }
 
   protected onTabTouchEnd(e: TouchEvent) {
-    if (e.changedTouches.length !== 1) return;
-    const dx = e.changedTouches[0].clientX - this.touchStartX;
-    const dy = e.changedTouches[0].clientY - this.touchStartY;
-    if (Math.abs(dx) > 42 && Math.abs(dx) > Math.abs(dy) * 1.3) {
-      const idx = this.tabKeys.indexOf(this.activeTab());
-      if (dx < 0 && idx < this.tabKeys.length - 1) {
-        this.activeTab.set(this.tabKeys[idx + 1]);
-      } else if (dx > 0 && idx > 0) {
-        this.activeTab.set(this.tabKeys[idx - 1]);
-      }
+    const dir = this.detectHorizontalSwipe(this.touchStartX, this.touchStartY, e);
+    if (dir === 0) return;
+    const idx = this.tabKeys.indexOf(this.activeTab());
+    if (dir === -1 && idx < this.tabKeys.length - 1) {
+      this.activeTab.set(this.tabKeys[idx + 1]);
+    } else if (dir === 1 && idx > 0) {
+      this.activeTab.set(this.tabKeys[idx - 1]);
     }
+  }
+
+  private detectHorizontalSwipe(startX: number, startY: number, e: TouchEvent): -1 | 0 | 1 {
+    if (e.changedTouches.length !== 1) return 0;
+    const dx = e.changedTouches[0].clientX - startX;
+    const dy = e.changedTouches[0].clientY - startY;
+    if (Math.abs(dx) <= 42 || Math.abs(dx) <= Math.abs(dy) * 1.3) return 0;
+    return dx < 0 ? -1 : 1;
   }
 }

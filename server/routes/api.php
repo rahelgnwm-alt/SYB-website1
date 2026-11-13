@@ -18,8 +18,14 @@ require_once __DIR__ . '/../seed.php';
 function dispatchApiRequest(string $path, string $method): void {
     handleCors();
 
-    // Normalize path (strip prefix /api, /server/index.php, /server/api, etc.)
-    $path = preg_replace('#^/+(server/)?(index\.php/)?(api/)?#i', '', $path);
+    // Strip query string if present
+    $path = strtok($path, '?') ?: $path;
+
+    // Smart route normalization
+    // Handles: /SYB/server/index.php/api/..., /api/..., /server/index.php/..., /index.php/...
+    $path = preg_replace('#^.*?(?:/server)?(?:/index\.php)?/api/?#i', '', $path);
+    $path = preg_replace('#^.*?/server/index\.php/?#i', '', $path);
+    $path = preg_replace('#^.*?/index\.php/?#i', '', $path);
     $path = trim($path, '/');
 
     // Health check & ping
@@ -148,7 +154,7 @@ function dispatchApiRequest(string $path, string $method): void {
     }
 
     // ==========================================
-    // SHIPPING & JNE LOGISTICS
+    // SHIPPING, JNE & J&T LOGISTICS
     // ==========================================
     if ($path === 'shipping/origins' && $method === 'GET') {
         ShippingController::origins();
@@ -161,6 +167,18 @@ function dispatchApiRequest(string $path, string $method): void {
     }
     if (($path === 'shipping/generate-cnote' || $path === 'generatecnote') && $method === 'POST') {
         ShippingController::generateCnote();
+    }
+    if ($path === 'shipping/jnt/tariff' && in_array($method, ['POST', 'GET'])) {
+        ShippingController::jntTariff();
+    }
+    if ($path === 'shipping/jnt/order' && $method === 'POST') {
+        ShippingController::jntCreateOrder();
+    }
+    if ($path === 'shipping/jnt/track' && in_array($method, ['POST', 'GET'])) {
+        ShippingController::jntTrackOrder();
+    }
+    if ($path === 'shipping/jnt/cancel' && $method === 'POST') {
+        ShippingController::jntCancelOrder();
     }
 
     // ==========================================

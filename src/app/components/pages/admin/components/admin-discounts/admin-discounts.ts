@@ -5,16 +5,26 @@ import {
   inject,
   signal,
 } from '@angular/core';
-import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { ProductService } from '../../../../../services/product.service';
 import { Product } from '../../../../../models/product.model';
+import { calcAdminDiscountPercent, formatThousand, parseThousand, syncThousandInput } from '../../../../../data';
+
+export interface DiscountConfirmDialogState {
+  isOpen: boolean;
+  title: string;
+  message: string;
+  confirmLabel: string;
+  cancelLabel?: string;
+  isDanger?: boolean;
+  onConfirm: () => void;
+}
 
 @Component({
   selector: 'app-admin-discounts',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink],
+  imports: [FormsModule, RouterLink],
   templateUrl: './admin-discounts.html',
   styleUrl: './admin-discounts.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -38,6 +48,36 @@ export class AdminDiscountsComponent {
   // Feedback Toast
   readonly toastMessage = signal<string | null>(null);
   private toastTimer?: ReturnType<typeof setTimeout>;
+
+  // Custom Luxury Confirmation Popup Dialog
+  readonly confirmDialog = signal<DiscountConfirmDialogState | null>(null);
+
+  openConfirm(options: {
+    title: string;
+    message: string;
+    confirmLabel?: string;
+    cancelLabel?: string;
+    isDanger?: boolean;
+    onConfirm: () => void;
+  }): void {
+    this.confirmDialog.set({
+      isOpen: true,
+      title: options.title,
+      message: options.message,
+      confirmLabel: options.confirmLabel || 'Ya, Lanjutkan',
+      cancelLabel: options.cancelLabel || 'Batal',
+      isDanger: options.isDanger ?? true,
+      onConfirm: () => {
+        const action = options.onConfirm;
+        this.closeConfirm();
+        action();
+      },
+    });
+  }
+
+  closeConfirm(): void {
+    this.confirmDialog.set(null);
+  }
 
   // Category Options
   readonly categories = ['Semua', 'Wajah', 'Tubuh', 'Makeup', 'Paket Ritual'] as const;
@@ -121,12 +161,9 @@ export class AdminDiscountsComponent {
   });
 
   // Utility Calculations
-  calcDiscountPercent(p: Product): number {
-    if (!p.originalPrice || p.originalPrice <= 0) return 0;
-    const diff = p.originalPrice - p.price;
-    if (diff <= 0) return 0;
-    return Math.round((diff / p.originalPrice) * 100);
-  }
+  readonly calcDiscountPercent = calcAdminDiscountPercent;
+  readonly formatThousand = formatThousand;
+  readonly onFormatNumericInput = syncThousandInput;
 
   // Inline Discount Operations
   onDiscountPercentChange(product: Product, percentValue: number | string): void {
@@ -136,14 +173,14 @@ export class AdminDiscountsComponent {
   }
 
   onSalePriceChange(product: Product, priceValue: number | string): void {
-    const price = Math.max(0, Number(priceValue) || 0);
+    const price = Math.max(0, parseThousand(priceValue));
     this.productService.setProductPrices(product.id, price, product.originalPrice);
     const pct = this.calcDiscountPercent({ ...product, price });
     this.triggerToast(`Harga ${product.title} diubah ke Rp ${price.toLocaleString('id-ID')} (${pct}% OFF)`);
   }
 
   onOriginalPriceChange(product: Product, origValue: number | string): void {
-    const orig = Math.max(0, Number(origValue) || 0);
+    const orig = Math.max(0, parseThousand(origValue));
     this.productService.setProductPrices(product.id, product.price, orig);
     this.triggerToast(`Harga Asli ${product.title} diubah ke Rp ${orig.toLocaleString('id-ID')}`);
   }
@@ -168,10 +205,17 @@ export class AdminDiscountsComponent {
 
   resetBulk(): void {
     const cat = this.bulkTargetCategory();
-    if (confirm(`Apakah Anda yakin ingin menghapus semua diskon untuk kategori: ${cat}?`)) {
-      this.productService.resetDiscounts(cat);
-      this.triggerToast(`Semua diskon untuk kategori ${cat} telah direset.`);
-    }
+    this.openConfirm({
+      title: 'Reset Semua Diskon?',
+      message: `Apakah Anda yakin ingin menghapus semua diskon untuk kategori "${cat}"? Harga jual akan dikembalikan sama dengan harga normal.`,
+      confirmLabel: 'Ya, Reset Diskon',
+      cancelLabel: 'Batal',
+      isDanger: true,
+      onConfirm: () => {
+        this.productService.resetDiscounts(cat);
+        this.triggerToast(`Semua diskon untuk kategori ${cat} telah direset.`);
+      }
+    });
   }
 
   // Multi-Selection Actions

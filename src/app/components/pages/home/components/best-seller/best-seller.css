@@ -236,6 +236,29 @@
   background: var(--white);
 }
 
+.p-card__preorder {
+  position: absolute;
+  z-index: 4;
+  bottom: 16px;
+  left: 16px;
+  padding: 6px 13px;
+  border-radius: var(--radius-pill);
+  font-size: 10.5px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #ffffff;
+  background: linear-gradient(135deg, #6d28d9 0%, #9333ea 100%);
+  box-shadow: 0 6px 18px rgba(109, 40, 217, 0.45);
+}
+
+.p-card__po-note {
+  margin: -6px 0 12px;
+  font-size: 12px;
+  font-weight: 700;
+  color: #6d28d9;
+}
+
 .p-card__info {
   padding: 20px 6px 0;
 }

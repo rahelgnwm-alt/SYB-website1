@@ -5,13 +5,13 @@ import {
   inject,
   signal,
 } from '@angular/core';
-import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { ProductService } from '../../../../../services/product.service';
 import { TimeService } from '../../../../../services/time.service';
 import { FlashSaleService } from '../../../../../services/flash-sale.service';
 import { FlashSaleSession, Product } from '../../../../../models/product.model';
+import { calcAdminDiscountPercent, formatThousand, getTodayDateString, parseThousand, syncThousandInput } from '../../../../../data';
 
 export interface ConfirmDialogState {
   isOpen: boolean;
@@ -26,7 +26,7 @@ export interface ConfirmDialogState {
 @Component({
   selector: 'app-admin-flash-sale',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink],
+  imports: [FormsModule, RouterLink],
   templateUrl: './admin-flash-sale.html',
   styleUrl: './admin-flash-sale.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -46,9 +46,9 @@ export class AdminFlashSaleComponent {
   // New Session Creation Modal / Inline Form State
   readonly isCreatingSession = signal(false);
   readonly newSessionName = signal('');
-  readonly newSessionStartDate = signal(this.getTodayString(0));
+  readonly newSessionStartDate = signal(getTodayDateString(0));
   readonly newSessionStartTime = signal('12:00');
-  readonly newSessionEndDate = signal(this.getTodayString(0));
+  readonly newSessionEndDate = signal(getTodayDateString(0));
   readonly newSessionEndTime = signal('18:00');
   readonly newSessionTitle = signal('Flash sale berakhir dalam');
   readonly newSessionSubtitle = signal('Limited time offer');
@@ -101,18 +101,6 @@ export class AdminFlashSaleComponent {
   closeConfirm(): void {
     this.confirmDialog.set(null);
   }
-
-  // Preset End Hours
-  readonly hourPresets = [
-    { label: '12:00 WIB (Siang)', hour: 12, min: 0 },
-    { label: '15:00 WIB (Sore)', hour: 15, min: 0 },
-    { label: '18:00 WIB (Senja)', hour: 18, min: 0 },
-    { label: '21:00 WIB (Prime Time)', hour: 21, min: 0 },
-    { label: '23:59 WIB (Midnight)', hour: 24, min: 0 },
-  ];
-
-  // Duration Presets (Hours from now)
-  readonly durationPresets = [1, 2, 4, 8, 12, 24];
 
   // All Sessions list
   readonly sessions = computed(() => this.fsService.sessions());
@@ -351,9 +339,12 @@ export class AdminFlashSaleComponent {
     this.triggerToast(`Diskon ${product.title} diatur ke ${pct}% di sesi "${s.name}"`);
   }
 
+  readonly formatThousand = formatThousand;
+  readonly onFormatNumericInput = syncThousandInput;
+
   onPriceChange(product: Product, priceValue: number | string): void {
     const s = this.currentSelectedSession();
-    const price = Math.max(0, Number(priceValue) || 0);
+    const price = Math.max(0, parseThousand(priceValue));
     if (s) {
       this.fsService.updateProductInSession(s.id, product.id, undefined, price);
     }
@@ -364,12 +355,12 @@ export class AdminFlashSaleComponent {
 
   onQuotaChange(product: Product, quotaValue: number | string): void {
     const s = this.currentSelectedSession();
-    const quota = Math.max(1, Number(quotaValue) || 10);
+    const quota = Math.max(1, parseThousand(quotaValue) || 10);
     if (s) {
       this.fsService.updateProductInSession(s.id, product.id, undefined, undefined, quota);
     }
     this.productService.setProductFlashSale(product.id, true, undefined, undefined, quota);
-    this.triggerToast(`Alokasi kuota ${product.title} disetel ke ${quota} pcs`);
+    this.triggerToast(`Alokasi kuota ${product.title} disetel ke ${formatThousand(quota)} pcs`);
   }
 
   // Bulk Operations for Selected Session
@@ -425,28 +416,6 @@ export class AdminFlashSaleComponent {
     this.triggerToast(`Jam berakhir Flash Sale disetel ke ${label} WIB!`);
   }
 
-  applyHourPreset(hour: number, min: number): void {
-    this.selectedEndHour.set(hour);
-    this.selectedEndMinute.set(min);
-    const hourStr = String(hour === 24 ? 23 : hour).padStart(2, '0');
-    const minStr = String(hour === 24 ? 59 : min).padStart(2, '0');
-    this.editEndTime.set(`${hourStr}:${minStr}`);
-    this.time.setFlashSaleEndHour(hour, min);
-    this.saveSelectedSession();
-    this.triggerToast(`Jam berakhir disetel ke ${hour === 24 ? '23:59 (Midnight)' : hour + ':00'} WIB`);
-  }
-
-  applyDurationPreset(hours: number): void {
-    this.time.setFlashSaleDuration(hours);
-    const now = new Date();
-    const end = new Date(now.getTime() + hours * 3600 * 1000);
-    const endHourStr = String(end.getHours()).padStart(2, '0');
-    const endMinStr = String(end.getMinutes()).padStart(2, '0');
-    this.editEndTime.set(`${endHourStr}:${endMinStr}`);
-    this.saveSelectedSession();
-    this.triggerToast(`Durasi Flash Sale aktif selama ${hours} Jam (Berakhir pukul ${endHourStr}:${endMinStr} WIB)`);
-  }
-
   toggleMasterSwitch(): void {
     const nextState = !this.time.flashSaleConfig().isActive;
     this.fsService.setMasterActive(nextState);
@@ -462,27 +431,15 @@ export class AdminFlashSaleComponent {
     this.saveSelectedSession();
   }
 
-  calcDiscountPercent(p: Product): number {
-    if (!p.originalPrice || p.originalPrice <= 0) return 0;
-    const diff = p.originalPrice - p.price;
-    if (diff <= 0) return 0;
-    return Math.round((diff / p.originalPrice) * 100);
-  }
+  readonly calcDiscountPercent = calcAdminDiscountPercent;
 
   triggerToast(msg: string): void {
     this.toastMessage.set(msg);
     if (this.toastTimer) clearTimeout(this.toastTimer);
     this.toastTimer = setTimeout(() => {
-      this.toastMessage.set(null), 3200;
-    });
+      this.toastMessage.set(null);
+    }, 3200);
   }
 
-  private getTodayString(offsetDays = 0): string {
-    const d = new Date();
-    if (offsetDays !== 0) d.setDate(d.getDate() + offsetDays);
-    const y = d.getFullYear();
-    const m = String(d.getMonth() + 1).padStart(2, '0');
-    const day = String(d.getDate()).padStart(2, '0');
-    return `${y}-${m}-${day}`;
-  }
+  private readonly getTodayString = getTodayDateString;
 }

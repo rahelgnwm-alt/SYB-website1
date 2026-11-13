@@ -27,6 +27,8 @@ export interface OrderItem {
   quantity: number;
   price: number;
   image: string;
+  isPreOrder?: boolean;
+  preOrderDays?: number;
 }
 
 export interface ShopifyOrder {
@@ -56,6 +58,8 @@ export interface ShopifyOrder {
   trackingNumber: string;
   weightGrams: number;
   notes?: string;
+  hasPreOrder?: boolean;
+  maxPreOrderDays?: number;
 }
 
 export interface TrackingMilestone {

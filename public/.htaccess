@@ -1,0 +1,16 @@
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+  RewriteBase /
+
+  # Route API requests to PHP REST API Gateway
+  RewriteRule ^api/(.*)$ server/index.php [QSA,L]
+
+  # Do not rewrite existing files or directories (images, JS, CSS, /api)
+  RewriteCond %{REQUEST_FILENAME} -f [OR]
+  RewriteCond %{REQUEST_FILENAME} -d
+  RewriteRule ^ - [L]
+
+  # Route all Angular SPA paths back to index.html
+  RewriteRule ^ index.html [L]
+</IfModule>
+

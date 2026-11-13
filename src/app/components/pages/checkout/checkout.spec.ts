@@ -66,7 +66,24 @@ describe('CheckoutComponent', () => {
     expect((component as any).phone()).toBe('081298412933');
   });
 
+  it('should block placing order while checkoutEnabled is false', async () => {
+    const cartService = TestBed.inject(CartService);
+    cartService.checkoutEnabled.set(false);
+    (component as any).lastName.set('Rahmadani');
+    (component as any).address.set('Jl. Senopati No. 42');
+    (component as any).city.set('Surabaya');
+    (component as any).postalCode.set('60241');
+    (component as any).phone.set('081234567890');
+
+    await (component as any).placeOrder();
+
+    expect((component as any).completedOrder()).toBeNull();
+    expect((component as any).errorMessage()).toContain('sementara dinonaktifkan');
+  });
+
   it('should update profile address when updateProfileAddress is true and order is placed', async () => {
+    const cartService = TestBed.inject(CartService);
+    cartService.checkoutEnabled.set(true);
     authService.currentUser.set({
       id: 'usr_test2',
       username: 'kezia',

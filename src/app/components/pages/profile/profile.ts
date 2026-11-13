@@ -4,6 +4,7 @@ import { AuthService, UserSession } from '../../../services/auth.service';
 import { ShippingService } from '../../../services/shipping.service';
 import { ShopifyOrder } from '../../../models/shipping.model';
 import { CartService } from '../../../services/cart.service';
+import { formatRupiah, resolveImgUrl } from '../../../data';
 
 interface VoucherItem {
   code: string;
@@ -97,16 +98,10 @@ export class ProfileComponent {
   });
 
   getImgUrl(path: string | undefined): string {
-    if (!path) return 'images/logo.png';
-    if (path.startsWith('http://') || path.startsWith('https://')) {
-      return path;
-    }
-    return path.replace(/^\//, '');
+    return resolveImgUrl(path, 'images/logo.png');
   }
 
-  rupiah(val: number): string {
-    return 'Rp' + Math.round(val).toLocaleString('id-ID');
-  }
+  readonly rupiah = formatRupiah;
 
   showToast(msg: string): void {
     if (this.toastTimer) clearTimeout(this.toastTimer);

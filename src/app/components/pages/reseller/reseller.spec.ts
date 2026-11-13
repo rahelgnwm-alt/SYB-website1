@@ -34,7 +34,7 @@ describe('ResellerComponent', () => {
   it('should generate valid WhatsApp link with prefilled message', () => {
     const prod = component.products()[0];
     const link = component.getWhatsAppLink(prod);
-    expect(link).toContain('https://wa.me/6281333369909');
+    expect(link).toContain('https://wa.me/6281216801809');
     expect(link).toContain('reseller');
   });
 });

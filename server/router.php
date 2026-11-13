@@ -17,3 +17,4 @@ if ($uri !== '/' && file_exists($filePath) && !is_dir($filePath)) {
 
 // Forward all API requests to index.php
 require_once __DIR__ . '/index.php';
+

@@ -2,13 +2,13 @@ import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@a
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { MagneticDirective, RevealDirective, TiltDirective } from '../../../directives';
-import { PRODUCTS, Product, SHOP_URL, productUrl } from '../../../data';
+import { Product, calcDiscount, formatRupiah } from '../../../data';
 import { CartService } from '../../../services/cart.service';
 import { ProductService } from '../../../services/product.service';
 import { FlashSaleService } from '../../../services/flash-sale.service';
 
 type Sort = 'featured' | 'price-asc' | 'price-desc' | 'discount';
-type Filter = 'all' | 'Flash Sale' | 'Best Seller' | 'New' | 'Bundling';
+type Filter = 'all' | 'Flash Sale' | 'Pre-Order' | 'Best Seller' | 'New' | 'Bundling';
 
 /** All products (route: "/products"). */
 @Component({
@@ -24,13 +24,16 @@ export class Products {
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   protected readonly cart = inject(CartService);
-  protected readonly productUrl = productUrl;
-  protected readonly shopUrl = SHOP_URL;
+  protected readonly rupiah = formatRupiah;
+  protected readonly discount = calcDiscount;
 
   protected readonly filters = computed<{ key: Filter; label: string }[]>(() => {
     const list: { key: Filter; label: string }[] = [{ key: 'all', label: 'Semua' }];
     if (this.flashSaleService.isFlashSaleLive()) {
       list.push({ key: 'Flash Sale', label: '⚡ Flash Sale' });
+    }
+    if (this.productService.preOrderProducts().length > 0) {
+      list.push({ key: 'Pre-Order', label: '⏳ Pre-Order' });
     }
     list.push(
       { key: 'Best Seller', label: 'Best Seller' },
@@ -59,6 +62,8 @@ export class Products {
       const norm = f.toString().toLowerCase().replace(/[\s-_]/g, '');
       if (norm === 'flashsale') {
         this.filter.set('Flash Sale');
+      } else if (norm === 'preorder' || norm === 'po') {
+        this.filter.set('Pre-Order');
       } else if (norm === 'bestseller') {
         this.filter.set('Best Seller');
       } else if (norm === 'new') {
@@ -86,39 +91,17 @@ export class Products {
     const q = this.query().trim().toLowerCase();
     const isLive = this.flashSaleService.isFlashSaleLive();
     const f = (this.filter() === 'Flash Sale' && !isLive) ? 'all' : this.filter();
-    const liveMap = new Map(this.productService.products().map((p) => [p.id, p]));
 
-    let list = PRODUCTS.map((p) => {
-      const live = liveMap.get(p.id);
-      if (!live) return { ...p, isFlashSale: false };
-      return {
-        ...p,
-        price: live.price,
-        compareAt: live.originalPrice || p.compareAt,
-        isFlashSale: isLive && Boolean(live.isFlashSale),
-      };
-    });
-
-    const staticIds = new Set(PRODUCTS.map((p) => p.id));
-    for (const p of this.productService.products()) {
-      if (!staticIds.has(p.id) && p.status === 'Active') {
-        list.push({
-          id: p.id,
-          name: p.title,
-          tagline: p.subtitle,
-          price: p.price,
-          compareAt: p.originalPrice,
-          badge: (p.badge?.replace(' ✦', '') || '') as any,
-          image: p.image,
-          tint: 'rgba(255, 10, 108, 0.08)',
-          isFlashSale: isLive && Boolean(p.isFlashSale),
-        } as any);
-      }
-    }
+    const list = this.productService.storefrontProducts();
 
     let filtered = list.filter(
       (p: any) =>
-        (f === 'all' || (f === 'Flash Sale' ? p.isFlashSale : p.badge === f)) &&
+        (f === 'all' ||
+          (f === 'Flash Sale'
+            ? p.isFlashSale
+            : f === 'Pre-Order'
+              ? p.isPreOrder
+              : p.badge === f)) &&
         (!q || p.name.toLowerCase().includes(q) || p.tagline.toLowerCase().includes(q)),
     );
 
@@ -146,13 +129,5 @@ export class Products {
     this.query.set('');
     this.setFilter('all');
     this.sort.set('featured');
-  }
-
-  protected rupiah(n: number) {
-    return 'Rp' + Math.round(n).toLocaleString('id-ID');
-  }
-
-  protected discount(p: Product) {
-    return Math.round((1 - p.price / p.compareAt) * 100);
   }
 }

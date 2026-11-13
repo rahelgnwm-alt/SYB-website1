@@ -7,7 +7,7 @@ import {
 } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { MagneticDirective } from '../../../../../directives';
-import { PLACES, SHOP_URL } from '../../../../../data';
+import { PLACES } from '../../../../../data';
 import { TimeService } from '../../../../../services/time.service';
 
 @Component({
@@ -19,7 +19,6 @@ import { TimeService } from '../../../../../services/time.service';
 })
 export class Hero {
   protected readonly time = inject(TimeService);
-  protected readonly shopUrl = SHOP_URL;
   protected readonly places = PLACES;
   protected readonly placeIndex = signal(0);
 

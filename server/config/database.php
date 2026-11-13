@@ -75,6 +75,22 @@ function ensureDatabaseTablesExist(PDO $pdo, string $driver): void {
                 $pdo->exec($stmt);
             }
         }
+
+        // Ensure pre-order columns exist on older initialized databases
+        $migrations = [
+            "ALTER TABLE products ADD COLUMN is_pre_order TINYINT(1) NOT NULL DEFAULT 0",
+            "ALTER TABLE products ADD COLUMN pre_order_days INT NOT NULL DEFAULT 7",
+            "ALTER TABLE products ADD COLUMN pre_order_note VARCHAR(255) DEFAULT NULL",
+            "ALTER TABLE order_items ADD COLUMN is_pre_order TINYINT(1) NOT NULL DEFAULT 0",
+            "ALTER TABLE order_items ADD COLUMN pre_order_days INT DEFAULT NULL",
+        ];
+        foreach ($migrations as $mig) {
+            try {
+                $pdo->exec($mig);
+            } catch (Exception $ignored) {
+                // Column already exists
+            }
+        }
     } catch (Exception $e) {
         error_log('[SYB Schema Init Error] ' . $e->getMessage());
     }

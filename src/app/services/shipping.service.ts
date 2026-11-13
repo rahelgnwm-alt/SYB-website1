@@ -208,6 +208,62 @@ export class ShippingService {
       serviceName: 'J&T EZ Express',
       trackingNumber: 'JT77391029481',
       weightGrams: 300
+    },
+    {
+      id: 'ord-1007',
+      orderNumber: '#SYB-10827',
+      createdAt: '28 Okt 2026, 15:42',
+      customerName: 'Nadia Safitri',
+      customerEmail: 'nadia.s@gmail.com',
+      customerPhone: '081388271920',
+      shippingAddress: {
+        street: 'Jl. Kemang Raya No. 18',
+        city: 'Jakarta Selatan',
+        province: 'DKI Jakarta',
+        postalCode: '12730'
+      },
+      items: [
+        { productId: 'aha-body-toner', title: 'AHA Skinboost Body Toner', variantName: 'Standard 250ml', quantity: 2, price: 46060, image: 'products/aha-body-toner.jpg' }
+      ],
+      subtotal: 92120,
+      shippingCost: 15000,
+      discount: 0,
+      total: 107120,
+      paymentStatus: 'Paid',
+      fulfillmentStatus: 'Unfulfilled',
+      isLabelPrinted: false,
+      courier: 'J&T',
+      serviceName: 'J&T EZ Regular',
+      trackingNumber: 'JT-PENDING',
+      weightGrams: 500
+    },
+    {
+      id: 'ord-1008',
+      orderNumber: '#SYB-10828',
+      createdAt: '28 Okt 2026, 16:05',
+      customerName: 'Riska Amelia',
+      customerEmail: 'riska.amelia@gmail.com',
+      customerPhone: '082291028374',
+      shippingAddress: {
+        street: 'Jl. Dago Pakar No. 7',
+        city: 'Kota Bandung',
+        province: 'Jawa Barat',
+        postalCode: '40198'
+      },
+      items: [
+        { productId: 'red-jelly-serum', title: 'FORTE Red Jelly Serum', variantName: '20ml Regular Glass Bottle', quantity: 3, price: 22325, image: 'products/red-jelly-serum.jpg' }
+      ],
+      subtotal: 66975,
+      shippingCost: 16000,
+      discount: 0,
+      total: 82975,
+      paymentStatus: 'Paid',
+      fulfillmentStatus: 'Unfulfilled',
+      isLabelPrinted: false,
+      courier: 'JNE',
+      serviceName: 'JNE Reguler (REG)',
+      trackingNumber: 'JNE-PENDING',
+      weightGrams: 600
     }
   ];
 
@@ -292,10 +348,24 @@ export class ShippingService {
               isLabelPrinted: printed
             };
           });
+          const existingIds = new Set(sanitized.map((o) => o.id));
+          for (const initOrd of this.initialOrders) {
+            if (!existingIds.has(initOrd.id)) {
+              sanitized.push(initOrd);
+            }
+          }
           this.orders.set(sanitized);
         }
       }
     } catch {}
+  }
+
+  needsAwbOrPrint(ord: ShopifyOrder): boolean {
+    return (
+      !ord.isLabelPrinted ||
+      !ord.trackingNumber ||
+      ord.trackingNumber.toUpperCase().includes('PENDING')
+    );
   }
 
   private persist(): void {
@@ -377,15 +447,16 @@ export class ShippingService {
     this.persist();
   }
 
-  applyAwbToOrder(orderId: string, trackingNumber: string, isAutoAdvance: boolean = true): void {
+  applyAwbToOrder(orderId: string, trackingNumber: string, isAutoAdvance: boolean = true, courier?: CourierCode): void {
     const trimmed = trackingNumber.trim();
+    const resolvedCourier: CourierCode = courier || (trimmed.toUpperCase().startsWith('JT') ? 'J&T' : 'JNE');
     this.orders.update((list) =>
       list.map((o) => {
         if (o.id === orderId) {
           return {
             ...o,
             trackingNumber: trimmed,
-            courier: 'JNE',
+            courier: resolvedCourier,
             isLabelPrinted: isAutoAdvance ? true : o.isLabelPrinted,
             labelPrintedAt: isAutoAdvance
               ? (o.labelPrintedAt || new Date().toLocaleString('id-ID', { dateStyle: 'medium', timeStyle: 'short' }))
@@ -425,25 +496,38 @@ export class ShippingService {
     const isReady = order.fulfillmentStatus === 'Ready to Ship';
     const isShipped = order.fulfillmentStatus === 'Shipped';
     const isDelivered = order.fulfillmentStatus === 'Delivered';
+    const poDays = order.maxPreOrderDays || 7;
 
     return [
       {
-        title: 'Pesanan Diterima & Terverifikasi',
+        title: order.hasPreOrder
+          ? `Pesanan Pre-Order Diterima (±${poDays} Hari Proses)`
+          : 'Pesanan Diterima & Terverifikasi',
         location: 'SYB Surabaya E-Commerce Hub',
         time: order.createdAt,
-        description: `Pembayaran ${order.paymentStatus} via Gateway Resmi. Item siap dikemas di gudang.`,
+        description: order.hasPreOrder
+          ? `Pembayaran ${order.paymentStatus} terverifikasi. Pesanan berisi produk Pre-Order yang membutuhkan waktu penyiapan ±${poDays} hari (lebih lama dari produk Ready Stock) sebelum diserahkan ke kurir.`
+          : `Pembayaran ${order.paymentStatus} via Gateway Resmi. Item siap dikemas di gudang.`,
         status: 'completed'
       },
       {
         title: isUnprinted
-          ? 'Menunggu Cetak Resi (Belum Dicetak)'
+          ? order.hasPreOrder
+            ? `Fase Penyiapan Produk Pre-Order (±${poDays} Hari)`
+            : 'Menunggu Cetak Resi (Belum Dicetak)'
           : isPacking
           ? 'Resi Telah Dicetak — Fase Pengemasan (Packing)'
           : 'Pesanan Selesai Dikemas & Diberi Resi',
         location: 'Gudang Ekspedisi SYB - Rungkut Industri Surabaya',
-        time: isUnprinted ? 'Menunggu Cetak Label' : (order.labelPrintedAt || '28 Okt 2026, 12:45 WIB'),
+        time: isUnprinted
+          ? order.hasPreOrder
+            ? `Estimasi Proses ±${poDays} Hari`
+            : 'Menunggu Cetak Label'
+          : (order.labelPrintedAt || '28 Okt 2026, 12:45 WIB'),
         description: isUnprinted
-          ? 'Pesanan terverifikasi. Menunggu staf gudang mencetak label resi ekspedisi.'
+          ? order.hasPreOrder
+            ? `Produk Pre-Order sedang dalam antrean produksi/alokasi stok ±${poDays} hari sebelum resi ekspedisi dicetak.`
+            : 'Pesanan terverifikasi. Menunggu staf gudang mencetak label resi ekspedisi.'
           : isPacking
           ? `Resi resmi ${order.courier} (${order.trackingNumber}) telah dicetak. Staf gudang sedang mengemas produk dengan bubble wrap.`
           : `Resi resmi ${order.courier} (${order.trackingNumber}) tertempel rapi pada kardus pengiriman.`,

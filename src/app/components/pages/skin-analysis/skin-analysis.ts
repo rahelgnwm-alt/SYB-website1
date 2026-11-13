@@ -1,5 +1,5 @@
-import { Component, ElementRef, OnDestroy, OnInit, ViewChild, inject, signal } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { ChangeDetectionStrategy, Component, ElementRef, OnDestroy, OnInit, ViewChild, inject, signal } from '@angular/core';
+import { DecimalPipe } from '@angular/common';
 import { Router, RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { CartService } from '../../../services/cart.service';
@@ -18,9 +18,10 @@ import { Product } from '../../../data';
 @Component({
   selector: 'app-skin-analysis',
   standalone: true,
-  imports: [CommonModule, RouterLink, FormsModule],
+  imports: [DecimalPipe, RouterLink, FormsModule],
   templateUrl: './skin-analysis.html',
-  styleUrl: './skin-analysis.css'
+  styleUrl: './skin-analysis.css',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class SkinAnalysisComponent implements OnInit, OnDestroy {
   readonly analysisService = inject(SkinAnalysisService);

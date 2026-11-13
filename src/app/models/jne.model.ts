@@ -103,6 +103,7 @@ export interface JneTariffResponse {
 }
 
 export interface JneTariffOption {
+  courier?: 'JNE' | 'J&T';
   serviceCode: string;
   serviceDisplay: string;
   serviceName: string;

@@ -30,7 +30,7 @@
   </div>
 
   <div class="ritual__panels container">
-    @for (r of rituals; track r.key; let i = $index) {
+    @for (r of rituals(); track r.key; let i = $index) {
       <article
         class="r-panel r-panel--{{ r.key }}"
         [class.is-now]="time.ritualNow() === r.key"

@@ -1,12 +1,14 @@
 import { describe, it, expect, beforeEach } from 'vitest';
-import { TestBed } from '@angular/core/testing';
+import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
+import { provideHttpClient } from '@angular/common/http';
 import { AdminFlashSaleComponent } from './admin-flash-sale';
 import { ProductService } from '../../../../../services/product.service';
 import { TimeService } from '../../../../../services/time.service';
 import { FlashSaleService } from '../../../../../services/flash-sale.service';
 
 describe('AdminFlashSaleComponent', () => {
+  let fixture: ComponentFixture<AdminFlashSaleComponent>;
   let component: AdminFlashSaleComponent;
   let productService: ProductService;
   let timeService: TimeService;
@@ -16,12 +18,71 @@ describe('AdminFlashSaleComponent', () => {
     localStorage.clear();
     await TestBed.configureTestingModule({
       imports: [AdminFlashSaleComponent],
-      providers: [provideRouter([]), ProductService, TimeService, FlashSaleService],
+      providers: [provideRouter([]), provideHttpClient(), ProductService, TimeService, FlashSaleService],
     }).compileComponents();
 
-    const fixture = TestBed.createComponent(AdminFlashSaleComponent);
-    component = fixture.componentInstance;
     productService = TestBed.inject(ProductService);
+    productService.products.set([
+      {
+        id: 'red-jelly-serum',
+        title: 'FORTE Red Jelly Serum',
+        subtitle: 'Niacinamide 10%',
+        category: 'Kecantikan/Perawatan Wajah',
+        categoryLabel: 'Wajah',
+        productType: 'Serum',
+        status: 'Active',
+        inventory: 100,
+        variantsCount: 0,
+        variants: [],
+        channels: 4,
+        catalogs: 2,
+        price: 22325,
+        originalPrice: 47500,
+        rating: 4.9,
+        reviewsCount: 1420,
+        bpomNumber: 'NA18210103429',
+        accentColor: '#ff2a7a',
+        image: 'products/red-jelly-serum.jpg',
+        handle: 'red-jelly-serum',
+        heroTagline: 'Serum pencerah',
+        description: 'Serum legendaris',
+        benefits: [],
+        keyIngredients: [],
+        howToUse: [],
+        isFlashSale: false
+      },
+      {
+        id: 'aha-body-toner',
+        title: 'AHA Skinboost Body Toner',
+        subtitle: 'Glycolic Acid',
+        category: 'Perawatan Tubuh/Perawatan Kulit',
+        categoryLabel: 'Tubuh',
+        productType: 'Body Toner',
+        status: 'Active',
+        inventory: 100,
+        variantsCount: 0,
+        variants: [],
+        channels: 4,
+        catalogs: 2,
+        price: 46060,
+        originalPrice: 98000,
+        rating: 4.9,
+        reviewsCount: 1420,
+        bpomNumber: 'NA18210103429',
+        accentColor: '#ff2a7a',
+        image: 'products/aha-body-toner.jpg',
+        handle: 'aha-body-toner',
+        heroTagline: 'Glycolic Acid',
+        description: 'Body toner',
+        benefits: [],
+        keyIngredients: [],
+        howToUse: [],
+        isFlashSale: false
+      }
+    ]);
+
+    fixture = TestBed.createComponent(AdminFlashSaleComponent);
+    component = fixture.componentInstance;
     timeService = TestBed.inject(TimeService);
     flashSaleService = TestBed.inject(FlashSaleService);
   });
@@ -118,5 +179,23 @@ describe('AdminFlashSaleComponent', () => {
     // Cancel closes popup
     component.closeConfirm();
     expect(component.confirmDialog()).toBeNull();
+  });
+
+  it('should not render preset end hour or duration quick-add blocks in Flash Sale management', () => {
+    fixture.detectChanges();
+    expect(fixture.nativeElement.querySelector('.schedule-presets-block')).toBeNull();
+    expect(fixture.nativeElement.querySelector('.duration-block')).toBeNull();
+    expect(fixture.nativeElement.textContent).not.toContain('Preset Jam Selesai Cepat');
+    expect(fixture.nativeElement.textContent).not.toContain('Atau Tambah Durasi dari Sekarang');
+  });
+
+  it('should accept thousand-separator formatted strings for flash sale price and quota', () => {
+    const product = productService.products()[0];
+    component.onPriceChange(product, '25.000');
+    component.onQuotaChange(product, '1.500');
+
+    const updated = productService.products().find((p) => p.id === product.id);
+    expect(updated?.price).toBe(25000);
+    expect(updated?.flashSaleQuota).toBe(1500);
   });
 });

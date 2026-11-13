@@ -1,24 +1,13 @@
 import { Injectable, computed, effect, inject, signal, untracked } from '@angular/core';
 import { FlashSaleItem, FlashSaleSession } from '../models/product.model';
+import { getTodayDateString } from '../data';
 import { ProductService } from './product.service';
 
 const SESSIONS_STORAGE_KEY = 'syb_flash_sale_sessions';
 const SELECTED_SESSION_KEY = 'syb_selected_fs_session';
 const MASTER_ACTIVE_KEY = 'syb_fs_master_active';
 
-/**
- * Helper to get today's date formatted as YYYY-MM-DD
- */
-function getTodayString(offsetDays = 0): string {
-  const d = new Date();
-  if (offsetDays !== 0) {
-    d.setDate(d.getDate() + offsetDays);
-  }
-  const year = d.getFullYear();
-  const month = String(d.getMonth() + 1).padStart(2, '0');
-  const day = String(d.getDate()).padStart(2, '0');
-  return `${year}-${month}-${day}`;
-}
+const getTodayString = getTodayDateString;
 
 const DEFAULT_SESSIONS: FlashSaleSession[] = [
   {
@@ -105,27 +94,18 @@ export class FlashSaleService {
     if (list.length === 0) return null;
 
     const now = this.currentTime();
+    const isRunning = (s: FlashSaleSession) =>
+      now >= new Date(`${s.startDate}T${s.startTime}:00`) &&
+      now <= new Date(`${s.endDate}T${s.endTime}:00`);
 
     // 1. Check if the currently selected session is running right now and not empty
     const selected = list.find((s) => s.id === this.selectedSessionId());
-    if (selected) {
-      const start = new Date(`${selected.startDate}T${selected.startTime}:00`);
-      const end = new Date(`${selected.endDate}T${selected.endTime}:00`);
-      if (now >= start && now <= end) {
-        return selected;
-      }
+    if (selected && isRunning(selected)) {
+      return selected;
     }
 
     // 2. Check any other active session that is running right now
-    for (const s of list) {
-      const start = new Date(`${s.startDate}T${s.startTime}:00`);
-      const end = new Date(`${s.endDate}T${s.endTime}:00`);
-      if (now >= start && now <= end) {
-        return s;
-      }
-    }
-
-    return null;
+    return list.find(isRunning) ?? null;
   });
 
   /**
@@ -151,7 +131,7 @@ export class FlashSaleService {
       untracked(() => {
         this.productService.syncFlashSaleItems(items);
       });
-    }, { allowSignalWrites: true });
+    });
   }
 
   private loadMasterActive(): boolean {

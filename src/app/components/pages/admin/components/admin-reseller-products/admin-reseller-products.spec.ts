@@ -55,4 +55,28 @@ describe('AdminResellerProductsComponent', () => {
     expect(component.formTitle()).toBe(prod.title);
     expect(component.formWholesalePrice()).toBe(prod.wholesalePrice);
   });
+
+  it('should format and parse Indonesian thousand separators cleanly on reseller prices and stock', () => {
+    expect(component.formatThousand(790000)).toBe('790.000');
+    expect(component.formatThousand(1650000)).toBe('1.650.000');
+    expect(component.formatThousand(0)).toBe('0');
+    expect(component.parseThousand('1.250.000')).toBe(1250000);
+
+    component.openAddModal();
+    const fakeInput = { value: '1250000' } as HTMLInputElement;
+    component.handleNumericInput(
+      { target: fakeInput } as unknown as Event,
+      component.formWholesalePrice
+    );
+    expect(component.formWholesalePrice()).toBe(1250000);
+    expect(fakeInput.value).toBe('1.250.000');
+
+    const fakeStockInput = { value: '2500' } as HTMLInputElement;
+    component.handleNumericInput(
+      { target: fakeStockInput } as unknown as Event,
+      component.formInventory
+    );
+    expect(component.formInventory()).toBe(2500);
+    expect(fakeStockInput.value).toBe('2.500');
+  });
 });

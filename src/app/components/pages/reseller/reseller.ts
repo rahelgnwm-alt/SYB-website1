@@ -5,7 +5,7 @@ import {
   signal,
   computed,
 } from '@angular/core';
-import { CommonModule, DecimalPipe } from '@angular/common';
+import { DecimalPipe } from '@angular/common';
 import { ResellerService } from '../../../services/reseller.service';
 import { CartService } from '../../../services/cart.service';
 import { ResellerProduct } from '../../../models/reseller-product.model';
@@ -14,7 +14,7 @@ import { RevealDirective, TiltDirective, MagneticDirective } from '../../../dire
 
 @Component({
   selector: 'app-reseller',
-  imports: [CommonModule, DecimalPipe, RevealDirective, TiltDirective, MagneticDirective],
+  imports: [DecimalPipe, RevealDirective, TiltDirective, MagneticDirective],
   templateUrl: './reseller.html',
   styleUrl: './reseller.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -65,7 +65,7 @@ export class ResellerComponent {
   }
 
   getWhatsAppLink(p?: ResellerProduct): string {
-    const base = 'https://wa.me/6281333369909';
+    const base = 'https://wa.me/6281216801809';
     if (p) {
       const text = encodeURIComponent(
         `Halo Admin Kemitraan SYB Official, saya tertarik memesan paket reseller:\n\n*${p.title}*\nHarga Grosir: Rp ${p.wholesalePrice.toLocaleString('id-ID')}\nMin. Order: ${p.minOrder} ${p.minOrderUnit}\n\nMohon info ketersediaan stok & ongkos kirim ke kota saya. Terima kasih!`

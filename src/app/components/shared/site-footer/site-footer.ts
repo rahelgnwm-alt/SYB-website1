@@ -1,6 +1,5 @@
 import { ChangeDetectionStrategy, Component } from '@angular/core';
 import { RouterLink } from '@angular/router';
-import { SHOP_URL } from '../../../data';
 
 @Component({
   selector: 'app-site-footer',
@@ -10,6 +9,5 @@ import { SHOP_URL } from '../../../data';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class SiteFooter {
-  protected readonly shopUrl = SHOP_URL;
   protected readonly year = new Date().getFullYear();
 }

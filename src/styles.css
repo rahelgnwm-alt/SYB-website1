@@ -81,6 +81,46 @@ body.menu-open {
   overflow: hidden;
 }
 
+.modal-backdrop,
+.confirm-modal-backdrop,
+.fs-modal-backdrop,
+.tracking-modal-backdrop {
+  overscroll-behavior: contain;
+}
+
+/* Release fixed-position containing block & view-transition layers in Admin when any popup/modal is open
+   so fixed modal overlays cover the full viewport cleanly without sidebar/topbar glitches */
+.shopify-layout:has(
+  .modal-backdrop,
+  .confirm-modal-backdrop,
+  .fs-modal-backdrop,
+  .tracking-modal-backdrop
+) .shopify-sidebar,
+.shopify-layout:has(
+  .modal-backdrop,
+  .confirm-modal-backdrop,
+  .fs-modal-backdrop,
+  .tracking-modal-backdrop
+) .shopify-topbar,
+.shopify-canvas:has(
+  .modal-backdrop,
+  .confirm-modal-backdrop,
+  .fs-modal-backdrop,
+  .tracking-modal-backdrop
+) {
+  view-transition-name: none !important;
+  transform: none !important;
+}
+
+.shopify-canvas:has(
+  .modal-backdrop,
+  .confirm-modal-backdrop,
+  .fs-modal-backdrop,
+  .tracking-modal-backdrop
+) {
+  z-index: 10000 !important;
+}
+
 img {
   display: block;
   max-width: 100%;

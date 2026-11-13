@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
+import { provideHttpClient } from '@angular/common/http';
 import { AdminDiscountsComponent } from './admin-discounts';
 import { ProductService } from '../../../../../services/product.service';
 
@@ -9,14 +10,45 @@ describe('AdminDiscountsComponent', () => {
   let productService: ProductService;
 
   beforeEach(async () => {
+    localStorage.clear();
     await TestBed.configureTestingModule({
       imports: [AdminDiscountsComponent],
-      providers: [provideRouter([]), ProductService],
+      providers: [provideRouter([]), provideHttpClient(), ProductService],
     }).compileComponents();
+
+    productService = TestBed.inject(ProductService);
+    productService.products.set([
+      {
+        id: 'red-jelly-serum',
+        title: 'FORTE Red Jelly Serum',
+        subtitle: 'Niacinamide 10%',
+        category: 'Kecantikan/Perawatan Wajah',
+        categoryLabel: 'Wajah',
+        productType: 'Serum',
+        status: 'Active',
+        inventory: 100,
+        variantsCount: 0,
+        variants: [],
+        channels: 4,
+        catalogs: 2,
+        price: 22325,
+        originalPrice: 47500,
+        rating: 4.9,
+        reviewsCount: 1420,
+        bpomNumber: 'NA18210103429',
+        accentColor: '#ff2a7a',
+        image: 'products/red-jelly-serum.jpg',
+        handle: 'red-jelly-serum',
+        heroTagline: 'Serum pencerah',
+        description: 'Serum legendaris',
+        benefits: [],
+        keyIngredients: [],
+        howToUse: []
+      }
+    ]);
 
     const fixture = TestBed.createComponent(AdminDiscountsComponent);
     component = fixture.componentInstance;
-    productService = TestBed.inject(ProductService);
   });
 
   it('should create the discounts component', () => {
@@ -57,6 +89,17 @@ describe('AdminDiscountsComponent', () => {
 
     component.clearSelection();
     expect(component.selectedProductIds().size).toBe(0);
+  });
+
+  it('should accept thousand-separator formatted strings in price inputs', () => {
+    const product = productService.products()[0];
+    component.onOriginalPriceChange(product, '120.000');
+    let updated = productService.products().find((p) => p.id === product.id);
+    expect(updated?.originalPrice).toBe(120000);
+
+    component.onSalePriceChange(updated!, '85.500');
+    updated = productService.products().find((p) => p.id === product.id);
+    expect(updated?.price).toBe(85500);
   });
 });
 

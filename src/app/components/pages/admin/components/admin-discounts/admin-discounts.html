@@ -248,11 +248,11 @@
               <div class="price-input-cell">
                 <span class="currency-tag">Rp</span>
                 <input
-                  type="number"
-                  step="500"
-                  min="0"
+                  type="text"
+                  inputmode="numeric"
                   class="input-price"
-                  [value]="product.originalPrice"
+                  [value]="formatThousand(product.originalPrice)"
+                  (input)="onFormatNumericInput($event)"
                   (change)="onOriginalPriceChange(product, $any($event.target).value)"
                   title="Ubah harga coret resmi"
                 />
@@ -288,11 +288,11 @@
                 <div class="price-input-cell highlight-sale">
                   <span class="currency-tag">Rp</span>
                   <input
-                    type="number"
-                    step="500"
-                    min="0"
+                    type="text"
+                    inputmode="numeric"
                     class="input-price sale-bold"
-                    [value]="product.price"
+                    [value]="formatThousand(product.price)"
+                    (input)="onFormatNumericInput($event)"
                     (change)="onSalePriceChange(product, $any($event.target).value)"
                     title="Ubah harga jual promo langsung"
                   />
@@ -369,8 +369,10 @@
           <div class="mobile-input-item">
             <label>Harga Coret (Rp):</label>
             <input
-              type="number"
-              [value]="product.originalPrice"
+              type="text"
+              inputmode="numeric"
+              [value]="formatThousand(product.originalPrice)"
+              (input)="onFormatNumericInput($event)"
               (change)="onOriginalPriceChange(product, $any($event.target).value)"
             />
           </div>
@@ -389,9 +391,11 @@
           <div class="mobile-input-item full-width">
             <label>Harga Jual Konsumen (Rp):</label>
             <input
-              type="number"
+              type="text"
+              inputmode="numeric"
               class="mobile-sale-highlight"
-              [value]="product.price"
+              [value]="formatThousand(product.price)"
+              (input)="onFormatNumericInput($event)"
               (change)="onSalePriceChange(product, $any($event.target).value)"
             />
           </div>
@@ -423,5 +427,52 @@
         <button type="button" class="batch-btn-close" (click)="clearSelection()">Batal</button>
       </div>
     </aside>
+  }
+
+  <!-- ==================== CUSTOM LUXURY CONFIRMATION POPUP MODAL ==================== -->
+  @if (confirmDialog(); as dialog) {
+    <div class="confirm-modal-backdrop" (click)="closeConfirm()">
+      <div
+        class="confirm-modal-card"
+        (click)="$event.stopPropagation()"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="confirm-discount-title"
+      >
+        <button
+          type="button"
+          class="confirm-btn-close"
+          (click)="closeConfirm()"
+          aria-label="Tutup dialog"
+        >
+          ✕
+        </button>
+
+        <div class="confirm-icon-bubble" [class.is-danger]="dialog.isDanger">
+          <span class="icon-glyph">{{ dialog.isDanger ? '🗑️' : '⚠️' }}</span>
+        </div>
+
+        <h3 id="confirm-discount-title" class="confirm-title">{{ dialog.title }}</h3>
+        <p class="confirm-message">{{ dialog.message }}</p>
+
+        <div class="confirm-actions">
+          <button
+            type="button"
+            class="btn-confirm-cancel"
+            (click)="closeConfirm()"
+          >
+            {{ dialog.cancelLabel || 'Batal' }}
+          </button>
+          <button
+            type="button"
+            class="btn-confirm-proceed"
+            [class.btn-danger]="dialog.isDanger"
+            (click)="dialog.onConfirm()"
+          >
+            <span>{{ dialog.confirmLabel }}</span>
+          </button>
+        </div>
+      </div>
+    </div>
   }
 </div>

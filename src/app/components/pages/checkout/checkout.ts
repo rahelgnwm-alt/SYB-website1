@@ -12,8 +12,10 @@ import { AuthService } from '../../../services/auth.service';
 import { CartService } from '../../../services/cart.service';
 import { ShippingService } from '../../../services/shipping.service';
 import { JneApiService } from '../../../services/jne-api.service';
+import { JntApiService } from '../../../services/jnt-api.service';
 import { JneTariffOption } from '../../../models/jne.model';
 import { ShopifyOrder } from '../../../models/shipping.model';
+import { formatRupiah } from '../../../data';
 
 @Component({
   selector: 'app-checkout',
@@ -27,6 +29,7 @@ export class CheckoutComponent implements OnInit {
   protected readonly cart = inject(CartService);
   protected readonly shippingService = inject(ShippingService);
   protected readonly jneApi = inject(JneApiService);
+  protected readonly jntApi = inject(JntApiService);
   private readonly router = inject(Router);
 
   // Form Fields matching user image
@@ -71,10 +74,18 @@ export class CheckoutComponent implements OnInit {
     'Papua'
   ];
 
-  // Logistics / JNE Tariff state
+  // Logistics / JNE & J&T Tariff state
   protected readonly isLoadingTariff = signal<boolean>(false);
   protected readonly tariffOptions = signal<JneTariffOption[]>([]);
   protected readonly selectedTariff = signal<JneTariffOption | null>(null);
+  protected readonly activeCourierFilter = signal<'ALL' | 'JNE' | 'J&T'>('ALL');
+
+  protected readonly filteredTariffOptions = computed<JneTariffOption[]>(() => {
+    const filter = this.activeCourierFilter();
+    const all = this.tariffOptions();
+    if (filter === 'ALL') return all;
+    return all.filter((o) => (o.courier || 'JNE') === filter);
+  });
 
   readonly resolvedDestCode = computed(() =>
     this.jneApi.mapCityToDestCode(this.city() || this.province(), this.postalCode())
@@ -184,7 +195,7 @@ export class CheckoutComponent implements OnInit {
   }
 
   /**
-   * Fetch live tariff from JNE API (/tracing/api/pricedev)
+   * Fetch live tariffs from both JNE API (/tracing/api/pricedev) and J&T API (inquiry.action)
    */
   protected async fetchJneTariffs(): Promise<void> {
     this.isLoadingTariff.set(true);
@@ -192,11 +203,17 @@ export class CheckoutComponent implements OnInit {
     const weight = this.estimatedWeightKg();
 
     try {
-      const options = await this.jneApi.checkTariff(destCode, weight);
+      const [jneOptions, jntOptions] = await Promise.all([
+        this.jneApi.checkTariff(destCode, weight),
+        this.jntApi.checkTariff(this.city() || destCode, weight)
+      ]);
+      const options = [...jneOptions, ...jntOptions];
       this.tariffOptions.set(options);
 
       const current = this.selectedTariff();
-      const matched = current ? options.find(o => o.serviceCode === current.serviceCode) : null;
+      const matched = current
+        ? options.find(o => o.serviceCode === current.serviceCode && o.courier === current.courier)
+        : null;
       if (matched) {
         this.selectedTariff.set(matched);
       } else {
@@ -204,9 +221,18 @@ export class CheckoutComponent implements OnInit {
         this.selectedTariff.set(recommended);
       }
     } catch {
-      // Fallback handled gracefully in jneApi
+      // Fallback handled gracefully in jneApi / jntApi
     } finally {
       this.isLoadingTariff.set(false);
+    }
+  }
+
+  protected setCourierFilter(filter: 'ALL' | 'JNE' | 'J&T'): void {
+    this.activeCourierFilter.set(filter);
+    const filtered = this.filteredTariffOptions();
+    const current = this.selectedTariff();
+    if (filtered.length > 0 && (!current || (filter !== 'ALL' && (current.courier || 'JNE') !== filter))) {
+      this.selectedTariff.set(filtered[0]);
     }
   }
 
@@ -249,6 +275,12 @@ export class CheckoutComponent implements OnInit {
    */
   protected async placeOrder(): Promise<void> {
     this.errorMessage.set(null);
+
+    if (!this.cart.checkoutEnabled()) {
+      this.errorMessage.set('Fitur checkout sementara dinonaktifkan karena website masih dalam tahap penyempurnaan.');
+      this.showToast('🚧 Checkout belum tersedia — website masih dalam tahap penyempurnaan.');
+      return;
+    }
 
     // Validation
     if (!this.lastName().trim()) {
@@ -329,7 +361,10 @@ export class CheckoutComponent implements OnInit {
     });
 
     const chosenService = this.selectedTariff();
+    const chosenCourier = chosenService?.courier === 'J&T' ? 'J&T' : 'JNE';
     const serviceName = chosenService ? chosenService.serviceName : 'JNE Reguler (REG)';
+    const hasPreOrder = this.cart.hasPreOrder();
+    const maxPreOrderDays = this.cart.maxPreOrderDays();
 
     const newOrder: ShopifyOrder = {
       id: `ord-${Date.now()}`,
@@ -350,7 +385,9 @@ export class CheckoutComponent implements OnInit {
         variantName: line.product.tagline || 'Standard Unit',
         quantity: line.qty,
         price: line.product.price,
-        image: line.product.image
+        image: line.product.image,
+        isPreOrder: Boolean(line.product.isPreOrder),
+        preOrderDays: line.product.isPreOrder ? (line.product.preOrderDays || 7) : undefined
       })),
       subtotal: this.cart.subtotal(),
       shippingCost: this.shippingCost(),
@@ -359,10 +396,12 @@ export class CheckoutComponent implements OnInit {
       paymentStatus: 'Paid',
       fulfillmentStatus: 'Unfulfilled',
       isLabelPrinted: false,
-      courier: 'JNE',
+      courier: chosenCourier,
       serviceName,
-      trackingNumber: 'JNE-PENDING',
-      weightGrams: this.estimatedWeightKg() * 500
+      trackingNumber: chosenCourier === 'J&T' ? 'JT-PENDING' : 'JNE-PENDING',
+      weightGrams: this.estimatedWeightKg() * 500,
+      hasPreOrder,
+      maxPreOrderDays: hasPreOrder ? maxPreOrderDays : undefined
     };
 
     this.shippingService.addOrder(newOrder);
@@ -374,7 +413,7 @@ export class CheckoutComponent implements OnInit {
   }
 
   protected rupiah(n: number): string {
-    return 'Rp ' + Math.round(n).toLocaleString('id-ID');
+    return formatRupiah(n, true);
   }
 
   protected showToast(msg: string): void {

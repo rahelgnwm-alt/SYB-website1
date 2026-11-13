@@ -28,7 +28,7 @@
       <div class="kpi-icon-wrap green">💰</div>
       <div class="kpi-data">
         <span class="kpi-label">ESTIMASI NILAI INVENTARIS</span>
-        <strong class="kpi-val">Rp {{ totalInventoryValue() | number:'1.0-0' }}</strong>
+        <strong class="kpi-val">Rp {{ formatThousand(totalInventoryValue()) }}</strong>
       </div>
     </div>
 
@@ -113,6 +113,7 @@
           (change)="productStockFilter.set($any($event.target).value)"
         >
           <option value="All">Semua Tingkat Stok</option>
+          <option value="PreOrder">⏳ Produk Pre-Order ({{ preOrderProductsCount() }})</option>
           <option value="LowStock">Stok Menipis (&lt; 500)</option>
           <option value="OutOfStock">Stok Habis (0)</option>
         </select>
@@ -157,6 +158,9 @@
                   @if (prod.badge) {
                     <span class="thumb-badge">{{ prod.badge.split(' ')[0] }}</span>
                   }
+                  @if ((prod.gallery?.length || 1) > 1) {
+                    <span class="thumb-photo-count" title="Jumlah foto produk">{{ prod.gallery?.length }} Foto</span>
+                  }
                 </div>
               </td>
 
@@ -172,6 +176,11 @@
                     <span class="variants-count">{{ prod.variants?.length || 1 }} Varian</span>
                     @if (prod.isFlashSale) {
                       <span class="flash-tag">⚡ Flash Sale</span>
+                    }
+                    @if (prod.isPreOrder) {
+                      <span class="preorder-tag" title="Produk Pre-Order — waktu tunggu {{ prod.preOrderDays || 7 }} hari">
+                        ⏳ Pre-Order • {{ prod.preOrderDays || 7 }} Hari
+                      </span>
                     }
                   </div>
                 </div>
@@ -204,7 +213,7 @@
                 <div class="inventory-cell">
                   <div class="inventory-val-row">
                     <span class="inventory-number" [class.low-stock]="prod.inventory < 500" [class.out-of-stock]="prod.inventory === 0">
-                      {{ prod.inventory | number:'1.0-0' }}
+                      {{ formatThousand(prod.inventory) }}
                     </span>
                     <span class="inventory-unit">pcs</span>
                     @if (prod.inventory >= 500) {
@@ -221,10 +230,10 @@
               <!-- Price & Strikethrough -->
               <td>
                 <div class="price-cell">
-                  <strong class="sell-price">Rp {{ prod.price | number:'1.0-0' }}</strong>
+                  <strong class="sell-price">Rp {{ formatThousand(prod.price) }}</strong>
                   @if (prod.originalPrice && prod.originalPrice > prod.price) {
                     <div class="price-discount-meta">
-                      <s class="compare-price">Rp {{ prod.originalPrice | number:'1.0-0' }}</s>
+                      <s class="compare-price">Rp {{ formatThousand(prod.originalPrice) }}</s>
                       <span class="discount-badge">-{{ Math.round((1 - prod.price / prod.originalPrice) * 100) }}%</span>
                     </div>
                   }
@@ -330,6 +339,21 @@
         >
           <span class="tab-icon">🏷️</span>
           <span class="tab-label">Informasi &amp; BPOM</span>
+        </button>
+
+        <button
+          type="button"
+          class="studio-tab-pill"
+          [class.active]="activeStudioTab() === 'preorder'"
+          (click)="setStudioTab('preorder')"
+          title="Pengaturan Pre-Order & Lama Pengiriman"
+          id="tab-studio-preorder"
+        >
+          <span class="tab-icon">⏳</span>
+          <span class="tab-label">Pre-Order</span>
+          @if (formIsPreOrder()) {
+            <span class="tab-badge-pill purple">{{ formPreOrderDays() || 7 }}h</span>
+          }
         </button>
 
         <button
@@ -520,6 +544,106 @@
               </div>
             }
 
+            <!-- SECTION PRE-ORDER: Set Pre-Order & Duration on Edit/Add Product -->
+            @if (activeStudioTab() === 'all' || activeStudioTab() === 'preorder') {
+              <div class="studio-section-card preorder-dedicated-section" [class.po-card-active]="formIsPreOrder()">
+                <div class="section-card-header between">
+                  <div class="section-title-wrap flex-row">
+                    <div class="section-icon-badge purple">⏳</div>
+                    <div>
+                      <h4 class="section-heading">Pengaturan Pre-Order (PO) &amp; Lama Pengiriman</h4>
+                      <p class="section-subheading">Atur apakah produk ini Ready Stock atau Pre-Order beserta estimasi hari penyiapan sebelum dikirim.</p>
+                    </div>
+                  </div>
+                  @if (formIsPreOrder()) {
+                    <span class="po-days-pill">⏳ Pre-Order Aktif • {{ formPreOrderDays() || 7 }} Hari</span>
+                  }
+                </div>
+
+                <!-- Mode Selector: Ready Stock vs Pre-Order -->
+                <div class="po-mode-selector">
+                  <button
+                    type="button"
+                    class="po-mode-card"
+                    [class.selected]="!formIsPreOrder()"
+                    (click)="formIsPreOrder.set(false)"
+                    id="btn-mode-readystock"
+                  >
+                    <span class="po-mode-icon">⚡</span>
+                    <div class="po-mode-text">
+                      <strong>Ready Stock (Non Pre-Order)</strong>
+                      <small>Produk tersedia &amp; dikirim cepat seperti biasa (1x24 jam)</small>
+                    </div>
+                  </button>
+
+                  <button
+                    type="button"
+                    class="po-mode-card po-option"
+                    [class.selected]="formIsPreOrder()"
+                    (click)="formIsPreOrder.set(true)"
+                    id="btn-mode-preorder"
+                  >
+                    <span class="po-mode-icon">⏳</span>
+                    <div class="po-mode-text">
+                      <strong>Pre-Order (PO)</strong>
+                      <small>Beri tahu pembeli produk dikirim lebih lama sesuai durasi PO</small>
+                    </div>
+                  </button>
+                </div>
+
+                @if (formIsPreOrder()) {
+                  <div class="preorder-config-panel" style="margin-top: 1rem; border-radius: 12px; border: 1px solid #e9d5ff;">
+                    <div class="form-grid-two">
+                      <div class="form-field-group">
+                        <label class="field-label" for="inp-preorder-days">
+                          <span>Berapa Lama Pre-Order (Maks. 30 Hari) *</span>
+                          <span class="po-days-pill">{{ formPreOrderDays() || 7 }} / 30 Hari</span>
+                        </label>
+                        <div class="input-with-icon">
+                          <span class="field-prefix-icon">⏳</span>
+                          <input
+                            type="number"
+                            [ngModel]="formPreOrderDays()"
+                            (ngModelChange)="onPreOrderDaysInput($event)"
+                            [ngModelOptions]="{standalone: true}"
+                            min="1"
+                            max="30"
+                            step="1"
+                            placeholder="Masukkan jumlah hari (1 - 30)"
+                            class="studio-input font-bold"
+                            id="inp-preorder-days"
+                          />
+                        </div>
+                        <small class="field-hint">Ketik durasi Pre-Order secara manual (minimal 1 hari, maksimal 30 hari).</small>
+                      </div>
+
+                      <div class="form-field-group">
+                        <label class="field-label" for="inp-preorder-note">Catatan Info Pre-Order (Opsional)</label>
+                        <input
+                          type="text"
+                          [ngModel]="formPreOrderNote()"
+                          (ngModelChange)="formPreOrderNote.set($event)"
+                          [ngModelOptions]="{standalone: true}"
+                          placeholder="Contoh: Batch 2 — dikirim sesuai urutan antrean pesanan"
+                          class="studio-input"
+                          id="inp-preorder-note"
+                        />
+                        <small class="field-hint">Ditampilkan pada halaman detail produk, keranjang, dan checkout.</small>
+                      </div>
+                    </div>
+
+                    <div class="preorder-live-eta-banner">
+                      <span class="eta-icon">📅</span>
+                      <div class="eta-copy">
+                        <strong>Pemberitahuan yang tampil ke pembeli:</strong>
+                        <span>Produk Pre-Order — Estimasi mulai dikirim dalam <b>±{{ formPreOrderDays() || 7 }} hari</b> (sekitar <b>{{ productService.getEstimatedShipDateLabel(formPreOrderDays()) }}</b>), tidak secepat produk Ready Stock.</span>
+                      </div>
+                    </div>
+                  </div>
+                }
+              </div>
+            }
+
             <!-- SECTION 2: Penetapan Harga & Inventaris -->
             @if (activeStudioTab() === 'all' || activeStudioTab() === 'pricing') {
               <div class="studio-section-card">
@@ -537,14 +661,13 @@
                     <div class="input-with-prefix">
                       <span class="currency-prefix">Rp</span>
                       <input
-                        type="number"
-                        [ngModel]="formPrice()"
-                        (ngModelChange)="formPrice.set($event)"
-                        [ngModelOptions]="{standalone: true}"
+                        type="text"
+                        inputmode="numeric"
+                        [value]="formatThousand(formPrice())"
+                        (input)="handlePriceInput($event)"
                         required
-                        min="1000"
-                        step="500"
                         class="studio-input highlight-price"
+                        placeholder="0"
                       />
                     </div>
                   </div>
@@ -554,13 +677,12 @@
                     <div class="input-with-prefix">
                       <span class="currency-prefix">Rp</span>
                       <input
-                        type="number"
-                        [ngModel]="formOrigPrice()"
-                        (ngModelChange)="formOrigPrice.set($event)"
-                        [ngModelOptions]="{standalone: true}"
-                        min="1000"
-                        step="500"
+                        type="text"
+                        inputmode="numeric"
+                        [value]="formatThousand(formOrigPrice())"
+                        (input)="handleOrigPriceInput($event)"
                         class="studio-input"
+                        placeholder="0"
                       />
                     </div>
                   </div>
@@ -571,13 +693,12 @@
                     <label class="field-label">Stok Inventaris Pabrik (Unit)</label>
                     <div class="input-with-steppers">
                       <input
-                        type="number"
-                        [ngModel]="formInventory()"
-                        (ngModelChange)="formInventory.set($event)"
-                        [ngModelOptions]="{standalone: true}"
-                        min="0"
-                        step="10"
+                        type="text"
+                        inputmode="numeric"
+                        [value]="formatThousand(formInventory())"
+                        (input)="handleInventoryInput($event)"
                         class="studio-input"
+                        placeholder="0"
                       />
                       <div class="quick-stock-steppers">
                         <button type="button" class="stepper-btn" (click)="adjustFormInventory(50)">+50</button>
@@ -640,45 +761,69 @@
                   <div class="section-icon-badge purple">📷</div>
                   <div class="section-title-wrap">
                     <h4 class="section-heading">3. Foto &amp; Media Produk</h4>
-                    <p class="section-subheading">Upload foto produk langsung dari perangkat Anda atau pilih dari koleksi resmi SYB.</p>
+                    <p class="section-subheading">Upload hingga {{ maxProductImages }} foto. Seret &amp; letakkan foto ke slot pertama untuk menjadikannya Foto Utama.</p>
                   </div>
+                  <span class="gallery-count-pill" [class.full]="formGallery().length >= maxProductImages">
+                    {{ formGallery().length }} / {{ maxProductImages }} Foto
+                  </span>
                 </div>
 
-                <!-- 1. Upload Photo from Device (Drag & Drop or File Picker) -->
+                <!-- Upload Photo from Device (Drag & Drop or Multi-File Picker) -->
                 <div class="upload-image-section">
-                  <label class="field-label">Upload Foto dari Komputer / HP:</label>
+                  <label class="field-label">Upload Foto dari Komputer / HP (Maks. {{ maxProductImages }} Foto — Seret Foto untuk Mengatur Urutan):</label>
 
                   <input
                     type="file"
                     #fileInput
+                    multiple
                     (change)="onFileSelected($event)"
                     accept="image/png, image/jpeg, image/jpg, image/webp"
                     style="display: none;"
                   />
 
-                  @if (formImage() && (formImage().startsWith('data:image') || uploadedFileName())) {
-                    <!-- Uploaded Image Active Preview Card -->
-                    <div class="uploaded-image-preview-card">
-                      <div class="uploaded-preview-thumb">
-                        <img [src]="formImage()" alt="Preview Foto Upload" (error)="onImgError($event)" />
-                      </div>
-                      <div class="uploaded-info">
-                        <div class="uploaded-file-name">{{ uploadedFileName() || 'Foto Produk Custom Terunggah' }}</div>
-                        <span class="uploaded-status-badge">✓ Foto Siap Digunakan di Website</span>
-                      </div>
-                      <div class="uploaded-actions">
-                        <button type="button" class="btn-change-photo" (click)="fileInput.click()">
-                          Ganti Foto
-                        </button>
-                        <button type="button" class="btn-remove-photo" (click)="removeUploadedImage()">
-                          ✕ Hapus
-                        </button>
-                      </div>
+                  @if (formGallery().length > 0) {
+                    <div class="admin-gallery-grid">
+                      @for (imgSrc of formGallery(); track $index) {
+                        <div
+                          class="admin-gallery-card"
+                          draggable="true"
+                          [class.is-primary]="$index === 0"
+                          [class.is-dragging]="draggedGalleryIndex() === $index"
+                          [class.is-drop-target]="dragOverGalleryIndex() === $index && draggedGalleryIndex() !== $index"
+                          (dragstart)="onGalleryDragStart($event, $index)"
+                          (dragover)="onGalleryDragOver($event, $index)"
+                          (dragleave)="onGalleryDragLeave($index)"
+                          (drop)="onGalleryDrop($event, $index)"
+                          (dragend)="onGalleryDragEnd()"
+                          title="Seret untuk memindahkan posisi foto"
+                        >
+                          <div class="admin-gallery-thumb">
+                            <img [src]="getImgUrl(imgSrc)" [alt]="'Foto produk ' + ($index + 1)" draggable="false" (error)="onImgError($event)" />
+                            @if ($index === 0) {
+                              <span class="gallery-cover-badge">★ Foto Utama</span>
+                            } @else {
+                              <span class="gallery-index-badge">#{{ $index + 1 }}</span>
+                            }
+                            <button
+                              type="button"
+                              class="gallery-remove-btn"
+                              (click)="removeGalleryImage($index); $event.stopPropagation()"
+                              title="Hapus foto ini"
+                              aria-label="Hapus foto ini"
+                            >
+                              ✕
+                            </button>
+                          </div>
+                        </div>
+                      }
                     </div>
-                  } @else {
+                  }
+
+                  @if (formGallery().length < maxProductImages) {
                     <!-- Interactive Dropzone -->
                     <div
                       class="dropzone-box"
+                      [class.compact]="formGallery().length > 0"
                       [class.dragging]="isDraggingImage()"
                       (click)="fileInput.click()"
                       (dragover)="onImageDragOver($event)"
@@ -691,35 +836,22 @@
                     >
                       <div class="dropzone-icon">☁️</div>
                       <div class="dropzone-text">
-                        <span class="dropzone-title">Klik untuk Memilih Foto dari Perangkat</span>
-                        <span class="dropzone-subtitle">atau seret &amp; letakkan file gambar langsung ke sini</span>
+                        @if (formGallery().length > 0) {
+                          <span class="dropzone-title">+ Tambah Foto Lainnya ({{ maxProductImages - formGallery().length }} slot tersisa)</span>
+                          <span class="dropzone-subtitle">Klik atau seret beberapa foto sekaligus ke sini</span>
+                        } @else {
+                          <span class="dropzone-title">Klik untuk Memilih Foto dari Perangkat</span>
+                          <span class="dropzone-subtitle">atau seret &amp; letakkan hingga {{ maxProductImages }} gambar ke sini</span>
+                        }
                       </div>
-                      <span class="dropzone-formats">Mendukung format JPG, PNG, WEBP &bull; Maks. 5 MB</span>
+                      <span class="dropzone-formats">Mendukung JPG, PNG, WEBP &bull; Otomatis dioptimalkan &bull; Maks. {{ maxProductImages }} foto</span>
+                    </div>
+                  } @else {
+                    <div class="gallery-limit-notice">
+                      <span>✓</span>
+                      <span>Maksimal {{ maxProductImages }} foto per produk telah tercapai. Hapus salah satu foto jika ingin menambah foto baru.</span>
                     </div>
                   }
-                </div>
-
-                <!-- 2. Or Select from Official SYB Gallery -->
-                <div class="media-gallery-section" style="margin-top: 1.5rem;">
-                  <label class="field-label">Atau Pilih dari Koleksi Foto Resmi SYB (Klik untuk memilih):</label>
-                  <div class="gallery-photo-grid">
-                    @for (img of availableImages; track img.name) {
-                      <div
-                        class="gallery-photo-card"
-                        [class.active]="formImage() === img.path || formImage() === img.path.replace('/', '')"
-                        (click)="selectOfficialImage(img.path)"
-                        [title]="img.name"
-                      >
-                        <div class="photo-thumbnail-wrap">
-                          <img [src]="img.path" [alt]="img.name" (error)="onImgError($event)" />
-                          @if (formImage() === img.path || formImage() === img.path.replace('/', '')) {
-                            <div class="selected-checkmark-badge">✓</div>
-                          }
-                        </div>
-                        <span class="photo-title-caption">{{ img.name }}</span>
-                      </div>
-                    }
-                  </div>
                 </div>
               </div>
             }
@@ -885,7 +1017,7 @@
                       <div class="variant-card-topbar">
                         <div class="variant-index-badge">Varian #{{ i + 1 }}</div>
                         @if (v.stock > 0) {
-                          <span class="var-stock-pill safe">{{ v.stock | number:'1.0-0' }} pcs</span>
+                          <span class="var-stock-pill safe">{{ formatThousand(v.stock) }} pcs</span>
                         } @else {
                           <span class="var-stock-pill empty">Habis</span>
                         }
@@ -909,12 +1041,12 @@
                           <div class="input-with-prefix">
                             <span class="currency-prefix">Rp</span>
                             <input
-                              type="number"
-                              [ngModel]="v.price"
-                              (ngModelChange)="v.price = $event"
-                              [ngModelOptions]="{standalone: true}"
-                              step="500"
+                              type="text"
+                              inputmode="numeric"
+                              [value]="formatThousand(v.price)"
+                              (input)="handleVariantPriceInput($event, v)"
                               class="studio-input font-bold"
+                              placeholder="0"
                             />
                           </div>
                         </div>
@@ -922,11 +1054,12 @@
                         <div class="form-field-group var-stock">
                           <label class="field-label">Stok (pcs)</label>
                           <input
-                            type="number"
-                            [ngModel]="v.stock"
-                            (ngModelChange)="v.stock = $event"
-                            [ngModelOptions]="{standalone: true}"
+                            type="text"
+                            inputmode="numeric"
+                            [value]="formatThousand(v.stock)"
+                            (input)="handleVariantStockInput($event, v)"
                             class="studio-input"
+                            placeholder="0"
                           />
                         </div>
 
@@ -978,7 +1111,7 @@
                 <!-- Card Media -->
                 <div class="storefront-card-media">
                   <img
-                    [src]="getImgUrl(formImage())"
+                    [src]="getImgUrl(formImage() || 'products/red-jelly-serum.jpg')"
                     [alt]="formTitle()"
                     class="card-product-img"
                     (error)="onImgError($event)"
@@ -989,10 +1122,19 @@
                       {{ formBadge() }}
                     </span>
                   }
+                  @if (formGallery().length > 1) {
+                    <span class="storefront-photo-count">📷 {{ formGallery().length }} Foto</span>
+                  }
 
                   @if (formIsFlashSale()) {
                     <span class="storefront-flash-sale">
                       ⚡ FLASH SALE
+                    </span>
+                  }
+
+                  @if (formIsPreOrder()) {
+                    <span class="storefront-preorder-pill" [class.with-flash]="formIsFlashSale()">
+                      ⏳ PRE-ORDER • {{ formPreOrderDays() || 7 }} HARI
                     </span>
                   }
 
@@ -1030,9 +1172,9 @@
                   <!-- Price & Discount -->
                   <div class="storefront-price-row">
                     <div class="price-val-wrap">
-                      <span class="storefront-sell-price">Rp {{ formPrice() | number:'1.0-0' }}</span>
+                      <span class="storefront-sell-price">Rp {{ formatThousand(formPrice()) }}</span>
                       @if (formOrigPrice() > formPrice()) {
-                        <s class="storefront-orig-price">Rp {{ formOrigPrice() | number:'1.0-0' }}</s>
+                        <s class="storefront-orig-price">Rp {{ formatThousand(formOrigPrice()) }}</s>
                       }
                     </div>
                     @if (discountPercent() > 0) {
@@ -1046,7 +1188,7 @@
                     class="storefront-add-btn"
                     [style.background]="formAccentColor()"
                   >
-                    + Keranjang Belanja
+                    {{ formIsPreOrder() ? ('⏳ Pre-Order (' + (formPreOrderDays() || 7) + ' Hari)') : '+ Keranjang Belanja' }}
                   </button>
                 </div>
               </div>
@@ -1064,8 +1206,14 @@
                   <strong class="tile-val">{{ formVariants().length }} Pilihan</strong>
                 </div>
                 <div class="spec-tile">
+                  <span class="tile-label">Mode Pengiriman:</span>
+                  <strong class="tile-val" [class.green]="!formIsPreOrder()">
+                    {{ formIsPreOrder() ? ('⏳ Pre-Order (' + (formPreOrderDays() || 7) + ' Hari)') : '⚡ Ready Stock' }}
+                  </strong>
+                </div>
+                <div class="spec-tile">
                   <span class="tile-label">Stok Pabrik:</span>
-                  <strong class="tile-val">{{ formInventory() | number:'1.0-0' }} pcs</strong>
+                  <strong class="tile-val">{{ formatThousand(formInventory()) }} pcs</strong>
                 </div>
               </div>
             </div>
@@ -1098,6 +1246,77 @@
             <span>{{ modalMode() === 'add' ? 'Publikasikan Produk' : 'Simpan Perubahan' }}</span>
           </button>
         </div>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- ==================== CUSTOM LUXURY CONFIRMATION POPUP MODAL ==================== -->
+@if (confirmDialog(); as dialog) {
+  <div class="confirm-modal-backdrop" (click)="closeConfirm()">
+    <div
+      class="confirm-modal-card"
+      (click)="$event.stopPropagation()"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="confirm-popup-title"
+    >
+      <!-- Close button on top-right -->
+      <button
+        type="button"
+        class="confirm-btn-close"
+        (click)="closeConfirm()"
+        aria-label="Tutup dialog konfirmasi"
+      >
+        ✕
+      </button>
+
+      <!-- Danger/Warning Icon Bubble with glowing pulse ring -->
+      <div class="confirm-icon-bubble" [class.is-danger]="dialog.isDanger">
+        <span class="icon-glyph">{{ dialog.isDanger ? '🗑️' : '⚠️' }}</span>
+      </div>
+
+      <h3 id="confirm-popup-title" class="confirm-title">{{ dialog.title }}</h3>
+      <p class="confirm-message">{{ dialog.message }}</p>
+
+      <!-- Targeted Product Preview Card -->
+      @if (dialog.product; as prod) {
+        <div class="confirm-product-card">
+          <div class="confirm-prod-thumb">
+            <img [src]="getImgUrl(prod.image)" [alt]="prod.title" (error)="onImgError($event)" />
+          </div>
+          <div class="confirm-prod-info">
+            <h4 class="confirm-prod-title">{{ prod.title }}</h4>
+            <div class="confirm-prod-meta">
+              <span class="confirm-prod-cat">{{ prod.categoryLabel || 'Produk' }}</span>
+              <span class="confirm-prod-sep">•</span>
+              <span class="confirm-prod-price">Rp {{ formatThousand(prod.price) }}</span>
+              <span class="confirm-prod-sep">•</span>
+              <span class="confirm-prod-stock">{{ formatThousand(prod.inventory) }} pcs</span>
+            </div>
+          </div>
+        </div>
+      }
+
+      <div class="confirm-actions">
+        <button
+          type="button"
+          class="btn-confirm-cancel"
+          (click)="closeConfirm()"
+          id="btn-confirm-cancel"
+        >
+          {{ dialog.cancelLabel || 'Batal' }}
+        </button>
+        <button
+          type="button"
+          class="btn-confirm-proceed"
+          [class.btn-danger]="dialog.isDanger"
+          (click)="dialog.onConfirm()"
+          id="btn-confirm-proceed"
+        >
+          <span class="btn-icon">🗑️</span>
+          <span>{{ dialog.confirmLabel }}</span>
+        </button>
       </div>
     </div>
   </div>

@@ -49,15 +49,53 @@
               }
             </div>
 
-            <!-- Main Image with Cross-Fade Transition -->
-            <div class="pdp__img-wrap">
+            <!-- Main Image with Cross-Fade Transition & Swipe -->
+            <div
+              class="pdp__img-wrap"
+              (touchstart)="onImageTouchStart($event)"
+              (touchend)="onImageTouchEnd($event)"
+            >
               @if (p.isFlashSale && flashSaleService.isFlashSaleLive()) {
                 <div class="pdp-flash-ribbon" title="Promo Flash Sale Terbatas">
                   <span class="bolt">⚡</span>
                   <span>FLASH SALE</span>
                 </div>
               }
-              <img [src]="p.image" [alt]="p.title" fetchpriority="high" class="pdp__main-img" [class.img-swap]="isTransitioning() || variantChanging()" />
+              @if (p.isPreOrder) {
+                <div class="pdp-preorder-ribbon" [class.below-flash]="p.isFlashSale && flashSaleService.isFlashSaleLive()" title="Produk Pre-Order">
+                  <span>⏳</span>
+                  <span>PRE-ORDER • {{ p.preOrderDays || 7 }} HARI</span>
+                </div>
+              }
+              <img
+                [src]="activeImage()"
+                [alt]="p.title"
+                fetchpriority="high"
+                class="pdp__main-img"
+                [class.img-swap]="isTransitioning() || variantChanging() || imageChanging()"
+              />
+
+              @if (galleryImages().length > 1) {
+                <button
+                  type="button"
+                  class="pdp__nav-arrow pdp__nav-arrow--prev"
+                  (click)="prevImage()"
+                  aria-label="Foto sebelumnya"
+                >
+                  ‹
+                </button>
+                <button
+                  type="button"
+                  class="pdp__nav-arrow pdp__nav-arrow--next"
+                  (click)="nextImage()"
+                  aria-label="Foto berikutnya"
+                >
+                  ›
+                </button>
+                <div class="pdp__photo-counter">
+                  {{ activeImageIndex() + 1 }} / {{ galleryImages().length }}
+                </div>
+              }
             </div>
 
             <!-- BPOM Verified Pill -->
@@ -66,6 +104,24 @@
               <span>BPOM RI: <b>{{ p.bpomNumber }}</b></span>
             </div>
           </div>
+
+          @if (galleryImages().length > 1) {
+            <div class="pdp__thumbs" role="tablist" aria-label="Galeri Foto Produk">
+              @for (imgSrc of galleryImages(); track $index) {
+                <button
+                  type="button"
+                  role="tab"
+                  [attr.aria-selected]="$index === activeImageIndex()"
+                  [attr.aria-label]="'Lihat foto ' + ($index + 1)"
+                  class="pdp__thumb"
+                  [class.is-active]="$index === activeImageIndex()"
+                  (click)="selectImage($index)"
+                >
+                  <img [src]="imgSrc" [alt]="p.title + ' - foto ' + ($index + 1)" />
+                </button>
+              }
+            </div>
+          }
 
           <!-- Trust Guarantees -->
           <div class="guarantees" appReveal [revealDelay]="100">
@@ -91,11 +147,19 @@
               </div>
             </div>
             <div class="guarantee-item">
-              <span class="guarantee-icon">⚡</span>
-              <div>
-                <b>Kirim 24 Jam</b>
-                <small>Packing bubble wrap tebal</small>
-              </div>
+              @if (p.isPreOrder) {
+                <span class="guarantee-icon">⏳</span>
+                <div>
+                  <b>Pre-Order {{ p.preOrderDays || 7 }} Hari</b>
+                  <small>Dikirim bertahap aman</small>
+                </div>
+              } @else {
+                <span class="guarantee-icon">⚡</span>
+                <div>
+                  <b>Kirim 24 Jam</b>
+                  <small>Packing bubble wrap tebal</small>
+                </div>
+              }
             </div>
           </div>
         </div>
@@ -133,6 +197,22 @@
             }
           </div>
 
+          <!-- Pre-Order Notice Box if enabled -->
+          @if (p.isPreOrder) {
+            <div class="preorder-notice-card" role="status" id="pdp-preorder-notice">
+              <div class="preorder-notice__head">
+                <span class="preorder-notice__pill">⏳ PRODUK PRE-ORDER</span>
+                <span class="preorder-notice__days">Waktu Proses ±{{ p.preOrderDays || 7 }} Hari</span>
+              </div>
+              <p class="preorder-notice__desc">
+                Mohon diperhatikan: produk ini menggunakan sistem <b>Pre-Order</b> sehingga pengirimannya <b>tidak secepat produk Ready Stock</b>. Pesanan diperkirakan mulai dikirim sekitar <b>{{ estimatedShipDate() }}</b> (belum termasuk durasi pengantaran kurir).
+              </p>
+              @if (p.preOrderNote) {
+                <p class="preorder-notice__custom">📌 {{ p.preOrderNote }}</p>
+              }
+            </div>
+          }
+
           <!-- Variant Selector -->
           @if (p.variants && p.variants.length > 0) {
             <div class="variant-section">
@@ -162,9 +242,15 @@
               <span aria-live="polite">{{ qty() }}</span>
               <button type="button" (click)="changeQty(1)" aria-label="Tambah satu">+</button>
             </div>
-            <span class="stock-status">
-              <i class="stock-dot"></i> Stok Tersedia (Siap Kirim)
-            </span>
+            @if (p.isPreOrder) {
+              <span class="stock-status is-preorder">
+                <i class="stock-dot preorder-dot"></i> Kuota Pre-Order Dibuka (Kirim ±{{ p.preOrderDays || 7 }} Hari)
+              </span>
+            } @else {
+              <span class="stock-status">
+                <i class="stock-dot"></i> Stok Tersedia (Siap Kirim)
+              </span>
+            }
           </div>
 
           <!-- Action CTAs -->
@@ -177,7 +263,7 @@
               id="pdp-add-cart"
             >
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M5 8h14l-1.2 11.2a2 2 0 0 1-2 1.8H8.2a2 2 0 0 1-2-1.8L5 8Z" /><path d="M9 8V6a3 3 0 0 1 6 0v2" stroke-linecap="round" /></svg>
-              Tambah ke Keranjang
+              {{ p.isPreOrder ? '+ Keranjang Pre-Order' : 'Tambah ke Keranjang' }}
             </button>
 
             <button
@@ -188,7 +274,7 @@
               id="pdp-buy-now"
             >
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" stroke-linecap="round" stroke-linejoin="round"/></svg>
-              Beli Sekarang
+              {{ p.isPreOrder ? ('Pre-Order Sekarang (' + (p.preOrderDays || 7) + ' Hari)') : 'Beli Sekarang' }}
             </button>
           </div>
 
@@ -363,11 +449,17 @@
                 @if (rel.badge) {
                   <span class="p-card__badge" [class.has-flash-ribbon]="rel.isFlashSale && flashSaleService.isFlashSaleLive()">{{ rel.badge }}</span>
                 }
+                @if (rel.isPreOrder) {
+                  <span class="p-card__preorder">⏳ Pre-Order · {{ rel.preOrderDays || 7 }} Hari</span>
+                }
                 <span class="p-card__off" [class.flash]="rel.isFlashSale && flashSaleService.isFlashSaleLive()">-{{ discount(rel) }}%</span>
               </div>
               <div class="p-card__info">
                 <p class="p-card__tag">{{ rel.tagline }}</p>
                 <h3 class="p-card__name">{{ rel.name }}</h3>
+                @if (rel.isPreOrder) {
+                  <p class="p-card__po-note">⏳ Dikirim ±{{ rel.preOrderDays || 7 }} hari</p>
+                }
                 <div class="p-card__row">
                   <p class="p-card__price">
                     {{ rupiah(rel.price) }}
@@ -391,7 +483,7 @@
     <!-- ============================== MOBILE STICKY CTA BAR ============================== -->
     <div class="mobile-sticky-bar" [class.is-visible]="scrolledPastHero()" aria-label="Aksi Cepat Pembelian">
       <div class="mobile-sticky-info">
-        <img [src]="p.image" [alt]="p.title" class="mobile-sticky-thumb" />
+        <img [src]="activeImage()" [alt]="p.title" class="mobile-sticky-thumb" />
         <div class="mobile-sticky-text">
           <span class="mobile-sticky-name">{{ p.title }}</span>
           <span class="mobile-sticky-price">{{ rupiah(currentPrice()) }}</span>
@@ -412,7 +504,7 @@
           class="btn-sticky-buy"
           (click)="buyNow($event)"
         >
-          <span>Beli Sekarang</span>
+          <span>{{ p.isPreOrder ? ('Pre-Order (' + (p.preOrderDays || 7) + 'h)') : 'Beli Sekarang' }}</span>
         </button>
       </div>
     </div>
@@ -431,3 +523,4 @@
     </div>
   </main>
 }
+

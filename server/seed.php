@@ -257,6 +257,32 @@ function runSeeder(): array {
             'is_flash_sale' => 0
         ],
         [
+            'id' => 'powder-mask',
+            'title' => 'SYB Powder Mask Masker Bubuk 5 Varian',
+            'subtitle' => 'Niacinamide & Glycolic Acid · Sensasi spa di rumah.',
+            'handle' => 'new-syb-powder-mask-5-varian',
+            'category' => 'Kecantikan/Perawatan Wajah',
+            'category_label' => 'Wajah',
+            'product_type' => 'Masker Bubuk',
+            'price' => 24938,
+            'original_price' => 53060,
+            'status' => 'Active',
+            'inventory' => 35000,
+            'badge' => null,
+            'image' => 'products/powder-mask.jpg',
+            'gallery' => json_encode(['products/powder-mask.jpg']),
+            'description' => 'Masker bubuk alami dengan sensasi dingin mint dan kandungan Niacinamide untuk detox pori.',
+            'key_benefits' => json_encode([
+                'Menyerap minyak berlebih dan detox komedo',
+                'Sensasi dingin relaksasi kulit lelah',
+                'Wajah terasa halus dan segar seketika'
+            ]),
+            'key_ingredients' => json_encode(['Kaolin Clay', 'Peppermint Extract', 'Niacinamide', 'Tea Tree Leaf Oil']),
+            'how_to_use' => json_encode(['Campur bubuk masker dengan air mawar secukupnya, oleskan dan diamkan 15 menit']),
+            'is_featured' => 0,
+            'is_flash_sale' => 0
+        ],
+        [
             'id' => 'glow-fresh-bundle',
             'title' => 'Paket Bundling Glow & Fresh',
             'subtitle' => 'AHA Toner + Red Jelly + Peeling Serum ritual glowing lengkap.',

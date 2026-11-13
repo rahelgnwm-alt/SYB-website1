@@ -477,6 +477,7 @@ export class JneApiService {
       }
 
       return {
+        courier: 'JNE',
         serviceCode: p.service_code,
         serviceDisplay: display,
         serviceName: name,
@@ -526,6 +527,7 @@ export class JneApiService {
 
     return [
       {
+        courier: 'JNE',
         serviceCode: 'REG',
         serviceDisplay: 'REG',
         serviceName: 'JNE Regular (REG)',
@@ -535,6 +537,7 @@ export class JneApiService {
         badge: 'Paling Populer'
       },
       {
+        courier: 'JNE',
         serviceCode: 'YES',
         serviceDisplay: 'YES',
         serviceName: 'JNE YES (Yakin Esok Sampai)',

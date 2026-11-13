@@ -92,7 +92,6 @@ export class TimeService {
 
   /** Flash sale countdown matching the active session or admin-configured end hour. */
   readonly countdown = computed(() => {
-    const pad = (n: number) => String(Math.max(0, n)).padStart(2, '0');
     if (!this.fsService.isFlashSaleLive()) {
       return { h: '00', m: '00', s: '00' };
     }
@@ -100,12 +99,7 @@ export class TimeService {
     const active = this.fsService.activeSession();
     if (active && active.isActive) {
       const end = new Date(`${active.endDate}T${active.endTime}:00`);
-      const diffSec = Math.max(0, Math.floor((end.getTime() - this.now().getTime()) / 1000));
-      return {
-        h: pad(Math.floor(diffSec / 3600)),
-        m: pad(Math.floor((diffSec % 3600) / 60)),
-        s: pad(diffSec % 60),
-      };
+      return this.formatSecondsToHms(Math.floor((end.getTime() - this.now().getTime()) / 1000));
     }
 
     const config = this.flashSaleConfig();
@@ -115,12 +109,7 @@ export class TimeService {
 
     // 1. Duration / specific target timestamp mode
     if (config.targetTimestamp) {
-      const diffSec = Math.max(0, Math.floor((config.targetTimestamp - this.now().getTime()) / 1000));
-      return {
-        h: pad(Math.floor(diffSec / 3600)),
-        m: pad(Math.floor((diffSec % 3600) / 60)),
-        s: pad(diffSec % 60),
-      };
+      return this.formatSecondsToHms(Math.floor((config.targetTimestamp - this.now().getTime()) / 1000));
     }
 
     // 2. Fixed End Hour WIB mode (e.g. 18:00 WIB, 21:00 WIB, or 24:00 WIB midnight)
@@ -129,14 +118,18 @@ export class TimeService {
     const targetHour = config.endHour === 0 ? 24 : config.endHour;
     const targetSec = targetHour * 3600 + config.endMinute * 60;
 
-    const left = Math.max(0, targetSec - nowSec);
-
-    return {
-      h: pad(Math.floor(left / 3600)),
-      m: pad(Math.floor((left % 3600) / 60)),
-      s: pad(left % 60),
-    };
+    return this.formatSecondsToHms(targetSec - nowSec);
   });
+
+  private formatSecondsToHms(seconds: number): { h: string; m: string; s: string } {
+    const clamped = Math.max(0, seconds);
+    const pad = (n: number) => String(n).padStart(2, '0');
+    return {
+      h: pad(Math.floor(clamped / 3600)),
+      m: pad(Math.floor((clamped % 3600) / 60)),
+      s: pad(clamped % 60),
+    };
+  }
 
   constructor() {
     if (typeof window !== 'undefined') {
@@ -207,10 +200,5 @@ export class TimeService {
       targetTimestamp,
       isActive: true,
     });
-  }
-
-  resetFlashSaleToDefault(): void {
-    this.localFlashConfig.set({ ...DEFAULT_FLASH_SALE_CONFIG });
-    this.persistFlashSaleConfig(DEFAULT_FLASH_SALE_CONFIG);
   }
 }

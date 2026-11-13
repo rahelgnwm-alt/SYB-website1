@@ -157,8 +157,6 @@ export class ResellerService {
 
   // State Signals
   readonly resellerProducts = signal<ResellerProduct[]>(this.initialResellerProducts);
-  readonly selectedCategory = signal<string>('Semua');
-  readonly searchQuery = signal<string>('');
 
   constructor() {
     this.restoreProducts();
@@ -187,23 +185,6 @@ export class ResellerService {
   // Computeds
   readonly activeResellerProducts = computed(() => {
     return this.resellerProducts().filter((p) => p.status === 'Active');
-  });
-
-  readonly filteredResellerProducts = computed(() => {
-    const list = this.resellerProducts();
-    const cat = this.selectedCategory();
-    const q = this.searchQuery().toLowerCase().trim();
-
-    return list.filter((p) => {
-      const matchCat = cat === 'Semua' || p.categoryLabel === cat;
-      const matchQuery =
-        !q ||
-        p.title.toLowerCase().includes(q) ||
-        p.subtitle.toLowerCase().includes(q) ||
-        p.sku.toLowerCase().includes(q) ||
-        p.packageContents.toLowerCase().includes(q);
-      return matchCat && matchQuery;
-    });
   });
 
   // Admin CRUD Methods
@@ -238,8 +219,10 @@ export class ResellerService {
   }
 
   resetToDefault(): void {
-    this.resellerProducts.set(this.initialResellerProducts);
-    this.persist();
+    this.resellerProducts.set([...this.initialResellerProducts]);
+    if (typeof localStorage !== 'undefined') {
+      localStorage.removeItem(this.storageKey);
+    }
   }
 }
 

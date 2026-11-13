@@ -35,7 +35,7 @@ class OrderController {
         $subtotal = 0;
         $verifiedItems = [];
 
-        $pStmt = $pdo->prepare("SELECT id, title, price, original_price, is_flash_sale, flash_sale_price, inventory, image FROM products WHERE id = ?");
+        $pStmt = $pdo->prepare("SELECT id, title, price, original_price, is_flash_sale, flash_sale_price, is_pre_order, pre_order_days, inventory, image FROM products WHERE id = ?");
 
         foreach ($items as $it) {
             $pid = $it['productId'] ?? ($it['product_id'] ?? ($it['id'] ?? ''));
@@ -57,15 +57,19 @@ class OrderController {
 
             $lineTotal = $unitPrice * $qty;
             $subtotal += $lineTotal;
+            $isPreOrder = !empty($p['is_pre_order']) ? 1 : 0;
+            $preOrderDays = $isPreOrder ? (int)($p['pre_order_days'] ?? 7) : null;
 
             $verifiedItems[] = [
-                'productId'   => $p['id'],
-                'productName' => $p['title'],
-                'variantName' => $variantName,
-                'image'       => $p['image'],
-                'price'       => $unitPrice,
-                'quantity'    => $qty,
-                'total'       => $lineTotal,
+                'productId'    => $p['id'],
+                'productName'  => $p['title'],
+                'variantName'  => $variantName,
+                'image'        => $p['image'],
+                'price'        => $unitPrice,
+                'quantity'     => $qty,
+                'total'        => $lineTotal,
+                'isPreOrder'   => (bool)$isPreOrder,
+                'preOrderDays' => $preOrderDays,
             ];
         }
 
@@ -138,7 +142,7 @@ class OrderController {
         ]);
 
         // Insert order items & reduce stock
-        $itemIns = $pdo->prepare("INSERT INTO order_items (order_id, product_id, product_name, variant_name, image, price, quantity, total) VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
+        $itemIns = $pdo->prepare("INSERT INTO order_items (order_id, product_id, product_name, variant_name, image, price, quantity, total, is_pre_order, pre_order_days) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
         $stockDec = $pdo->prepare("UPDATE products SET inventory = GREATEST(0, inventory - ?) WHERE id = ?");
 
         foreach ($verifiedItems as $vit) {
@@ -150,7 +154,9 @@ class OrderController {
                 $vit['image'],
                 $vit['price'],
                 $vit['quantity'],
-                $vit['total']
+                $vit['total'],
+                $vit['isPreOrder'] ? 1 : 0,
+                $vit['preOrderDays']
             ]);
             $stockDec->execute([$vit['quantity'], $vit['productId']]);
         }

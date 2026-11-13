@@ -1,7 +1,6 @@
 import { ChangeDetectionStrategy, Component } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { MagneticDirective, RevealDirective } from '../../../../../directives';
-import { SHOP_URL } from '../../../../../data';
 
 @Component({
   selector: 'app-glow-on-the-go',
@@ -10,6 +9,4 @@ import { SHOP_URL } from '../../../../../data';
   styleUrl: './glow-on-the-go.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class GlowOnTheGo {
-  protected readonly shopUrl = SHOP_URL;
-}
+export class GlowOnTheGo {}

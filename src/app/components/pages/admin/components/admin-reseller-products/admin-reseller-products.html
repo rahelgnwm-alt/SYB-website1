@@ -33,8 +33,8 @@
         <span class="kpi-icon">📦</span>
       </div>
       <div class="kpi-value-row">
-        <strong class="kpi-val">{{ totalProductsCount() }}</strong>
-        <span class="kpi-tag green">{{ activeCount() }} Aktif</span>
+        <strong class="kpi-val">{{ formatThousand(totalProductsCount()) }}</strong>
+        <span class="kpi-tag green">{{ formatThousand(activeCount()) }} Aktif</span>
       </div>
       <span class="kpi-hint">Katalog khusus mitra &amp; reseller</span>
     </div>
@@ -45,8 +45,8 @@
         <span class="kpi-icon">✅</span>
       </div>
       <div class="kpi-value-row">
-        <strong class="kpi-val green">{{ activeCount() }}</strong>
-        <span class="kpi-tag neutral">{{ draftCount() }} Draft</span>
+        <strong class="kpi-val green">{{ formatThousand(activeCount()) }}</strong>
+        <span class="kpi-tag neutral">{{ formatThousand(draftCount()) }} Draft</span>
       </div>
       <span class="kpi-hint">Tampil di halaman publik /reseller</span>
     </div>
@@ -57,7 +57,7 @@
         <span class="kpi-icon">🏭</span>
       </div>
       <div class="kpi-value-row">
-        <strong class="kpi-val purple">{{ totalStockUnits() | number:'1.0-0' }}</strong>
+        <strong class="kpi-val purple">{{ formatThousand(totalStockUnits()) }}</strong>
         <span class="kpi-tag blue">Paket / Box</span>
       </div>
       <span class="kpi-hint">Gudang Rungkut Industri Surabaya</span>
@@ -167,17 +167,17 @@
             <!-- Min Order -->
             <td class="col-min">
               <span class="min-order-pill">
-                Min. <b>{{ prod.minOrder }}</b> {{ prod.minOrderUnit }}
+                Min. <b>{{ formatThousand(prod.minOrder) }}</b> {{ prod.minOrderUnit }}
               </span>
             </td>
 
             <!-- Pricing (Wholesale vs Retail) -->
             <td class="col-price">
               <div class="price-stack">
-                <strong class="price-wholesale">Rp {{ prod.wholesalePrice | number:'1.0-0' }}</strong>
+                <strong class="price-wholesale">Rp {{ formatThousand(prod.wholesalePrice) }}</strong>
                 @if (prod.retailPrice > prod.wholesalePrice) {
                   <div class="price-retail-row">
-                    <s class="price-retail">Rp {{ prod.retailPrice | number:'1.0-0' }}</s>
+                    <s class="price-retail">Rp {{ formatThousand(prod.retailPrice) }}</s>
                     <span class="discount-badge">
                       -{{ Math.round((1 - prod.wholesalePrice / prod.retailPrice) * 100) }}%
                     </span>
@@ -189,7 +189,7 @@
             <!-- Stock -->
             <td class="col-stock">
               <div class="stock-pill" [class.low]="prod.inventory < 20">
-                <b>{{ prod.inventory | number:'1.0-0' }}</b> {{ prod.minOrderUnit }}
+                <b>{{ formatThousand(prod.inventory) }}</b> {{ prod.minOrderUnit }}
               </div>
             </td>
 
@@ -335,10 +335,11 @@
               <label class="form-label">Min. Order</label>
               <div class="min-order-input-group">
                 <input
-                  type="number"
-                  [ngModel]="formMinOrder()"
-                  (ngModelChange)="formMinOrder.set($event)"
-                  min="1"
+                  type="text"
+                  inputmode="numeric"
+                  [value]="formatThousand(formMinOrder())"
+                  (input)="handleNumericInput($event, formMinOrder)"
+                  placeholder="1"
                   class="form-input min-num"
                 />
                 <select
@@ -371,11 +372,11 @@
                 <div class="prefix-input">
                   <span class="prefix">Rp</span>
                   <input
-                    type="number"
-                    [ngModel]="formWholesalePrice()"
-                    (ngModelChange)="formWholesalePrice.set($event)"
-                    min="1000"
-                    step="1000"
+                    type="text"
+                    inputmode="numeric"
+                    [value]="formatThousand(formWholesalePrice())"
+                    (input)="handleNumericInput($event, formWholesalePrice)"
+                    placeholder="500.000"
                     class="form-input highlight-green"
                     required
                   />
@@ -387,11 +388,11 @@
                 <div class="prefix-input">
                   <span class="prefix">Rp</span>
                   <input
-                    type="number"
-                    [ngModel]="formRetailPrice()"
-                    (ngModelChange)="formRetailPrice.set($event)"
-                    min="1000"
-                    step="1000"
+                    type="text"
+                    inputmode="numeric"
+                    [value]="formatThousand(formRetailPrice())"
+                    (input)="handleNumericInput($event, formRetailPrice)"
+                    placeholder="1.000.000"
                     class="form-input"
                   />
                 </div>
@@ -410,10 +411,11 @@
             <div class="form-group">
               <label class="form-label">Stok Tersedia (Gudang)</label>
               <input
-                type="number"
-                [ngModel]="formInventory()"
-                (ngModelChange)="formInventory.set($event)"
-                min="0"
+                type="text"
+                inputmode="numeric"
+                [value]="formatThousand(formInventory())"
+                (input)="handleNumericInput($event, formInventory)"
+                placeholder="100"
                 class="form-input"
               />
             </div>
@@ -500,6 +502,69 @@
           <button type="button" class="btn-modal-cancel" (click)="closeModal()">Batal</button>
           <button type="button" class="btn-primary-green" (click)="saveProduct()">
             <span>💾 {{ modalMode() === 'add' ? 'Simpan & Publikasikan Paket' : 'Simpan Perubahan' }}</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- ==================== CUSTOM LUXURY CONFIRMATION POPUP MODAL ==================== -->
+  @if (confirmDialog(); as dialog) {
+    <div class="confirm-modal-backdrop" (click)="closeConfirm()">
+      <div
+        class="confirm-modal-card"
+        (click)="$event.stopPropagation()"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="confirm-reseller-title"
+      >
+        <button
+          type="button"
+          class="confirm-btn-close"
+          (click)="closeConfirm()"
+          aria-label="Tutup dialog"
+        >
+          ✕
+        </button>
+
+        <div class="confirm-icon-bubble" [class.is-danger]="dialog.isDanger">
+          <span class="icon-glyph">{{ dialog.isDanger ? '🗑️' : '⚠️' }}</span>
+        </div>
+
+        <h3 id="confirm-reseller-title" class="confirm-title">{{ dialog.title }}</h3>
+        <p class="confirm-message">{{ dialog.message }}</p>
+
+        @if (dialog.product; as prod) {
+          <div class="confirm-product-card">
+            <div class="confirm-prod-thumb">
+              <img [src]="prod.image" [alt]="prod.title" />
+            </div>
+            <div class="confirm-prod-info">
+              <h4 class="confirm-prod-title">{{ prod.title }}</h4>
+              <div class="confirm-prod-meta">
+                <span class="confirm-prod-cat">{{ prod.categoryLabel }}</span>
+                <span class="confirm-prod-sep">•</span>
+                <span class="confirm-prod-price">Rp {{ formatThousand(prod.wholesalePrice) }}</span>
+              </div>
+            </div>
+          </div>
+        }
+
+        <div class="confirm-actions">
+          <button
+            type="button"
+            class="btn-confirm-cancel"
+            (click)="closeConfirm()"
+          >
+            {{ dialog.cancelLabel || 'Batal' }}
+          </button>
+          <button
+            type="button"
+            class="btn-confirm-proceed"
+            [class.btn-danger]="dialog.isDanger"
+            (click)="dialog.onConfirm()"
+          >
+            <span>{{ dialog.confirmLabel }}</span>
           </button>
         </div>
       </div>

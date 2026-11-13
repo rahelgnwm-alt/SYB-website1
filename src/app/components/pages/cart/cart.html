@@ -17,11 +17,27 @@
             <li class="item" [style.--tint]="l.product.tint" appReveal [revealDelay]="i * 70" [id]="'cart-item-' + l.product.id">
               <a class="item__media" [routerLink]="['/products', l.product.id]" title="Lihat detail produk">
                 <img [src]="l.product.image" [alt]="l.product.name" />
+                @if (l.product.isPreOrder) {
+                  <span class="item__po-overlay">⏳ PO {{ l.product.preOrderDays || 7 }}h</span>
+                }
               </a>
 
               <div class="item__body">
-                <p class="item__tag">{{ l.product.tagline }}</p>
+                <div class="item__top-tags">
+                  <p class="item__tag">{{ l.product.tagline }}</p>
+                  @if (l.product.isPreOrder) {
+                    <span class="item__po-badge">⏳ Pre-Order • {{ l.product.preOrderDays || 7 }} Hari</span>
+                  }
+                </div>
                 <h2 class="item__name"><a [routerLink]="['/products', l.product.id]">{{ l.product.name }}</a></h2>
+                @if (l.product.isPreOrder) {
+                  <p class="item__po-note">
+                    ⚠️ Produk Pre-Order: membutuhkan waktu proses ±{{ l.product.preOrderDays || 7 }} hari sehingga tiba lebih lama dibanding produk Ready Stock.
+                    @if (l.product.preOrderNote) {
+                      <span>({{ l.product.preOrderNote }})</span>
+                    }
+                  </p>
+                }
                 <p class="item__price">
                   {{ rupiah(l.product.price) }}
                   <s>{{ rupiah(l.product.compareAt) }}</s>
@@ -52,9 +68,12 @@
 
         <!-- ---------------- Summary ---------------- -->
         <aside class="summary" appReveal="scale" aria-label="Ringkasan pesanan">
-          <h2 class="summary__title">Ringkasan</h2>
+          <div class="summary__head">
+            <h2 class="summary__title">Ringkasan</h2>
+            <span class="summary__count-pill">{{ cart.count() }} Produk</span>
+          </div>
 
-          <div class="ship">
+          <div class="ship" [class.ship--unlocked]="cart.remainingForFreeShipping() === 0">
             @if (cart.remainingForFreeShipping() > 0) {
               <p>Belanja <b>{{ rupiah(cart.remainingForFreeShipping()) }}</b> lagi untuk <b>gratis ongkir</b> 🚚</p>
             } @else {
@@ -63,55 +82,154 @@
             <div class="ship__bar"><span [style.width.%]="cart.shippingProgress()"></span></div>
           </div>
 
-          <!-- JNE Shipping Tariff Calculator Section -->
+          @if (cart.hasPreOrder()) {
+            <div class="cart-po-alert" role="status">
+              <div class="cart-po-alert__head">
+                <span class="cart-po-alert__pill">⏳ Pesanan Pre-Order</span>
+                <span class="cart-po-alert__days">±{{ cart.maxPreOrderDays() }} Hari Proses</span>
+              </div>
+              <p class="cart-po-alert__text">
+                Keranjangmu berisi produk <b>Pre-Order</b>. Pengiriman tidak secepat produk Ready Stock karena membutuhkan waktu penyiapan <b>±{{ cart.maxPreOrderDays() }} hari</b> sebelum diserahkan ke kurir JNE (estimasi mulai dikirim sekitar <b>{{ cart.estimatedPreOrderShipDate() }}</b>).
+              </p>
+            </div>
+          }
+
+          <!-- JNE & J&T Shipping Tariff Calculator Section -->
           <div class="jne-shipping-box">
             <div class="jne-box-head">
               <div class="jne-brand">
-                <span class="jne-brand-pill">JNE Express</span>
-                <span class="jne-sub-text">Tarif Resmi API (pricedev)</span>
+                <span class="jne-brand-pill">🚚 JNE &amp; J&amp;T</span>
+                <span class="jne-sub-text">Estimasi Ongkir Resmi Dual API</span>
               </div>
-              <span class="jne-origin-badge">Gudang SYB Surabaya</span>
+              <span class="jne-origin-badge">📍 Gudang Surabaya</span>
             </div>
 
-            <!-- Destination selector -->
-            <div class="dest-field">
-              <label for="dest-select" class="dest-label">Kota Tujuan Pengiriman:</label>
+            <!-- Courier Filter Tabs (Run Both JNE & J&T) -->
+            <div class="courier-filter-pills" role="tablist" aria-label="Filter Ekspedisi">
+              <button
+                type="button"
+                class="courier-pill-btn"
+                [class.active]="activeCourierFilter() === 'ALL'"
+                (click)="setCourierFilter('ALL')"
+              >
+                Semua Kurir
+              </button>
+              <button
+                type="button"
+                class="courier-pill-btn"
+                [class.active]="activeCourierFilter() === 'JNE'"
+                (click)="setCourierFilter('JNE')"
+              >
+                📦 JNE Express
+              </button>
+              <button
+                type="button"
+                class="courier-pill-btn jnt"
+                [class.active]="activeCourierFilter() === 'J&T'"
+                (click)="setCourierFilter('J&T')"
+              >
+                ⚡ J&amp;T Express
+              </button>
+            </div>
+
+            <!-- Custom SYB Pastel Luxury Destination Selector -->
+            <div class="dest-field" [class.is-open]="isDestDropdownOpen()">
+              <label for="dest-select" class="dest-label">Kota Tujuan Pengiriman</label>
               <div class="dest-select-wrap">
-                <select
+                <button
+                  type="button"
                   id="dest-select"
-                  class="dest-select"
-                  [ngModel]="selectedDestCode()"
-                  (ngModelChange)="onDestinationChange($event)"
+                  class="dest-trigger"
+                  [class.active]="isDestDropdownOpen()"
+                  (click)="toggleDestDropdown($event)"
+                  aria-haspopup="listbox"
+                  [attr.aria-expanded]="isDestDropdownOpen()"
                 >
-                  @for (dest of destinations; track dest.code) {
-                    <option [value]="dest.code">{{ dest.city }} ({{ dest.province }})</option>
-                  }
-                </select>
+                  <span class="dest-trigger__pin" aria-hidden="true">📍</span>
+                  <span class="dest-trigger__text">
+                    <strong class="dest-trigger__city">{{ selectedDestination().city }}</strong>
+                    <span class="dest-trigger__prov">{{ selectedDestination().province }}</span>
+                  </span>
+                  <span class="dest-trigger__chevron" [class.rotated]="isDestDropdownOpen()" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4">
+                      <polyline points="6 9 12 15 18 9" stroke-linecap="round" stroke-linejoin="round"></polyline>
+                    </svg>
+                  </span>
+                </button>
+
+                @if (isDestDropdownOpen()) {
+                  <div class="dest-dropdown-panel" (click)="$event.stopPropagation()">
+                    <div class="dest-search-box">
+                      <svg class="dest-search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true">
+                        <circle cx="11" cy="11" r="7"></circle>
+                        <line x1="20" y1="20" x2="16.2" y2="16.2" stroke-linecap="round"></line>
+                      </svg>
+                      <input
+                        type="text"
+                        class="dest-search-input"
+                        placeholder="Cari kota atau provinsi..."
+                        [ngModel]="destSearchQuery()"
+                        (ngModelChange)="destSearchQuery.set($event)"
+                        aria-label="Cari kota tujuan pengiriman"
+                      />
+                      @if (destSearchQuery()) {
+                        <button type="button" class="dest-search-clear" (click)="destSearchQuery.set('')" aria-label="Hapus pencarian">✕</button>
+                      }
+                    </div>
+
+                    <ul class="dest-options-list" role="listbox" aria-label="Pilih kota tujuan pengiriman">
+                      @for (dest of filteredDestinations(); track dest.code) {
+                        <li
+                          class="dest-option-item"
+                          [class.selected]="dest.code === selectedDestCode()"
+                          (click)="onDestinationChange(dest.code)"
+                          role="option"
+                          [attr.aria-selected]="dest.code === selectedDestCode()"
+                        >
+                          <div class="dest-option-main">
+                            <span class="dest-option-city">{{ dest.city }}</span>
+                            <span class="dest-option-meta">{{ dest.province }} • {{ dest.group }}</span>
+                          </div>
+                          @if (dest.code === selectedDestCode()) {
+                            <span class="dest-option-check" aria-hidden="true">✓</span>
+                          }
+                        </li>
+                      } @empty {
+                        <li class="dest-option-empty">
+                          Kota "{{ destSearchQuery() }}" belum ditemukan
+                        </li>
+                      }
+                    </ul>
+                  </div>
+                }
               </div>
             </div>
 
             <!-- Weight & Service Info -->
             <div class="jne-meta-row">
-              <span class="meta-item">⚖️ Berat: <b>{{ estimatedWeightKg() }} kg</b> ({{ cart.count() }} produk)</span>
-              <span class="meta-item api-status">🟢 Live JNE Rate</span>
+              <span class="meta-item">⚖️ Berat paket: <b>{{ estimatedWeightKg() }} kg</b> ({{ cart.count() }} item)</span>
+              <span class="meta-item api-status">
+                <span class="live-dot"></span>
+                Tarif Real-Time
+              </span>
             </div>
 
             <!-- Loading Shimmer -->
             @if (isLoadingTariff()) {
               <div class="tariff-loading">
                 <span class="spinner-inline"></span>
-                <span>Mengecek ongkir resmi JNE...</span>
+                <span>Mengecek ongkir resmi JNE &amp; J&amp;T...</span>
               </div>
             } @else {
-              <!-- Available JNE Services Radio Cards -->
-              <div class="jne-services-list" role="radiogroup" aria-label="Pilihan layanan JNE">
-                @for (opt of tariffOptions(); track opt.serviceCode) {
+              <!-- Available JNE & J&T Services Radio Cards -->
+              <div class="jne-services-list" role="radiogroup" aria-label="Pilihan layanan JNE dan J&T">
+                @for (opt of filteredTariffOptions(); track opt.serviceCode + (opt.courier || 'JNE')) {
                   <div
                     class="jne-service-card"
-                    [class.selected]="selectedTariff()?.serviceCode === opt.serviceCode"
+                    [class.selected]="selectedTariff()?.serviceCode === opt.serviceCode && selectedTariff()?.courier === opt.courier"
                     (click)="selectService(opt)"
                     role="radio"
-                    [attr.aria-checked]="selectedTariff()?.serviceCode === opt.serviceCode"
+                    [attr.aria-checked]="selectedTariff()?.serviceCode === opt.serviceCode && selectedTariff()?.courier === opt.courier"
                     tabindex="0"
                   >
                     <div class="srv-left">
@@ -120,6 +238,7 @@
                       </div>
                       <div class="srv-info">
                         <div class="srv-title-row">
+                          <span class="srv-courier-chip" [class.jnt]="opt.courier === 'J&T'">{{ opt.courier || 'JNE' }}</span>
                           <strong class="srv-name">{{ opt.serviceName }}</strong>
                           @if (opt.badge) {
                             <span class="srv-badge">{{ opt.badge }}</span>
@@ -168,10 +287,20 @@
 
           <p class="total"><span>Total</span><b>{{ rupiah(grandTotal()) }}</b></p>
 
-          <a class="btn btn--primary btn--block" routerLink="/checkout" appMagnetic="0.2" id="cart-checkout">
-            Checkout Sekarang • {{ rupiah(grandTotal()) }}
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M13 6l6 6-6 6" stroke-linecap="round" stroke-linejoin="round" /></svg>
-          </a>
+          @if (cart.checkoutEnabled()) {
+            <a class="btn btn--primary btn--block" routerLink="/checkout" appMagnetic="0.2" id="cart-checkout">
+              Checkout Sekarang • {{ rupiah(grandTotal()) }}
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M13 6l6 6-6 6" stroke-linecap="round" stroke-linejoin="round" /></svg>
+            </a>
+          } @else {
+            <div class="checkout-paused-notice" role="status">
+              <span class="checkout-paused-notice__pill">🚧 Segera Hadir</span>
+              <p>Fitur checkout sementara dinonaktifkan karena website masih dalam tahap penyempurnaan.</p>
+            </div>
+            <button type="button" class="btn btn--primary btn--block btn--checkout-paused" disabled id="cart-checkout-disabled">
+              Checkout Belum Tersedia
+            </button>
+          }
           <button type="button" class="summary__clear" (click)="cart.clear()" id="cart-clear">Kosongkan keranjang</button>
         </aside>
       </div>
@@ -199,6 +328,9 @@
               <a class="mini__media" [routerLink]="['/products', p.id]" title="Lihat detail produk">
                 <img [src]="p.image" [alt]="p.name" loading="lazy" />
                 <span class="mini__off">-{{ discount(p) }}%</span>
+                @if (p.isPreOrder) {
+                  <span class="mini__po">⏳ PO {{ p.preOrderDays || 7 }}h</span>
+                }
               </a>
               <h3 class="mini__name"><a [routerLink]="['/products', p.id]">{{ p.name }}</a></h3>
               <div class="mini__row">

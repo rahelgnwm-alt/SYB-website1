@@ -8,7 +8,7 @@ import {
 } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import { RevealDirective, TiltDirective } from '../../../../../directives';
-import { PRODUCTS, Product, productUrl } from '../../../../../data';
+import { Product, calcDiscount, formatRupiah } from '../../../../../data';
 import { CartService } from '../../../../../services/cart.service';
 import { ProductService } from '../../../../../services/product.service';
 import { FlashSaleService } from '../../../../../services/flash-sale.service';
@@ -27,23 +27,11 @@ export class BestSeller {
   private readonly productService = inject(ProductService);
   protected readonly flashSaleService = inject(FlashSaleService);
 
-  protected readonly products = computed<Product[]>(() => {
-    const isLive = this.flashSaleService.isFlashSaleLive();
-    const liveMap = new Map(this.productService.products().map((p) => [p.id, p]));
-    return PRODUCTS.map((p) => {
-      const live = liveMap.get(p.id);
-      if (!live) {
-        return { ...p, isFlashSale: false };
-      }
-      return {
-        ...p,
-        price: live.price,
-        compareAt: live.originalPrice || p.compareAt,
-        isFlashSale: isLive && Boolean(live.isFlashSale),
-      };
-    });
-  });
-  protected readonly productUrl = productUrl;
+  protected readonly products = computed<Product[]>(() =>
+    this.productService.storefrontProducts()
+  );
+  protected readonly rupiah = formatRupiah;
+  protected readonly discount = calcDiscount;
 
   private readonly rail = viewChild<ElementRef<HTMLElement>>('rail');
   private drag = { active: false, startX: 0, startScroll: 0, moved: false };
@@ -131,13 +119,5 @@ export class BestSeller {
     e.preventDefault();
     e.stopPropagation();
     this.cart.add(p, e.currentTarget as HTMLElement);
-  }
-
-  protected rupiah(n: number) {
-    return 'Rp' + Math.round(n).toLocaleString('id-ID');
-  }
-
-  protected discount(p: Product) {
-    return Math.round((1 - p.price / p.compareAt) * 100);
   }
 }

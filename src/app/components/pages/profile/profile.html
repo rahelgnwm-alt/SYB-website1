@@ -195,6 +195,9 @@
                       <span class="courier-dot"></span>
                       {{ order.courier }} ({{ order.serviceName }})
                     </span>
+                    @if (order.hasPreOrder) {
+                      <span class="order-po-badge">⏳ Pre-Order • ±{{ order.maxPreOrderDays || 7 }} Hari</span>
+                    }
                   </div>
 
                   <div class="order-header-right">
@@ -221,7 +224,12 @@
                     <div class="order-item-row">
                       <img [src]="getImgUrl(item.image)" [alt]="item.title" class="item-thumb" />
                       <div class="item-info">
-                        <h4 class="item-title">{{ item.title }}</h4>
+                        <h4 class="item-title">
+                          {{ item.title }}
+                          @if (item.isPreOrder) {
+                            <span class="profile-item-po">⏳ PO {{ item.preOrderDays || 7 }} Hari</span>
+                          }
+                        </h4>
                         <span class="item-variant">{{ item.variantName }}</span>
                         <div class="item-qty-price">
                           <span class="item-qty">{{ item.quantity }} pcs &times;</span>

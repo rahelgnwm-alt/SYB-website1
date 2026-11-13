@@ -11,34 +11,32 @@ export class AuthModalComponent {
   protected readonly authService = inject(AuthService);
   private readonly router = inject(Router);
 
-  protected readonly username = signal('admin@shevajordanbersama.com');
-  protected readonly password = signal('sybadmin2026');
-  protected readonly selectedDemoType = signal<'admin' | 'customer'>('admin');
+  protected readonly username = signal('');
+  protected readonly password = signal('');
+  protected readonly showPassword = signal(false);
 
   protected readonly isDetectedAdmin = computed(() =>
     this.authService.isAdminCredentials(this.username(), this.password())
   );
 
+  togglePasswordVisibility(): void {
+    this.showPassword.update((v) => !v);
+  }
+
   close(): void {
+    this.username.set('');
+    this.password.set('');
+    this.showPassword.set(false);
     this.authService.closeLoginModal();
-  }
-
-  fillAdminDemo(): void {
-    this.selectedDemoType.set('admin');
-    this.username.set('admin@shevajordanbersama.com');
-    this.password.set('sybadmin2026');
-  }
-
-  fillCustomerDemo(): void {
-    this.selectedDemoType.set('customer');
-    this.username.set('aulia.r@gmail.com');
-    this.password.set('customer123');
   }
 
   async handleLogin(event: Event): Promise<void> {
     event.preventDefault();
     const res = await this.authService.login(this.username(), this.password());
     if (res.success) {
+      this.username.set('');
+      this.password.set('');
+      this.showPassword.set(false);
       const ret = this.authService.getReturnUrl();
       const isAdmin = res.role === 'admin';
       const target = ret && (isAdmin === ret.startsWith('/admin')) ? ret : (isAdmin ? '/admin/products' : '/profile');

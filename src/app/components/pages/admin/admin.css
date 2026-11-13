@@ -27,8 +27,10 @@
   flex-shrink: 0;
   border-right: 1px solid #222426;
   height: 100vh;
-  position: sticky;
+  position: fixed;
   top: 0;
+  left: 0;
+  bottom: 0;
   overflow-y: auto;
   z-index: 50;
 }
@@ -291,6 +293,7 @@
   display: flex;
   flex-direction: column;
   min-width: 0;
+  margin-left: 260px;
   background: #f6f7f9;
 }
 
@@ -435,6 +438,13 @@
   background-color: #f6f7f9;
 }
 
+/* Release fixed-position containing block & raise stacking context when any modal popup is open */
+.shopify-canvas:has(.modal-backdrop, .confirm-modal-backdrop, .fs-modal-backdrop) {
+  view-transition-name: none !important;
+  transform: none !important;
+  z-index: 10000;
+}
+
 /* Fallback for browsers without View Transitions API */
 @supports not (view-transition-name: none) {
   .shopify-canvas > * {
@@ -445,11 +455,9 @@
 @keyframes adminCanvasFallbackIn {
   from {
     opacity: 0;
-    transform: translateY(4px);
   }
   to {
     opacity: 1;
-    transform: translateY(0);
   }
 }
 
@@ -465,6 +473,9 @@
 @media (min-width: 700px) and (max-width: 1024px) {
   .shopify-sidebar {
     width: 72px;
+  }
+  .shopify-main {
+    margin-left: 72px;
   }
   .store-meta, .nav-text, .nav-counter, .nav-section-title, .user-info, .link-ext, .nav-quick-btn span, .nav-quick-btn kbd {
     display: none;
@@ -487,6 +498,10 @@
     flex-direction: column !important;
     min-height: 100vh;
     padding-bottom: 64px !important;
+  }
+
+  .shopify-main {
+    margin-left: 0 !important;
   }
 
   /* Transform sidebar into high-end mobile bottom nav */

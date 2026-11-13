@@ -8,8 +8,53 @@ require_once __DIR__ . '/../helpers/response.php';
 require_once __DIR__ . '/../middleware/auth.php';
 
 class ProductController {
+    private const MAX_GALLERY_IMAGES = 10;
+
+    private static function normalizeGallery($rawGallery, ?string $primaryImage = null): array {
+        $list = [];
+        if (is_array($rawGallery)) {
+            $list = $rawGallery;
+        } elseif (is_string($rawGallery)) {
+            $trimmed = trim($rawGallery);
+            if ($trimmed !== '' && $trimmed !== '[]') {
+                $decoded = json_decode($trimmed, true);
+                $list = is_array($decoded) ? $decoded : [$trimmed];
+            }
+        }
+
+        $result = [];
+        $seen = [];
+        foreach ($list as $item) {
+            if (!is_string($item)) continue;
+            $val = trim($item);
+            if ($val === '' || isset($seen[$val])) continue;
+            $seen[$val] = true;
+            $result[] = $val;
+            if (count($result) >= self::MAX_GALLERY_IMAGES) break;
+        }
+
+        $primary = $primaryImage !== null ? trim($primaryImage) : '';
+        if ($primary !== '' && !isset($seen[$primary])) {
+            array_unshift($result, $primary);
+            $result = array_slice($result, 0, self::MAX_GALLERY_IMAGES);
+        }
+
+        return $result;
+    }
+
     public static function index(): void {
         $pdo = getDbConnection();
+
+        // Auto-seed initial catalog into SQL if database is fresh/empty
+        try {
+            $cnt = (int)$pdo->query("SELECT COUNT(*) FROM products")->fetchColumn();
+            if ($cnt === 0) {
+                require_once __DIR__ . '/../seed.php';
+                runSeeder();
+            }
+        } catch (Exception $e) {
+            // Ignore error if schema is creating
+        }
 
         $cat = $_GET['category'] ?? 'Semua';
         $q = trim($_GET['q'] ?? '');
@@ -73,10 +118,21 @@ class ProductController {
             $p['productType'] = $p['product_type'];
             $p['isFeatured'] = (bool)$p['is_featured'];
             $p['isFlashSale'] = (bool)$p['is_flash_sale'];
-            $p['gallery'] = json_decode($p['gallery'] ?: '[]', true);
+            $p['isPreOrder'] = !empty($p['is_pre_order']);
+            $p['preOrderDays'] = isset($p['pre_order_days']) ? (int)$p['pre_order_days'] : 7;
+            $p['preOrderNote'] = $p['pre_order_note'] ?? null;
+            $p['gallery'] = self::normalizeGallery($p['gallery'] ?? [], $p['image'] ?? null);
             $p['keyBenefits'] = json_decode($p['key_benefits'] ?: '[]', true);
             $p['keyIngredients'] = json_decode($p['key_ingredients'] ?: '[]', true);
             $p['howToUse'] = json_decode($p['how_to_use'] ?: '[]', true);
+            $p['benefits'] = $p['keyBenefits'];
+            $p['heroTagline'] = $p['hero_tagline'] ?? $p['subtitle'];
+            $p['bpomNumber'] = $p['bpom_number'] ?? 'NA18210103429';
+            $p['accentColor'] = $p['accent_color'] ?? '#ff2a7a';
+            $p['rating'] = (float)($p['rating'] ?? 4.9);
+            $p['reviewsCount'] = (int)($p['reviews_count'] ?? 1420);
+            $p['channels'] = 4;
+            $p['catalogs'] = 2;
 
             $variantStmt->execute([$p['id']]);
             $variants = $variantStmt->fetchAll();
@@ -84,6 +140,7 @@ class ProductController {
                 $v['price'] = (float)$v['price'];
             }
             $p['variants'] = $variants;
+            $p['variantsCount'] = count($variants);
         }
 
         sendSuccess($products);
@@ -106,10 +163,21 @@ class ProductController {
         $p['productType'] = $p['product_type'];
         $p['isFeatured'] = (bool)$p['is_featured'];
         $p['isFlashSale'] = (bool)$p['is_flash_sale'];
-        $p['gallery'] = json_decode($p['gallery'] ?: '[]', true);
+        $p['isPreOrder'] = !empty($p['is_pre_order']);
+        $p['preOrderDays'] = isset($p['pre_order_days']) ? (int)$p['pre_order_days'] : 7;
+        $p['preOrderNote'] = $p['pre_order_note'] ?? null;
+        $p['gallery'] = self::normalizeGallery($p['gallery'] ?? [], $p['image'] ?? null);
         $p['keyBenefits'] = json_decode($p['key_benefits'] ?: '[]', true);
         $p['keyIngredients'] = json_decode($p['key_ingredients'] ?: '[]', true);
         $p['howToUse'] = json_decode($p['how_to_use'] ?: '[]', true);
+        $p['benefits'] = $p['keyBenefits'];
+        $p['heroTagline'] = $p['hero_tagline'] ?? $p['subtitle'];
+        $p['bpomNumber'] = $p['bpom_number'] ?? 'NA18210103429';
+        $p['accentColor'] = $p['accent_color'] ?? '#ff2a7a';
+        $p['rating'] = (float)($p['rating'] ?? 4.9);
+        $p['reviewsCount'] = (int)($p['reviews_count'] ?? 1420);
+        $p['channels'] = 4;
+        $p['catalogs'] = 2;
 
         // Fetch variants
         $variantStmt = $pdo->prepare("SELECT * FROM product_variants WHERE product_id = ?");
@@ -119,6 +187,7 @@ class ProductController {
             $v['price'] = (float)$v['price'];
         }
         $p['variants'] = $variants;
+        $p['variantsCount'] = count($variants);
 
         // Fetch reviews
         $reviewStmt = $pdo->prepare("SELECT * FROM product_reviews WHERE product_id = ? ORDER BY created_at DESC");
@@ -152,20 +221,28 @@ class ProductController {
         $status = $input['status'] ?? 'Active';
         $inventory = (int)($input['inventory'] ?? 100);
         $badge = $input['badge'] ?? null;
-        $image = $input['image'] ?? 'products/red-jelly-serum.jpg';
-        $gallery = json_encode($input['gallery'] ?? []);
+        $rawImage = trim((string)($input['image'] ?? ''));
+        $galleryArr = self::normalizeGallery($input['gallery'] ?? [], $rawImage ?: null);
+        $image = $rawImage ?: ($galleryArr[0] ?? 'products/red-jelly-serum.jpg');
+        if (empty($galleryArr)) {
+            $galleryArr = [$image];
+        }
+        $gallery = json_encode($galleryArr);
         $desc = $input['description'] ?? '';
         $benefits = json_encode($input['keyBenefits'] ?? ($input['key_benefits'] ?? []));
         $ingredients = json_encode($input['keyIngredients'] ?? ($input['key_ingredients'] ?? []));
         $howTo = json_encode($input['howToUse'] ?? ($input['how_to_use'] ?? []));
         $isFeatured = !empty($input['isFeatured'] || !empty($input['is_featured'])) ? 1 : 0;
         $isFlash = !empty($input['isFlashSale'] || !empty($input['is_flash_sale'])) ? 1 : 0;
+        $isPreOrder = (!empty($input['isPreOrder']) || !empty($input['is_pre_order'])) ? 1 : 0;
+        $preOrderDays = min(30, max(1, (int)($input['preOrderDays'] ?? ($input['pre_order_days'] ?? 7))));
+        $preOrderNote = isset($input['preOrderNote']) ? trim((string)$input['preOrderNote']) : ($input['pre_order_note'] ?? null);
 
         $pdo = getDbConnection();
         $stmt = $pdo->prepare("INSERT INTO products 
-            (id, title, subtitle, handle, category, category_label, product_type, price, original_price, status, inventory, badge, image, gallery, description, key_benefits, key_ingredients, how_to_use, is_featured, is_flash_sale) 
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
-        $stmt->execute([$id, $title, $subtitle, $handle, $category, $categoryLabel, $productType, $price, $originalPrice, $status, $inventory, $badge, $image, $gallery, $desc, $benefits, $ingredients, $howTo, $isFeatured, $isFlash]);
+            (id, title, subtitle, handle, category, category_label, product_type, price, original_price, status, inventory, badge, image, gallery, description, key_benefits, key_ingredients, how_to_use, is_featured, is_flash_sale, is_pre_order, pre_order_days, pre_order_note) 
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+        $stmt->execute([$id, $title, $subtitle, $handle, $category, $categoryLabel, $productType, $price, $originalPrice, $status, $inventory, $badge, $image, $gallery, $desc, $benefits, $ingredients, $howTo, $isFeatured, $isFlash, $isPreOrder, $preOrderDays, $preOrderNote]);
 
         // Save variants if provided
         if (!empty($input['variants']) && is_array($input['variants'])) {
@@ -220,6 +297,12 @@ class ProductController {
             'flashSaleDiscount'   => 'flash_sale_discount',
             'flash_sale_quota'    => 'flash_sale_quota',
             'flashSaleQuota'      => 'flash_sale_quota',
+            'is_pre_order'        => 'is_pre_order',
+            'isPreOrder'          => 'is_pre_order',
+            'pre_order_days'      => 'pre_order_days',
+            'preOrderDays'        => 'pre_order_days',
+            'pre_order_note'      => 'pre_order_note',
+            'preOrderNote'        => 'pre_order_note',
         ];
 
         foreach ($map as $key => $column) {
@@ -232,8 +315,13 @@ class ProductController {
         }
 
         if (isset($input['gallery'])) {
+            $galleryArr = self::normalizeGallery($input['gallery'], null);
             $fields['gallery'] = "`gallery` = ?";
-            $params['gallery'] = json_encode($input['gallery']);
+            $params['gallery'] = json_encode($galleryArr);
+            if (!isset($input['image']) && !empty($galleryArr)) {
+                $fields['image'] = "`image` = ?";
+                $params['image'] = $galleryArr[0];
+            }
         }
         if (isset($input['keyBenefits']) || isset($input['key_benefits'])) {
             $fields['key_benefits'] = "`key_benefits` = ?";

@@ -1,5 +1,6 @@
-import { Injectable, computed, signal } from '@angular/core';
-import { PRODUCTS, Product } from '../data';
+import { Injectable, computed, inject, signal } from '@angular/core';
+import { Product } from '../data';
+import { ProductService } from './product.service';
 
 export interface CartLine {
   product: Product;
@@ -11,9 +12,31 @@ const STORAGE_KEY = 'syb_cart_v1';
 /** Single source of truth for the cart. Persists to localStorage. */
 @Injectable({ providedIn: 'root' })
 export class CartService {
+  private readonly productService = inject(ProductService);
   readonly freeShippingThreshold = 150000;
+  /** Toggle to `true` when the store checkout & payment flow is ready to accept orders. */
+  readonly checkoutEnabled = signal<boolean>(false);
 
-  readonly lines = signal<CartLine[]>(this.load());
+  private readonly rawLines = signal<CartLine[]>(this.load());
+
+  /** Enriched cart lines synced live with ProductService pre-order & pricing settings */
+  readonly lines = computed<CartLine[]>(() => {
+    const liveMap = new Map(this.productService.products().map((p) => [p.id, p]));
+    return this.rawLines().map((line) => {
+      const live = liveMap.get(line.product.id);
+      if (!live) return line;
+      return {
+        ...line,
+        product: {
+          ...line.product,
+          isPreOrder: Boolean(live.isPreOrder),
+          preOrderDays: live.preOrderDays || 7,
+          preOrderNote: live.preOrderNote,
+        },
+      };
+    });
+  });
+
   readonly bump = signal(false);
   readonly toast = signal<string | null>(null);
 
@@ -24,6 +47,23 @@ export class CartService {
   readonly remainingForFreeShipping = computed(() => Math.max(0, this.freeShippingThreshold - this.subtotal()));
   readonly shippingProgress = computed(() => Math.min(100, (this.subtotal() / this.freeShippingThreshold) * 100));
 
+  /** Pre-Order summary signals for Cart & Checkout notices */
+  readonly hasPreOrder = computed(() => this.lines().some((l) => Boolean(l.product.isPreOrder)));
+  readonly preOrderItemsCount = computed(() =>
+    this.lines().filter((l) => Boolean(l.product.isPreOrder)).reduce((n, l) => n + l.qty, 0)
+  );
+  readonly maxPreOrderDays = computed(() =>
+    this.lines().reduce((max, l) => {
+      if (!l.product.isPreOrder) return max;
+      return Math.max(max, l.product.preOrderDays || 7);
+    }, 0)
+  );
+  readonly estimatedPreOrderShipDate = computed(() => {
+    const days = this.maxPreOrderDays();
+    if (days <= 0) return '';
+    return this.productService.getEstimatedShipDateLabel(days);
+  });
+
   private toastTimer?: ReturnType<typeof setTimeout>;
 
   qtyOf(id: string): number {
@@ -31,32 +71,51 @@ export class CartService {
   }
 
   add(product: Product, origin?: HTMLElement) {
-    this.lines.update((ls) => {
+    const live = this.productService.products().find((p) => p.id === product.id);
+    const isPO = Boolean(product.isPreOrder ?? live?.isPreOrder);
+    const poDays = product.preOrderDays ?? live?.preOrderDays ?? 7;
+
+    this.rawLines.update((ls) => {
       const existing = ls.find((l) => l.product.id === product.id);
       return existing
         ? ls.map((l) => (l.product.id === product.id ? { ...l, qty: l.qty + 1 } : l))
-        : [...ls, { product, qty: 1 }];
+        : [
+            ...ls,
+            {
+              product: {
+                ...product,
+                isPreOrder: isPO,
+                preOrderDays: poDays,
+                preOrderNote: product.preOrderNote ?? live?.preOrderNote,
+              },
+              qty: 1,
+            },
+          ];
     });
     this.persist();
     this.bump.set(false);
     requestAnimationFrame(() => this.bump.set(true));
     if (origin) this.burstHearts(origin);
-    this.notify(`${product.name} masuk keranjang 💗`);
+    if (isPO) {
+      this.notify(`${product.name} (Pre-Order ±${poDays} hari) masuk keranjang ⏳💗`);
+    } else {
+      this.notify(`${product.name} masuk keranjang 💗`);
+    }
   }
 
   setQty(id: string, qty: number) {
     if (qty <= 0) return this.remove(id);
-    this.lines.update((ls) => ls.map((l) => (l.product.id === id ? { ...l, qty: Math.min(qty, 99) } : l)));
+    this.rawLines.update((ls) => ls.map((l) => (l.product.id === id ? { ...l, qty: Math.min(qty, 99) } : l)));
     this.persist();
   }
 
   remove(id: string) {
-    this.lines.update((ls) => ls.filter((l) => l.product.id !== id));
+    this.rawLines.update((ls) => ls.filter((l) => l.product.id !== id));
     this.persist();
   }
 
   clear() {
-    this.lines.set([]);
+    this.rawLines.set([]);
     this.persist();
   }
 
@@ -70,16 +129,58 @@ export class CartService {
     try {
       localStorage.setItem(
         STORAGE_KEY,
-        JSON.stringify(this.lines().map((l) => ({ id: l.product.id, qty: l.qty }))),
+        JSON.stringify(
+          this.rawLines().map((l) => ({
+            id: l.product.id,
+            qty: l.qty,
+            product: l.product,
+          }))
+        ),
       );
     } catch {}
   }
 
   private load(): CartLine[] {
     try {
-      const raw = JSON.parse(localStorage.getItem(STORAGE_KEY) ?? '[]') as { id: string; qty: number }[];
+      const raw = JSON.parse(localStorage.getItem(STORAGE_KEY) ?? '[]') as {
+        id: string;
+        qty: number;
+        product?: Product;
+      }[];
+      const storeMap = new Map(this.productService.storefrontProducts().map((p) => [p.id, p]));
+      const liveMap = new Map(this.productService.products().map((p) => [p.id, p]));
       return raw
-        .map((r) => ({ product: PRODUCTS.find((p) => p.id === r.id)!, qty: r.qty }))
+        .map((r) => {
+          const storeProd = storeMap.get(r.id);
+          const live = liveMap.get(r.id);
+          const fallbackProd: Product | undefined =
+            r.product ||
+            (storeProd
+              ? {
+                  ...storeProd,
+                  price: live?.price ?? storeProd.price,
+                  compareAt: live?.originalPrice ?? storeProd.compareAt,
+                  isPreOrder: Boolean(live?.isPreOrder),
+                  preOrderDays: live?.preOrderDays || 7,
+                  preOrderNote: live?.preOrderNote,
+                }
+              : live
+                ? {
+                    id: live.id,
+                    name: live.title,
+                    tagline: live.subtitle,
+                    image: live.image,
+                    price: live.price,
+                    compareAt: live.originalPrice || live.price,
+                    handle: live.handle,
+                    tint: live.accentColor || '#ffe1ef',
+                    isPreOrder: Boolean(live.isPreOrder),
+                    preOrderDays: live.preOrderDays || 7,
+                    preOrderNote: live.preOrderNote,
+                  }
+                : undefined);
+          return { product: fallbackProd!, qty: r.qty };
+        })
         .filter((l) => l.product && l.qty > 0);
     } catch {
       return [];

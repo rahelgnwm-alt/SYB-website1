@@ -1,5 +1,6 @@
-import { Injectable, signal } from '@angular/core';
-import { PRODUCTS, Product } from '../data';
+import { Injectable, inject, signal } from '@angular/core';
+import { Product } from '../data';
+import { ProductService } from './product.service';
 
 export type SkinType = 'oily' | 'dry' | 'combination' | 'normal' | 'sensitive';
 export type SkinConcern = 'dullness' | 'acne_pores' | 'dryness' | 'dark_spots' | 'body_dark_areas' | 'chapped_lips';
@@ -64,6 +65,7 @@ const STORAGE_KEY = 'syb_skin_analysis_v1';
   providedIn: 'root'
 })
 export class SkinAnalysisService {
+  private readonly productService = inject(ProductService);
   readonly latestResult = signal<SkinAnalysisResult | null>(this.loadSavedResult());
   readonly isAnalyzing = signal<boolean>(false);
 
@@ -262,7 +264,7 @@ export class SkinAnalysisService {
 
     // Finder helpers
     const getP = (id: string): Product => {
-      const found = PRODUCTS.find((p) => p.id === id);
+      const found = this.productService.storefrontProducts().find((p) => p.id === id);
       return (
         found || {
           id,

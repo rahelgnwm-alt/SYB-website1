@@ -1,9 +1,20 @@
-import { Component, inject, signal, computed, ChangeDetectionStrategy } from '@angular/core';
+import { Component, inject, signal, computed, WritableSignal, ChangeDetectionStrategy } from '@angular/core';
 import { DecimalPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ShippingService } from '../../../../../services/shipping.service';
 import { ProductService } from '../../../../../services/product.service';
 import { CourierCode, ShopifyOrder } from '../../../../../models/shipping.model';
+import { formatThousand, syncThousandInput } from '../../../../../data';
+
+export interface LogisticsConfirmDialogState {
+  isOpen: boolean;
+  title: string;
+  message: string;
+  confirmLabel: string;
+  cancelLabel?: string;
+  isDanger?: boolean;
+  onConfirm: () => void;
+}
 
 @Component({
   selector: 'app-admin-logistics',
@@ -15,6 +26,16 @@ import { CourierCode, ShopifyOrder } from '../../../../../models/shipping.model'
 export class AdminLogisticsComponent {
   readonly shippingService = inject(ShippingService);
   readonly productService = inject(ProductService);
+  readonly formatThousand = formatThousand;
+
+  handleNumericInput(
+    event: Event,
+    targetSignal: WritableSignal<number>,
+    fallbackValue = 0
+  ): void {
+    const parsed = syncThousandInput(event);
+    targetSignal.set(parsed ?? fallbackValue);
+  }
 
   // Sub-tabs in Logistics Hub: 'manifest' | 'couriers' | 'simulator'
   readonly shippingSubTab = signal<'manifest' | 'couriers' | 'simulator'>('manifest');
@@ -51,6 +72,36 @@ export class AdminLogisticsComponent {
   // Toast & Copied state
   readonly toastMessage = signal<string | null>(null);
   readonly copiedCode = signal<string | null>(null);
+
+  // Custom Luxury Confirmation Dialog
+  readonly confirmDialog = signal<LogisticsConfirmDialogState | null>(null);
+
+  openConfirm(options: {
+    title: string;
+    message: string;
+    confirmLabel?: string;
+    cancelLabel?: string;
+    isDanger?: boolean;
+    onConfirm: () => void;
+  }): void {
+    this.confirmDialog.set({
+      isOpen: true,
+      title: options.title,
+      message: options.message,
+      confirmLabel: options.confirmLabel || 'Ya, Hapus',
+      cancelLabel: options.cancelLabel || 'Batal',
+      isDanger: options.isDanger ?? true,
+      onConfirm: () => {
+        const action = options.onConfirm;
+        this.closeConfirm();
+        action();
+      },
+    });
+  }
+
+  closeConfirm(): void {
+    this.confirmDialog.set(null);
+  }
 
   // Computeds
   readonly totalOrdersCount = computed(() => this.shippingService.orders().length);
@@ -154,10 +205,18 @@ export class AdminLogisticsComponent {
   }
 
   deleteOrder(orderId: string): void {
-    if (confirm('Hapus pesanan ini dari riwayat pengiriman?')) {
-      this.shippingService.deleteOrder(orderId);
-      this.showToast('Pesanan telah dihapus.');
-    }
+    const order = this.shippingService.orders().find(o => o.id === orderId);
+    this.openConfirm({
+      title: 'Hapus Riwayat Pengiriman?',
+      message: `Apakah Anda yakin ingin menghapus pesanan ${order?.orderNumber || orderId} dari daftar pengiriman?`,
+      confirmLabel: 'Ya, Hapus',
+      cancelLabel: 'Batal',
+      isDanger: true,
+      onConfirm: () => {
+        this.shippingService.deleteOrder(orderId);
+        this.showToast('Pesanan telah berhasil dihapus dari logistik.');
+      }
+    });
   }
 
   // Manual Dispatch Creator
@@ -182,11 +241,11 @@ export class AdminLogisticsComponent {
 
   saveNewShipment(): void {
     if (!this.newShipCustName().trim()) {
-      alert('Mohon isi nama customer penerima!');
+      this.showToast('⚠️ Mohon isi nama customer penerima!');
       return;
     }
     if (!this.newShipStreet().trim()) {
-      alert('Mohon isi alamat lengkap pengiriman!');
+      this.showToast('⚠️ Mohon isi alamat lengkap pengiriman!');
       return;
     }
 
@@ -224,7 +283,9 @@ export class AdminLogisticsComponent {
           variantName: prod.variants[0]?.name || 'Standard',
           quantity: qty,
           price: prod.price,
-          image: prod.image
+          image: prod.image,
+          isPreOrder: Boolean(prod.isPreOrder),
+          preOrderDays: prod.isPreOrder ? (prod.preOrderDays || 7) : undefined
         }
       ],
       subtotal,
@@ -237,7 +298,9 @@ export class AdminLogisticsComponent {
       serviceName: courier === 'J&T' ? 'J&T EZ Express' : courier === 'JNE' ? 'JNE Reguler' : courier === 'SICEPAT' ? 'SiCepat HALU' : 'GoSend Instant',
       trackingNumber: tracking,
       weightGrams: this.newShipWeightGrams(),
-      notes: this.newShipNotes()
+      notes: this.newShipNotes(),
+      hasPreOrder: Boolean(prod.isPreOrder),
+      maxPreOrderDays: prod.isPreOrder ? (prod.preOrderDays || 7) : undefined
     };
 
     this.shippingService.addOrder(newOrder);

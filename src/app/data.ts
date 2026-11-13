@@ -3,6 +3,7 @@ export interface Product {
   name: string;
   tagline: string;
   image: string;
+  gallery?: string[];
   price: number;
   compareAt: number;
   badge?: 'Best Seller' | 'New' | 'Bundling';
@@ -10,135 +11,140 @@ export interface Product {
   /** soft background tint behind the product photo */
   tint: string;
   isFlashSale?: boolean;
+  isPreOrder?: boolean;
+  preOrderDays?: number;
+  preOrderNote?: string;
 }
 
-export const SHOP_URL = 'https://shevajordanbersama.com';
 export const productUrl = (handle: string) => `/products/${handle}`;
 
-export const PRODUCTS: Product[] = [
-  {
-    id: 'red-jelly-serum',
-    name: 'FORTE Red Jelly Serum',
-    tagline: 'Niacinamide 10% · 20ml',
-    image: 'products/red-jelly-serum.jpg',
-    price: 22325,
-    compareAt: 47500,
-    badge: 'Best Seller',
-    handle:
-      'best-seller-new-syb-forte-red-jelly-serum-20ml-with-niacinamide-10-untuk-mencerahkan-kulit-wajah-mengurangi-kusam-1-redjellyserum',
-    tint: '#ffe1ef',
-    isFlashSale: false,
-  },
-  {
-    id: 'aha-body-toner',
-    name: 'AHA Skinboost Body Toner',
-    tagline: 'Glycolic Acid · 250ml',
-    image: 'products/aha-body-toner.jpg',
-    price: 46060,
-    compareAt: 98000,
-    badge: 'Best Seller',
-    handle:
-      'best-seller-new-netto-250ml-10ml-extra-new-syb-aha-skinboost-body-toner-melembabkan-mencerahkan-kulit-1pcs-new-syb-aha-skinboost-body-toner-250-ml',
-    tint: '#ffe4f0',
-    isFlashSale: false,
-  },
-  {
-    id: 'golden-egg-mask',
-    name: 'Bright Glow Jelly Mask Golden Egg',
-    tagline: 'DNA Salmon · Sodium PCA',
-    image: 'products/golden-egg-mask.jpg',
-    price: 72380,
-    compareAt: 154000,
-    badge: 'New',
-    handle: 'new-syb-bright-glow-jelly-mask-golden-egg-with-sodium-pca-dan-dna-salmon-masker-wajah-golden-egg',
-    tint: '#fff0dc',
-    isFlashSale: false,
-  },
-  {
-    id: 'lip-cream-matte',
-    name: 'Lip Cream Matte',
-    tagline: '8 shade · Transferproof',
-    image: 'products/lip-cream-matte.jpg',
-    price: 22748,
-    compareAt: 48400,
-    handle:
-      'new-syb-lip-cream-matte-8-varian-transferproof-lipstick-dengan-vitamin-e-untuk-kelembapan-bibir-bpom-original-06-terrable',
-    tint: '#ffe1ef',
-    isFlashSale: false,
-  },
-  {
-    id: 'lippy-oil-serum',
-    name: 'Vitamin Lippy Oil Serum',
-    tagline: 'Jojoba Oil · Serum Bibir',
-    image: 'products/lippy-oil-serum.jpg',
-    price: 46060,
-    compareAt: 98000,
-    handle: '1-000-dapat-2pcs-new-syb-vitamin-lippy-oil-serum-serum-bibir-with-jojoba-oil-1pc-lippyserum',
-    tint: '#ffe1ef',
-    isFlashSale: false,
-  },
-  {
-    id: 'jelly-mask',
-    name: 'Jelly Mask',
-    tagline: '5 varian · Menenangkan',
-    image: 'products/jelly-mask.jpg',
-    price: 27965,
-    compareAt: 59500,
-    handle: 'new-syb-jelly-mask-available-in-5-varian-menenangkan-tanpa-sakit-netto-10gr-5-mix',
-    tint: '#ffe1ef',
-    isFlashSale: false,
-  },
-  {
-    id: 'peeling-serum',
-    name: 'Peeling Serum Vitamin C',
-    tagline: 'Vitamin C + Collagen',
-    image: 'products/peeling-serum.jpg',
-    price: 35895,
-    compareAt: 76372,
-    handle: 'new-syb-peeling-serum-with-vitamin-c-collagen-for-all-skin-types-1pc-peelingserum',
-    tint: '#fff0dc',
-    isFlashSale: false,
-  },
-  {
-    id: 'body-serum-booster',
-    name: 'Original Body Serum Booster',
-    tagline: '4 varian · 30ml',
-    image: 'products/body-serum-booster.jpg',
-    price: 40903,
-    compareAt: 87028,
-    handle:
-      'new-syb-original-body-serum-booster-30ml-tersedia-4-macam-varian-serum-badan-mencerahkan-melembapkan-brightening',
-    tint: '#ffe4f0',
-    isFlashSale: false,
-  },
-  {
-    id: 'powder-mask',
-    name: 'Powder Mask',
-    tagline: 'Niacinamide · Glycolic Acid',
-    image: 'products/powder-mask.jpg',
-    price: 24938,
-    compareAt: 53060,
-    handle:
-      'new-syb-powder-mask-masker-bubuk-dengan-5-macam-varian-untuk-semua-jenis-kulit-dengan-niacinamide-dan-glycolic-acid-3-pcs-peppermint',
-    tint: '#ffe1ef',
-    isFlashSale: false,
-  },
-  {
-    id: 'glow-fresh-bundle',
-    name: 'Paket Glow & Fresh',
-    tagline: 'Toner + Peeling + Serum',
-    image: 'products/glow-fresh-bundle.jpg',
-    price: 88042,
-    compareAt: 187324,
-    badge: 'Bundling',
-    handle:
-      'syb-paket-bundling-glow-fresh-aha-toner-peeling-gel-milk-snail-brightening-glow-serum-aha-toner-peeling-snail-brightening-glow-serum',
-    tint: '#ffe1ef',
-    isFlashSale: false,
-  },
-];
+/** Shared currency formatter for IDR (e.g. 'Rp46.060' or 'Rp 46.060'). */
+export function formatRupiah(n: number, withSpace = false): string {
+  return (withSpace ? 'Rp ' : 'Rp') + Math.round(n).toLocaleString('id-ID');
+}
 
-export const byId = (id: string) => PRODUCTS.find((p) => p.id === id)!;
+/** Format a number/string with Indonesian dot thousand separators (e.g. 50000 -> '50.000'). */
+export function formatThousand(n: number | string | null | undefined): string {
+  if (n === null || n === undefined || n === '') return '';
+  const num = typeof n === 'number' ? Math.round(n) : parseInt(n.toString().replace(/\D/g, ''), 10);
+  if (isNaN(num)) return '';
+  return num.toLocaleString('id-ID');
+}
+
+/** Parse a thousand-separator formatted string back to an integer. */
+export function parseThousand(val: string | number | null | undefined): number {
+  if (typeof val === 'number') return val;
+  if (!val) return 0;
+  const clean = val.toString().replace(/\D/g, '');
+  return clean ? parseInt(clean, 10) : 0;
+}
+
+/** Live-format a numeric text input with dot thousand separators and return the parsed integer (or null if empty). */
+export function syncThousandInput(event: Event): number | null {
+  const input = event.target as HTMLInputElement;
+  const rawDigits = input.value.replace(/\D/g, '');
+  if (!rawDigits) {
+    input.value = '';
+    return null;
+  }
+  const parsed = parseInt(rawDigits, 10);
+  input.value = formatThousand(parsed);
+  return parsed;
+}
+
+/** Shared discount percentage calculator for storefront products (`compareAt` vs `price`). */
+export function calcDiscount(p: { price: number; compareAt: number }): number {
+  if (!p.compareAt || p.compareAt <= p.price) return 0;
+  return Math.round((1 - p.price / p.compareAt) * 100);
+}
+
+/** Shared discount percentage calculator for admin products (`originalPrice` vs `price`). */
+export function calcAdminDiscountPercent(p: { price: number; originalPrice?: number }): number {
+  if (!p.originalPrice || p.originalPrice <= 0) return 0;
+  const diff = p.originalPrice - p.price;
+  if (diff <= 0) return 0;
+  return Math.round((diff / p.originalPrice) * 100);
+}
+
+/** Maximum number of photos allowed per product gallery. */
+export const MAX_PRODUCT_IMAGES = 10;
+
+/** Shared image URL normalizer with fallback. */
+export function resolveImgUrl(path?: string, fallback = 'products/red-jelly-serum.jpg'): string {
+  if (!path) return fallback;
+  if (path.startsWith('http://') || path.startsWith('https://') || path.startsWith('data:')) return path;
+  return path.replace(/^\//, '');
+}
+
+/**
+ * Normalizes a product's photo gallery alongside its primary `image`,
+ * keeping `primaryImage` first, deduplicating entries, and capping at `maxImages`.
+ */
+export function normalizeProductGallery(
+  primaryImage?: string | null,
+  rawGallery?: unknown,
+  maxImages = MAX_PRODUCT_IMAGES,
+): string[] {
+  let list: string[] = [];
+  if (Array.isArray(rawGallery)) {
+    list = rawGallery.filter((item): item is string => typeof item === 'string');
+  } else if (typeof rawGallery === 'string') {
+    const trimmed = rawGallery.trim();
+    if (trimmed) {
+      if (trimmed.startsWith('[')) {
+        try {
+          const parsed = JSON.parse(trimmed);
+          if (Array.isArray(parsed)) {
+            list = parsed.filter((item): item is string => typeof item === 'string');
+          }
+        } catch {
+          list = [trimmed];
+        }
+      } else {
+        list = [trimmed];
+      }
+    }
+  }
+
+  const normalized: string[] = [];
+  const seen = new Set<string>();
+  const pushUnique = (img?: string | null) => {
+    const val = typeof img === 'string' ? img.trim() : '';
+    if (!val || seen.has(val)) return;
+    seen.add(val);
+    normalized.push(val);
+  };
+
+  pushUnique(primaryImage);
+  for (const item of list) {
+    if (normalized.length >= maxImages) break;
+    pushUnique(item);
+  }
+
+  return normalized.slice(0, maxImages);
+}
+
+/** Shared YYYY-MM-DD date string helper with optional day offset. */
+export function getTodayDateString(offsetDays = 0): string {
+  const d = new Date();
+  if (offsetDays !== 0) {
+    d.setDate(d.getDate() + offsetDays);
+  }
+  const year = d.getFullYear();
+  const month = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+
+export const PRODUCTS: Product[] = [];
+
+export const byId = (id: string): Product | undefined => PRODUCTS.find((p) => p.id === id);
+
+export interface RitualStep {
+  step: string;
+  productId: string;
+  name: string;
+}
 
 export interface Ritual {
   key: 'am' | 'pm';
@@ -147,7 +153,7 @@ export interface Ritual {
   title: string;
   image: string;
   hour: number;
-  steps: { step: string; product: Product }[];
+  steps: RitualStep[];
 }
 
 export const RITUALS: Ritual[] = [
@@ -159,9 +165,9 @@ export const RITUALS: Ritual[] = [
     image: 'images/ritual-morning.jpg',
     hour: 7,
     steps: [
-      { step: 'Prep', product: byId('aha-body-toner') },
-      { step: 'Treat', product: byId('red-jelly-serum') },
-      { step: 'Pop of color', product: byId('lip-cream-matte') },
+      { step: 'Prep', productId: 'aha-body-toner', name: 'AHA Skinboost Body Toner' },
+      { step: 'Treat', productId: 'red-jelly-serum', name: 'FORTE Red Jelly Serum' },
+      { step: 'Pop of color', productId: 'lip-cream-matte', name: 'Lip Cream Matte' },
     ],
   },
   {
@@ -172,9 +178,9 @@ export const RITUALS: Ritual[] = [
     image: 'images/ritual-night.jpg',
     hour: 22,
     steps: [
-      { step: 'Exfoliate', product: byId('peeling-serum') },
-      { step: 'Mask', product: byId('golden-egg-mask') },
-      { step: 'Lip care', product: byId('lippy-oil-serum') },
+      { step: 'Exfoliate', productId: 'peeling-serum', name: 'Peeling Serum Vitamin C' },
+      { step: 'Mask', productId: 'golden-egg-mask', name: 'Bright Glow Jelly Mask Golden Egg' },
+      { step: 'Lip care', productId: 'lippy-oil-serum', name: 'Vitamin Lippy Oil Serum' },
     ],
   },
 ];

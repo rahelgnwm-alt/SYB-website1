@@ -77,6 +77,11 @@
               @if (p.badge) {
                 <span class="p-card__badge" [class.has-flash-ribbon]="p.isFlashSale && flashSaleService.isFlashSaleLive()" [class.new]="p.badge === 'New'" [class.bundle]="p.badge === 'Bundling'">{{ p.badge }}</span>
               }
+              @if (p.isPreOrder) {
+                <span class="p-card__preorder" [class.has-cart]="cart.qtyOf(p.id) > 0" title="Produk Pre-Order — Pengiriman membutuhkan waktu lebih lama">
+                  ⏳ Pre-Order · {{ p.preOrderDays || 7 }} Hari
+                </span>
+              }
               <span class="p-card__off" [class.flash]="p.isFlashSale && flashSaleService.isFlashSaleLive()">-{{ discount(p) }}%</span>
               @if (cart.qtyOf(p.id); as q) {
                 <span class="in-cart">♥ {{ q }} di keranjang</span>
@@ -85,6 +90,9 @@
             <div class="p-card__info">
               <p class="p-card__tag">{{ p.tagline }}</p>
               <h3 class="p-card__name">{{ p.name }}</h3>
+              @if (p.isPreOrder) {
+                <p class="p-card__po-note">⏳ Dikirim dalam ±{{ p.preOrderDays || 7 }} hari (Pre-Order)</p>
+              }
               <div class="p-card__row">
                 <p class="p-card__price">
                   {{ rupiah(p.price) }}

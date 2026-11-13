@@ -1,3 +1,5 @@
+export const MAX_PRODUCT_IMAGES = 10;
+
 export interface ProductVariant {
   id: string;
   name: string;
@@ -27,6 +29,7 @@ export interface Product {
   bpomNumber: string;
   accentColor: string;
   image: string;
+  gallery?: string[];
   handle: string;
   heroTagline: string;
   description: string;
@@ -35,6 +38,9 @@ export interface Product {
   howToUse: string[];
   isFeatured?: boolean;
   isFlashSale?: boolean;
+  isPreOrder?: boolean;
+  preOrderDays?: number;
+  preOrderNote?: string;
   costPrice?: number;
   flashSalePrice?: number;
   flashSaleDiscount?: number;
@@ -83,26 +89,4 @@ export interface ReviewItem {
   verified: boolean;
   timeAgo: string;
   skinType: string;
-}
-
-export interface RitualStep {
-  step: string;
-  product: Product;
-}
-
-export interface Ritual {
-  key: 'am' | 'pm';
-  label: string;
-  time: string;
-  title: string;
-  image: string;
-  hour: number;
-  steps: RitualStep[];
-}
-
-export interface CategoryItem {
-  name: string;
-  note: string;
-  image: string;
-  categoryLabel: 'Wajah' | 'Tubuh' | 'Makeup' | 'Paket Ritual' | 'Semua';
 }

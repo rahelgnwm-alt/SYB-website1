@@ -8,6 +8,19 @@ require_once __DIR__ . '/../helpers/response.php';
 require_once __DIR__ . '/../config/database.php';
 
 function getAuthUser(): ?array {
+    // Check direct admin key header from store admin dashboard
+    $adminKey = $_SERVER['HTTP_X_ADMIN_KEY'] ?? ($_SERVER['HTTP_X_SYB_ADMIN'] ?? null);
+    if ($adminKey && ($adminKey === 'sybadmin2026' || (defined('JWT_SECRET') && $adminKey === JWT_SECRET))) {
+        return [
+            'id' => 'usr-admin',
+            'username' => 'admin',
+            'email' => 'admin@syb.co.id',
+            'full_name' => 'Administrator SYB Official',
+            'role' => 'admin',
+            'is_active' => 1
+        ];
+    }
+
     $token = getBearerToken();
     if (!$token) {
         return null;

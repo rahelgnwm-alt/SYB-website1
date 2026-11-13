@@ -23,6 +23,17 @@
           gudang logistik pusat Surabaya.
         </p>
 
+        @if (ord.hasPreOrder) {
+        <div class="success-po-notice">
+          <span class="success-po-notice__pill">⏳ Pesanan Pre-Order</span>
+          <p>
+            Pesanan ini mencakup produk <strong>Pre-Order</strong> dengan waktu penyiapan sekitar
+            <strong>±{{ ord.maxPreOrderDays || 7 }} hari</strong> sebelum diserahkan ke kurir ekspedisi, sehingga waktu
+            tiba akan lebih lama dibanding produk Ready Stock.
+          </p>
+        </div>
+        }
+
         <div class="success-box-grid">
           <div class="success-info-box">
             <div class="box-head">
@@ -47,7 +58,7 @@
               <strong>{{ rupiah(ord.subtotal) }}</strong>
             </div>
             <div class="price-row">
-              <span>Ongkos Kirim (JNE):</span>
+              <span>Ongkos Kirim ({{ ord.courier }}):</span>
               <strong>{{ rupiah(ord.shippingCost) }}</strong>
             </div>
             @if (ord.discount > 0) {
@@ -87,7 +98,7 @@
         </div>
       </div>
 
-      <div class="checkout-head-row">
+        <div class="checkout-head-row">
         <h1 id="checkout-title" class="display checkout-title">
           Informasi &amp; <span class="gradient-text">Pengiriman</span>
         </h1>
@@ -111,6 +122,16 @@
         </nav>
       </div>
     </header>
+
+    @if (!cart.checkoutEnabled()) {
+    <div class="checkout-maintenance-banner" role="alert">
+      <div class="checkout-maintenance-banner__badge">🚧 Website Dalam Tahap Penyempurnaan</div>
+      <p>
+        Checkout sementara dinonaktifkan karena website belum sepenuhnya selesai. Anda tetap dapat meninjau produk di
+        keranjang dan mengecek estimasi ongkos kirim, namun pemesanan belum dapat diproses saat ini.
+      </p>
+    </div>
+    }
 
     <!-- ==================== MAIN CHECKOUT TWO-COLUMN LAYOUT ==================== -->
     <main class="checkout-main-content">
@@ -282,37 +303,80 @@
             </form>
           </section>
 
-          <!-- ---------------- JNE SHIPPING METHOD SELECTION ---------------- -->
+          <!-- ---------------- JNE & J&T SHIPPING METHOD SELECTION ---------------- -->
           <section class="section-card" aria-labelledby="method-heading">
             <div class="section-header">
               <div class="section-header-left">
                 <span class="section-dot"></span>
                 <div>
                   <h2 id="method-heading" class="section-title">Metode Pengiriman</h2>
-                  <p class="section-sub">Dihitung otomatis via JNE API Resmi (Asal: Gudang SYB Surabaya • {{
+                  <p class="section-sub">Dihitung otomatis via JNE API &amp; J&amp;T API Resmi (Asal: Gudang SYB Surabaya • {{
                     estimatedWeightKg() }} kg)</p>
                 </div>
               </div>
-              <span class="jne-api-badge">JNE API LIVE</span>
+              <span class="jne-api-badge">JNE &amp; J&amp;T API LIVE</span>
             </div>
+
+            <!-- Courier Filter Tabs (Run Both JNE & J&T) -->
+            <div class="checkout-courier-tabs" role="tablist" aria-label="Pilih Ekspedisi">
+              <button
+                type="button"
+                class="checkout-courier-tab"
+                [class.active]="activeCourierFilter() === 'ALL'"
+                (click)="setCourierFilter('ALL')"
+              >
+                🚚 Semua Ekspedisi
+              </button>
+              <button
+                type="button"
+                class="checkout-courier-tab"
+                [class.active]="activeCourierFilter() === 'JNE'"
+                (click)="setCourierFilter('JNE')"
+              >
+                📦 JNE Express
+              </button>
+              <button
+                type="button"
+                class="checkout-courier-tab jnt"
+                [class.active]="activeCourierFilter() === 'J&T'"
+                (click)="setCourierFilter('J&T')"
+              >
+                ⚡ J&amp;T Express
+              </button>
+            </div>
+
+            @if (cart.hasPreOrder()) {
+            <div class="checkout-po-banner" role="status">
+              <div class="checkout-po-banner__top">
+                <span class="checkout-po-banner__badge">⏳ Info Pengiriman Pre-Order</span>
+                <span class="checkout-po-banner__eta">Proses PO ±{{ cart.maxPreOrderDays() }} Hari</span>
+              </div>
+              <p class="checkout-po-banner__desc">
+                Pesanan Anda berisi produk <strong>Pre-Order</strong> yang tidak dikirim secepat produk Ready Stock.
+                Paket membutuhkan waktu penyiapan <strong>±{{ cart.maxPreOrderDays() }} hari</strong> (estimasi mulai
+                dikirim sekitar <strong>{{ cart.estimatedPreOrderShipDate() }}</strong>) ditambah waktu pengantaran kurir di bawah ini.
+              </p>
+            </div>
+            }
 
             @if (isLoadingTariff()) {
             <div class="tariff-loading-box">
               <span class="loading-spinner"></span>
-              <span>Mengambil estimasi tarif resmi JNE untuk tujuan {{ city() || province() }} (Zona: {{ resolvedDestCode() }})...</span>
+              <span>Mengambil estimasi tarif resmi JNE &amp; J&amp;T untuk tujuan {{ city() || province() }} (Zona: {{ resolvedDestCode() }})...</span>
             </div>
             } @else {
-            <div class="shipping-options-list" role="radiogroup" aria-label="Layanan pengiriman JNE">
-              @for (opt of tariffOptions(); track opt.serviceCode) {
-              <div class="shipping-option-row" [class.selected]="selectedTariff()?.serviceCode === opt.serviceCode"
+            <div class="shipping-options-list" role="radiogroup" aria-label="Layanan pengiriman JNE dan J&T">
+              @for (opt of filteredTariffOptions(); track opt.serviceCode + (opt.courier || 'JNE')) {
+              <div class="shipping-option-row" [class.selected]="selectedTariff()?.serviceCode === opt.serviceCode && selectedTariff()?.courier === opt.courier"
                 (click)="selectTariff(opt)" role="radio"
-                [attr.aria-checked]="selectedTariff()?.serviceCode === opt.serviceCode" tabindex="0">
+                [attr.aria-checked]="selectedTariff()?.serviceCode === opt.serviceCode && selectedTariff()?.courier === opt.courier" tabindex="0">
                 <div class="opt-left">
                   <div class="radio-circle">
                     <span class="radio-core"></span>
                   </div>
                   <div class="opt-text">
                     <div class="opt-name-row">
+                      <span class="opt-courier-pill" [class.jnt]="opt.courier === 'J&T'">{{ opt.courier || 'JNE' }}</span>
                       <strong class="opt-title">{{ opt.serviceName }}</strong>
                       @if (opt.badge) {
                       <span class="opt-badge">{{ opt.badge }}</span>
@@ -415,6 +479,9 @@
                 <div class="item-meta">
                   <strong class="item-name">{{ line.product.name }}</strong>
                   <small class="item-variant">{{ line.product.tagline }}</small>
+                  @if (line.product.isPreOrder) {
+                  <span class="item-po-pill">⏳ Pre-Order • {{ line.product.preOrderDays || 7 }} Hari</span>
+                  }
                 </div>
                 <div class="item-price">
                   {{ rupiah(line.product.price * line.qty) }}
@@ -422,6 +489,13 @@
               </li>
               }
             </ul>
+
+            @if (cart.hasPreOrder()) {
+            <div class="summary-po-box">
+              <strong>⏳ Estimasi Kirim Pre-Order: ±{{ cart.maxPreOrderDays() }} Hari</strong>
+              <span>Mulai diserahkan ke kurir sekitar {{ cart.estimatedPreOrderShipDate() }} (lebih lama dari produk non-Pre-Order).</span>
+            </div>
+            }
 
             <!-- Discount Voucher Box -->
             <div class="voucher-box">
@@ -474,9 +548,12 @@
             </dl>
 
             <!-- Complete Order Button -->
-            <button type="button" class="btn-place-order" [disabled]="isSubmitting() || cart.lines().length === 0"
+            <button type="button" class="btn-place-order"
+              [disabled]="!cart.checkoutEnabled() || isSubmitting() || cart.lines().length === 0"
               (click)="placeOrder()">
-              @if (isSubmitting()) {
+              @if (!cart.checkoutEnabled()) {
+              <span>🚧 Checkout Belum Tersedia</span>
+              } @else if (isSubmitting()) {
               <span class="btn-spinner" aria-hidden="true"></span>
               <span>Memproses Pesanan Anda...</span>
               } @else {

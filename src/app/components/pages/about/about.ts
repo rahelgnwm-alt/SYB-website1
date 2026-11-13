@@ -23,10 +23,10 @@ interface ValueItem {
 })
 export class About {
   protected readonly stats = [
-    { num: '500K+', label: 'Pelanggan Setia', note: 'Di seluruh kota di Indonesia' },
+    { num: '20 Jt+', label: 'Pelanggan Setia', note: 'Di seluruh kota di Indonesia' },
     { num: '100%', label: 'BPOM & Halal Resmi', note: 'Teruji aman secara klinis' },
-    { num: '50+', label: 'Inovasi Produk', note: 'Skincare & makeup viral' },
-    { num: '8 Thn', label: 'Dedikasi Nyata', note: 'Menemani kecantikan sejak 2018' },
+    { num: '300+', label: 'Inovasi Produk', note: 'Skincare & makeup viral' },
+    { num: '9 Thn', label: 'Dedikasi Nyata', note: 'Menemani kecantikan sejak 2017' },
   ];
 
   protected readonly values: ValueItem[] = [
@@ -54,24 +54,34 @@ export class About {
 
   protected readonly milestones: Milestone[] = [
     {
+      year: '2017',
+      title: 'Founded',
+      desc: 'PT Sheva Jordan Bersama founded as a beauty distributor.',
+    },
+    {
       year: '2018',
-      title: 'Awal Mula Perjalanan',
-      desc: 'SYB lahir dengan komitmen menghadirkan produk perawatan kulit lokal berkualitas tinggi dan terjangkau.',
+      title: 'First Journey',
+      desc: 'First Distribution line established across Java.',
     },
     {
       year: '2020',
-      title: 'Viral Red Jelly & AHA Toner',
-      desc: 'Peluncuran FORTE Red Jelly Serum dan AHA Skinboost Toner meledak di pasar dengan jutaan botol terjual.',
+      title: 'Production Expansion',
+      desc: 'Establishment of PT. Alwinda Pratama Jaya Factory. ',
     },
     {
       year: '2023',
-      title: 'Ekspansi Lini Kosmetik Cute',
-      desc: 'Menghadirkan lip cream transferproof, blusher travel-friendly, dan DNA Salmon jelly mask.',
+      title: 'National Expansion',
+      desc: 'Expansion into national marketplaces.',
     },
     {
-      year: '2026',
-      title: 'Next-Gen Glowing Experience',
-      desc: 'Pengalaman digital terintegrasi dengan pengiriman kilat 24/7 dan jutaan wanita bersinar setiap hari.',
+      year: '2024',
+      title: 'Collaboration',
+      desc: 'Collaboration with national celebrities & KOLs.',
+    },
+    {
+      year: '2025',
+      title: 'Export',
+      desc: 'Launch of export-ready product lines.',
     },
   ];
 }

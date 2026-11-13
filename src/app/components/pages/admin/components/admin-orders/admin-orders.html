@@ -4,12 +4,24 @@
     <div>
       <div class="breadcrumb">Admin / Semua Pesanan</div>
       <h1 class="page-title">Pusat Manajemen Pesanan Pelanggan</h1>
-      <p class="page-desc">Pantau pesanan e-commerce masuk, status pembayaran gateway, kelola pemenuhan gudang, dan terbitkan resi kurir.</p>
+      <p class="page-desc">Pantau pesanan e-commerce masuk, status pembayaran gateway, kelola pemenuhan gudang, dan
+        terbitkan resi kurir.</p>
     </div>
     <div class="header-action-group">
-      <button class="btn-jne-settings" (click)="openJneSettings()" title="Buka Konfigurasi JNE API Cnote">
+      @if (unprintedCount() > 0) {
+      <button type="button" class="btn-select-unprinted" (click)="selectAllUnprintedOrders()"
+        title="Pilih semua pesanan yang belum dicetak dan belum ada AWB">
+        <span>☑️ Pilih Semua Belum Cetak ({{ unprintedCount() }})</span>
+      </button>
+      }
+      <button class="btn-jne-settings" (click)="openJneSettings('JNE')" title="Buka Konfigurasi JNE API Cnote">
         <span class="jne-badge-dot" [class.live]="jneConfig().environment === 'live'"></span>
-        <span>⚙️ JNE API ({{ jneConfig().environment | uppercase }})</span>
+        <span>📦 JNE API ({{ jneConfig().environment | uppercase }})</span>
+      </button>
+      <button class="btn-jne-settings btn-jnt-settings" (click)="openJneSettings('J&T')"
+        title="Buka Konfigurasi J&T Express API">
+        <span class="jne-badge-dot" [class.live]="jntConfig().environment === 'live'"></span>
+        <span>⚡ J&amp;T API ({{ jntConfig().environment | uppercase }})</span>
       </button>
     </div>
   </div>
@@ -59,39 +71,23 @@
     <div class="table-toolbar">
       <div class="filter-group-left">
         <div class="status-tabs">
-          <button
-            class="status-tab-btn"
-            [class.active]="statusFilter() === 'All'"
-            (click)="statusFilter.set('All')"
-          >
+          <button class="status-tab-btn" [class.active]="statusFilter() === 'All'" (click)="statusFilter.set('All')">
             Semua ({{ totalOrders() }})
           </button>
-          <button
-            class="status-tab-btn"
-            [class.active]="statusFilter() === 'Unprinted'"
-            (click)="statusFilter.set('Unprinted')"
-          >
+          <button class="status-tab-btn" [class.active]="statusFilter() === 'Unprinted'"
+            (click)="statusFilter.set('Unprinted')">
             Resi Belum Dicetak ({{ unprintedCount() }})
           </button>
-          <button
-            class="status-tab-btn"
-            [class.active]="statusFilter() === 'Packing'"
-            (click)="statusFilter.set('Packing')"
-          >
+          <button class="status-tab-btn" [class.active]="statusFilter() === 'Packing'"
+            (click)="statusFilter.set('Packing')">
             Perlu Dikemas ({{ packingCount() }})
           </button>
-          <button
-            class="status-tab-btn"
-            [class.active]="statusFilter() === 'Shipped'"
-            (click)="statusFilter.set('Shipped')"
-          >
+          <button class="status-tab-btn" [class.active]="statusFilter() === 'Shipped'"
+            (click)="statusFilter.set('Shipped')">
             Dalam Pengiriman ({{ shippedCount() }})
           </button>
-          <button
-            class="status-tab-btn"
-            [class.active]="statusFilter() === 'Delivered'"
-            (click)="statusFilter.set('Delivered')"
-          >
+          <button class="status-tab-btn" [class.active]="statusFilter() === 'Delivered'"
+            (click)="statusFilter.set('Delivered')">
             Selesai ({{ deliveredCount() }})
           </button>
         </div>
@@ -100,34 +96,77 @@
       <div class="filter-group-right">
         <!-- Search query input -->
         <div class="inline-search">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
-          <input
-            type="text"
-            placeholder="Cari order, customer, resi..."
-            [ngModel]="searchQuery()"
-            (ngModelChange)="searchQuery.set($event)"
-          />
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="11" cy="11" r="8"></circle>
+            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+          </svg>
+          <input type="text" placeholder="Cari order, customer, resi..." [ngModel]="searchQuery()"
+            (ngModelChange)="searchQuery.set($event)" />
         </div>
 
-        <select
-          class="filter-select"
-          [value]="courierFilter()"
-          (change)="courierFilter.set($any($event.target).value)"
-        >
-          <option value="All">Semua Ekspedisi</option>
-          <option value="J&amp;T">J&amp;T Express</option>
-          <option value="JNE">JNE Express</option>
+        <select class="filter-select" [value]="courierFilter()"
+          (change)="setCustomerCourierFilter($any($event.target).value)" aria-label="Filter Berdasarkan Kurir">
+          <option value="All">Semua Kurir ({{ totalOrders() }})</option>
+          <option value="J&amp;T">⚡ J&amp;T Express ({{ jntOrdersCount() }})</option>
+          <option value="JNE">📦 JNE Express ({{ jneOrdersCount() }})</option>
           <option value="SICEPAT">SiCepat Ekspres</option>
           <option value="GOSEND">GoSend Instant</option>
         </select>
       </div>
     </div>
 
+    <!-- Bulk Action Bar (Appears when orders are selected) -->
+    @if (selectedCount() > 0) {
+    <div class="bulk-action-banner" role="region" aria-label="Tindakan Massal AWB & Resi Thermal">
+      <div class="bulk-banner-left">
+        <span class="bulk-count-pill">✓ {{ bulkFilteredSelectedOrders().length }} dari {{ selectedCount() }} Pesanan
+          Aktif</span>
+        <div class="bulk-courier-select-wrap">
+          <span class="bulk-filter-label">Filter Kurir</span>
+          <div class="bulk-courier-filter-pills" role="group" aria-label="Filter Kurir Pilihan Customer">
+            <button type="button" class="bulk-filter-pill" [class.active]="bulkCustomerCourierFilter() === 'ALL'"
+              (click)="bulkCustomerCourierFilter.set('ALL')">
+              Semua Kurir ({{ selectedCount() }})
+            </button>
+            <button type="button" class="bulk-filter-pill jne" [class.active]="bulkCustomerCourierFilter() === 'JNE'"
+              (click)="bulkCustomerCourierFilter.set('JNE')">
+              📦 Customer Pilih JNE ({{ selectedJneCount() }})
+            </button>
+            <button type="button" class="bulk-filter-pill jnt" [class.active]="bulkCustomerCourierFilter() === 'J&T'"
+              (click)="bulkCustomerCourierFilter.set('J&T')">
+              ⚡ Customer Pilih J&amp;T ({{ selectedJntCount() }})
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="bulk-banner-actions">
+        <button type="button" class="btn-bulk-generate"
+          [disabled]="isBulkGenerating() || bulkFilteredSelectedOrders().length === 0"
+          (click)="bulkGenerateSelectedAwbs()">
+          ⚡ Bulk Generate AWB &amp; Buat PDF Thermal ({{ bulkFilteredSelectedOrders().length }})
+        </button>
+        <button type="button" class="btn-bulk-pdf" [disabled]="bulkFilteredSelectedOrders().length === 0"
+          (click)="openBulkPdfModalForSelected()"
+          title="Pratinjau & Download PDF Thermal 10x15 cm untuk pesanan sesuai filter kurir">
+          📥 Download / Cetak PDF Thermal ({{ bulkFilteredSelectedOrders().length }})
+        </button>
+        <button type="button" class="btn-bulk-clear" (click)="clearSelection()">
+          Batal Pilih
+        </button>
+      </div>
+    </div>
+    }
+
     <!-- Orders Table -->
     <div class="table-wrapper">
       <table class="shopify-table">
         <thead>
           <tr>
+            <th class="th-checkbox">
+              <input type="checkbox" class="order-row-checkbox" [checked]="isAllFilteredSelected()"
+                (change)="toggleSelectAllFiltered()" aria-label="Pilih semua pesanan di daftar ini" />
+            </th>
             <th>NO. ORDER &amp; WAKTU</th>
             <th>CUSTOMER</th>
             <th>PRODUK YANG DIPESAN</th>
@@ -140,134 +179,134 @@
         </thead>
         <tbody>
           @for (ord of filteredOrders(); track ord.id) {
-            <tr class="order-table-row">
-              <!-- Order Number & Date -->
-              <td>
-                <div class="order-main-meta">
-                  <strong class="ord-num">{{ ord.orderNumber }}</strong>
-                  <span class="ord-date">{{ ord.createdAt }}</span>
-                </div>
-              </td>
+          <tr class="order-table-row" [class.row-selected]="isOrderSelected(ord.id)">
+            <td class="td-checkbox" (click)="toggleOrderSelection(ord.id, $event)">
+              <input type="checkbox" class="order-row-checkbox" [checked]="isOrderSelected(ord.id)"
+                (click)="$event.stopPropagation()" (change)="toggleOrderSelection(ord.id)"
+                [attr.aria-label]="'Pilih pesanan ' + ord.orderNumber" />
+            </td>
+            <!-- Order Number & Date -->
+            <td>
+              <div class="order-main-meta">
+                <strong class="ord-num">{{ ord.orderNumber }}</strong>
+                <span class="ord-date">{{ ord.createdAt }}</span>
+                @if (ord.hasPreOrder) {
+                <span class="ord-po-badge">⏳ Pre-Order • {{ ord.maxPreOrderDays || 7 }} Hari</span>
+                }
+              </div>
+            </td>
 
-              <!-- Customer -->
-              <td>
-                <div class="ord-customer">
-                  <strong class="cust-name">{{ ord.customerName }}</strong>
-                  <span class="cust-dest">{{ ord.shippingAddress.city }}</span>
-                  <small class="cust-phone">📱 {{ ord.customerPhone }}</small>
-                </div>
-              </td>
+            <!-- Customer -->
+            <td>
+              <div class="ord-customer">
+                <strong class="cust-name">{{ ord.customerName }}</strong>
+                <span class="cust-dest">{{ ord.shippingAddress.city }}</span>
+                <small class="cust-phone">📱 {{ ord.customerPhone }}</small>
+              </div>
+            </td>
 
-              <!-- Items -->
-              <td>
-                <div class="ord-items-cell">
-                  @for (item of ord.items; track item.productId) {
-                    <div class="ord-item-snippet">
-                      <img [src]="getImgUrl(item.image)" [alt]="item.title" class="ord-thumb" />
-                      <div class="ord-item-info">
-                        <span class="it-title">{{ item.title }}</span>
-                        <span class="it-sub">{{ item.quantity }}x &bull; {{ item.variantName }}</span>
-                      </div>
-                    </div>
-                  }
-                </div>
-              </td>
-
-              <!-- Total -->
-              <td>
-                <div class="ord-total-cell">
-                  <strong class="total-bold">Rp {{ ord.total | number:'1.0-0' }}</strong>
-                  <small class="ongkir-meta">+Ongkir: Rp {{ ord.shippingCost | number:'1.0-0' }}</small>
-                </div>
-              </td>
-
-              <!-- Payment Status -->
-              <td>
-                <span class="payment-chip" [class.paid]="ord.paymentStatus === 'Paid'">
-                  ✓ {{ ord.paymentStatus }}
-                </span>
-              </td>
-
-              <!-- Fulfillment Status with interactive Selector -->
-              <td>
-                <select
-                  class="status-selector"
-                  [value]="getOrderStatusKey(ord)"
-                  (change)="updateFulfillmentStatus(ord.id, $event)"
-                  [class.status-unprinted]="!ord.isLabelPrinted && ord.fulfillmentStatus === 'Unfulfilled'"
-                  [class.status-packing]="ord.isLabelPrinted && ord.fulfillmentStatus === 'Unfulfilled'"
-                  [class.status-shipped]="ord.fulfillmentStatus === 'Shipped'"
-                  [class.status-delivered]="ord.fulfillmentStatus === 'Delivered'"
-                >
-                  <option value="Unprinted">📄 Resi Belum Dicetak</option>
-                  <option value="Packing">⏳ Perlu Dikemas (Fase Packing)</option>
-                  <option value="Shipped">🚚 Sedang Dikirim</option>
-                  <option value="Delivered">✅ Selesai Diterima</option>
-                </select>
-              </td>
-
-              <!-- Courier & Tracking -->
-              <td>
-                <div class="ord-courier-cell">
-                  <div class="courier-badge-row">
-                    <span class="courier-tag" [attr.data-c]="ord.courier">{{ ord.courier }}</span>
-                    @if (ord.courier === 'JNE') {
-                      <span class="jne-api-pill" title="Terhubung dengan API JNE Cnote">JNE API</span>
-                    }
+            <!-- Items -->
+            <td>
+              <div class="ord-items-cell">
+                @for (item of ord.items; track item.productId) {
+                <div class="ord-item-snippet">
+                  <img [src]="getImgUrl(item.image)" [alt]="item.title" class="ord-thumb" />
+                  <div class="ord-item-info">
+                    <span class="it-title">
+                      {{ item.title }}
+                      @if (item.isPreOrder) {
+                      <span class="it-po-tag">PO {{ item.preOrderDays || 7 }}h</span>
+                      }
+                    </span>
+                    <span class="it-sub">{{ item.quantity }}x &bull; {{ item.variantName }}</span>
                   </div>
-                  @if (ord.isLabelPrinted && ord.trackingNumber && !ord.trackingNumber.includes('PENDING')) {
-                    <div class="resi-row">
-                      <code>{{ ord.trackingNumber }}</code>
-                      <button class="btn-copy-mini" (click)="copyTrackingCode(ord.trackingNumber)" title="Salin Resi">📋</button>
-                    </div>
-                  } @else {
-                    <div class="no-resi-group">
-                      <div class="no-resi-badge" (click)="openAwbModal(ord)" title="Klik untuk Generate AWB / Resi JNE">
-                        <span class="dot-warn"></span>
-                        <span>Belum Cetak Resi</span>
-                      </div>
-                      <button class="btn-quick-awb" (click)="openAwbModal(ord)" title="Generate AWB Resmi JNE">
-                        ⚡ Generate AWB
-                      </button>
-                    </div>
+                </div>
+                }
+              </div>
+            </td>
+
+            <!-- Total -->
+            <td>
+              <div class="ord-total-cell">
+                <strong class="total-bold">Rp {{ ord.total | number:'1.0-0' }}</strong>
+                <small class="ongkir-meta">+Ongkir: Rp {{ ord.shippingCost | number:'1.0-0' }}</small>
+              </div>
+            </td>
+
+            <!-- Payment Status -->
+            <td>
+              <span class="payment-chip" [class.paid]="ord.paymentStatus === 'Paid'">
+                ✓ {{ ord.paymentStatus }}
+              </span>
+            </td>
+
+            <!-- Fulfillment Status with interactive Selector -->
+            <td>
+              <select class="status-selector" [value]="getOrderStatusKey(ord)"
+                (change)="updateFulfillmentStatus(ord.id, $event)"
+                [class.status-unprinted]="!ord.isLabelPrinted && ord.fulfillmentStatus === 'Unfulfilled'"
+                [class.status-packing]="ord.isLabelPrinted && ord.fulfillmentStatus === 'Unfulfilled'"
+                [class.status-shipped]="ord.fulfillmentStatus === 'Shipped'"
+                [class.status-delivered]="ord.fulfillmentStatus === 'Delivered'">
+                <option value="Unprinted">📄 Resi Belum Dicetak</option>
+                <option value="Packing">⏳ Perlu Dikemas (Fase Packing)</option>
+                <option value="Shipped">🚚 Sedang Dikirim</option>
+                <option value="Delivered">✅ Selesai Diterima</option>
+              </select>
+            </td>
+
+            <!-- Courier & Tracking -->
+            <td>
+              <div class="ord-courier-cell">
+                <div class="courier-badge-row">
+                  <span class="courier-tag" [attr.data-c]="ord.courier">{{ ord.courier }}</span>
+                  @if (ord.courier === 'JNE') {
+                  <span class="jne-api-pill" title="Terhubung dengan API JNE Cnote">JNE API</span>
+                  } @else if (ord.courier === 'J&T') {
+                  <span class="jnt-api-pill" title="Terhubung dengan API J&T Express">J&amp;T API</span>
                   }
                 </div>
-              </td>
-
-              <!-- Actions -->
-              <td style="text-align: right;">
-                <div class="ord-actions-row">
-                  <button
-                    class="btn-icon-action btn-awb-trigger"
-                    (click)="openAwbModal(ord)"
-                    title="Generate Resi JNE API"
-                  >
-                    ⚡
-                  </button>
-                  <button
-                    class="btn-icon-action"
-                    (click)="openShippingLabel(ord)"
-                    title="Cetak Label Resi Thermal 10x15"
-                  >
-                    🖨️
-                  </button>
-                  <button
-                    class="btn-icon-action"
-                    (click)="openTrackingModal(ord)"
-                    title="Lacak Perjalanan Paket"
-                  >
-                    📍
-                  </button>
-                  <button
-                    class="btn-icon-action del"
-                    (click)="deleteOrder(ord.id)"
-                    title="Hapus Pesanan"
-                  >
-                    🗑️
+                @if (ord.isLabelPrinted && ord.trackingNumber && !ord.trackingNumber.includes('PENDING')) {
+                <div class="resi-row">
+                  <code>{{ ord.trackingNumber }}</code>
+                  <button class="btn-copy-mini" (click)="copyTrackingCode(ord.trackingNumber)"
+                    title="Salin Resi">📋</button>
+                </div>
+                } @else {
+                <div class="no-resi-group">
+                  <div class="no-resi-badge" (click)="openAwbModal(ord)"
+                    title="Klik untuk Generate AWB / Resi JNE atau J&T">
+                    <span class="dot-warn"></span>
+                    <span>Belum Cetak Resi</span>
+                  </div>
+                  <button class="btn-quick-awb" [class.jnt]="ord.courier === 'J&T'" (click)="openAwbModal(ord)"
+                    title="Generate AWB Resmi JNE / J&T">
+                    ⚡ Generate AWB ({{ ord.courier === 'J&T' ? 'J&T' : 'JNE' }})
                   </button>
                 </div>
-              </td>
-            </tr>
+                }
+              </div>
+            </td>
+
+            <!-- Actions -->
+            <td style="text-align: right;">
+              <div class="ord-actions-row">
+                <button class="btn-icon-action btn-awb-trigger" (click)="openAwbModal(ord)"
+                  title="Generate Resi JNE API">
+                  ⚡
+                </button>
+                <button class="btn-icon-action" (click)="openShippingLabel(ord)" title="Cetak Label Resi Thermal 10x15">
+                  🖨️
+                </button>
+                <button class="btn-icon-action" (click)="openTrackingModal(ord)" title="Lacak Perjalanan Paket">
+                  📍
+                </button>
+                <button class="btn-icon-action del" (click)="deleteOrder(ord.id)" title="Hapus Pesanan">
+                  🗑️
+                </button>
+              </div>
+            </td>
+          </tr>
           }
         </tbody>
       </table>
@@ -277,481 +316,966 @@
 
 <!-- ==================== MODAL: 10x15 THERMAL SHIPPING WAYBILL ==================== -->
 @if (isLabelModalOpen(); as order) {
-  <div class="modal-backdrop" (click)="closeShippingLabel()">
-    <div class="thermal-label-modal" (click)="$event.stopPropagation()">
-      <div class="thermal-modal-header">
-        <div class="thermal-title">
-          <span class="badge-thermal">Pratinjau Cetak Resi 10x15 cm</span>
-          <h3>Label Pengiriman Thermal Otomatis</h3>
+<div class="modal-backdrop" (click)="closeShippingLabel()">
+  <div class="thermal-label-modal" (click)="$event.stopPropagation()">
+    <div class="thermal-modal-header">
+      <div class="thermal-title">
+        <span class="badge-thermal">Pratinjau Cetak Resi 10x15 cm</span>
+        <h3>Label Pengiriman Thermal Otomatis</h3>
+      </div>
+      <div class="thermal-actions">
+        @if (!activeLabelOrder()?.trackingNumber || activeLabelOrder()?.trackingNumber?.includes('PENDING')) {
+        <button class="btn-thermal-gen-awb" (click)="openAwbModal(activeLabelOrder()!)"
+          title="Terbitkan resi resmi JNE / J&T sekarang">
+          ⚡ Generate AWB
+        </button>
+        }
+        <button type="button" class="btn-download-single-pdf"
+          (click)="activeLabelOrder() && downloadSingleThermalPdf(activeLabelOrder()!)"
+          title="Download file PDF ukuran 10x15 cm untuk printer thermal">
+          📥 Download PDF 10x15
+        </button>
+        <button class="btn-print-thermal" (click)="printShippingLabel()">
+          🖨️ Cetak ke Printer Thermal
+        </button>
+        <button class="btn-close-modal" (click)="closeShippingLabel()">✕</button>
+      </div>
+    </div>
+
+    <div class="thermal-modal-body">
+      <div class="thermal-preview-container">
+        <div class="thermal-label-sheet">
+          <div class="thermal-header-row">
+            <div class="thermal-courier-logo">
+              <span class="courier-name-huge">{{ activeLabelOrder()?.courier }}</span>
+              <span class="service-name-huge">{{ activeLabelOrder()?.serviceName }}</span>
+            </div>
+            <div class="thermal-routing-box">
+              <span class="route-code">SUB &rarr; {{ activeLabelOrder()?.shippingAddress?.city?.slice(0,
+                3)?.toUpperCase() }}</span>
+              <span class="route-hub">DC-{{ activeLabelOrder()?.shippingAddress?.postalCode }}</span>
+            </div>
+          </div>
+
+          <div class="thermal-barcode-section">
+            <div class="barcode-graphic-stripes">
+              <div class="bar thin"></div>
+              <div class="bar thick"></div>
+              <div class="bar med"></div>
+              <div class="bar ultra"></div>
+              <div class="bar thick"></div>
+              <div class="bar thin"></div>
+              <div class="bar med"></div>
+              <div class="bar ultra"></div>
+              <div class="bar thin"></div>
+              <div class="bar thick"></div>
+              <div class="bar thin"></div>
+              <div class="bar thick"></div>
+            </div>
+            <span class="barcode-num-text">{{ activeLabelOrder()?.trackingNumber }}</span>
+          </div>
+
+          <div class="thermal-address-grid">
+            <div class="address-col sender">
+              <span class="address-role">PENGIRIM (SENDER):</span>
+              <strong class="company-name">SYBofficial Store (Pusat)</strong>
+              <p class="addr-detail">Kawasan Rungkut Industri Blok C-12, Surabaya, Jawa Timur 60293</p>
+              <span class="phone-num">Telp: 0812-3333-6909</span>
+            </div>
+            <div class="address-col receiver">
+              <span class="address-role">PENERIMA (RECEIVER):</span>
+              <strong class="receiver-name">{{ activeLabelOrder()?.customerName }}</strong>
+              <p class="addr-detail">{{ activeLabelOrder()?.shippingAddress?.street }}, {{
+                activeLabelOrder()?.shippingAddress?.city }}, {{ activeLabelOrder()?.shippingAddress?.province }}</p>
+              <span class="postal-bold">KODE POS: {{ activeLabelOrder()?.shippingAddress?.postalCode }}</span>
+              <span class="phone-num">Telp: {{ activeLabelOrder()?.customerPhone }}</span>
+            </div>
+          </div>
+
+          <div class="thermal-specs-row">
+            <div class="spec-cell">
+              <span class="sp-lbl">Berat Paket:</span>
+              <strong class="sp-val">{{ activeLabelOrder()?.weightGrams || 450 }} gr</strong>
+            </div>
+            <div class="spec-cell">
+              <span class="sp-lbl">Status Pembayaran:</span>
+              <strong class="sp-val green-text">{{ activeLabelOrder()?.paymentStatus }}</strong>
+            </div>
+            <div class="spec-cell">
+              <span class="sp-lbl">No. Referensi:</span>
+              <strong class="sp-val">{{ activeLabelOrder()?.orderNumber }}</strong>
+            </div>
+          </div>
+
+          <div class="thermal-goods-box">
+            <span class="goods-heading">Daftar Isi Paket:</span>
+            <ul class="goods-list">
+              @for (item of activeLabelOrder()?.items; track item.productId) {
+              <li>
+                <span>• {{ item.title }} ({{ item.variantName }})</span>
+                <strong>Qty: {{ item.quantity }}</strong>
+              </li>
+              }
+            </ul>
+          </div>
+
+          <div class="thermal-footer">
+            <span>PT SYB INOVASI NUSANTARA • OFFICIAL ORDER</span>
+            <span>Dicetak Otomatis dari Panel Admin SYB</span>
+          </div>
         </div>
-        <div class="thermal-actions">
-          @if (!activeLabelOrder()?.trackingNumber || activeLabelOrder()?.trackingNumber?.includes('PENDING')) {
-            <button class="btn-thermal-gen-awb" (click)="openAwbModal(activeLabelOrder()!)" title="Terbitkan resi resmi JNE sekarang">
-              ⚡ Generate AWB JNE
-            </button>
-          }
-          <button class="btn-print-thermal" (click)="printShippingLabel()">
-            🖨️ Cetak ke Printer Thermal
+      </div>
+    </div>
+  </div>
+</div>
+}
+
+<!-- ==================== MODAL: LIVE TRACKING ==================== -->
+@if (isTrackingModalOpen(); as order) {
+<div class="modal-backdrop" (click)="closeTrackingModal()">
+  <div class="tracking-modal" (click)="$event.stopPropagation()">
+    <div class="tracking-modal-header">
+      <div class="tracking-header-info">
+        <span class="badge-courier-pill">{{ activeTrackingOrder()?.courier }} LIVE TRACKING</span>
+        <h3>Pelacakan Ekspedisi {{ activeTrackingOrder()?.orderNumber }}</h3>
+        <div class="tracking-sub-meta">
+          <span>Resi: <strong>{{ activeTrackingOrder()?.trackingNumber }}</strong></span>
+          <span>&bull;</span>
+          <span>Tujuan: <strong>{{ activeTrackingOrder()?.shippingAddress?.city }}</strong></span>
+        </div>
+      </div>
+      <button class="btn-close-modal" (click)="closeTrackingModal()">✕</button>
+    </div>
+
+    <div class="tracking-modal-body">
+      @if (activeTrackingOrder()?.courier === 'J&T') {
+      <div class="jnt-live-track-banner">
+        <div class="jnt-track-head">
+          <div>
+            <strong>⚡ J&amp;T Express API Track (Basic Auth: {{ jntConfig().trackUsername }})</strong>
+            <small>Endpoint: <code>trackAction!tracking.action</code></small>
+          </div>
+          <button type="button" class="btn-refresh-jnt-track" [disabled]="isTrackingJntApi()"
+            (click)="activeTrackingOrder()?.trackingNumber && fetchJntLiveTrack(activeTrackingOrder()!.trackingNumber!)">
+            @if (isTrackingJntApi()) {
+            ⏳ Mengecek API...
+            } @else {
+            🔄 Cek Status API J&amp;T
+            }
           </button>
-          <button class="btn-close-modal" (click)="closeShippingLabel()">✕</button>
+        </div>
+        @if (jntTrackResult(); as jtRes) {
+        <div class="jnt-track-api-result">
+          <p class="jnt-track-msg">{{ jtRes.message }}</p>
+          @if (jtRes.history.length > 0) {
+          <ul class="jnt-api-history-list">
+            @for (h of jtRes.history; track h.dateTime + h.status) {
+            <li>
+              <span class="jnt-h-time">{{ h.dateTime }}</span>
+              <strong class="jnt-h-city">[{{ h.cityName || 'HUB' }}]</strong>
+              <span class="jnt-h-desc">{{ h.status }}</span>
+            </li>
+            }
+          </ul>
+          }
+        </div>
+        }
+      </div>
+      }
+
+      <div class="milestones-timeline-wrap">
+        @for (mile of activeTrackingMilestones(); track mile.title) {
+        <div class="milestone-entry" [class.completed]="mile.status === 'completed'"
+          [class.active]="mile.status === 'active'">
+          <div class="milestone-indicator">
+            <div class="indicator-icon">
+              @if (mile.status === 'completed') { ✓ }
+              @else if (mile.status === 'active') { ⚡ }
+              @else { ○ }
+            </div>
+            <div class="indicator-line"></div>
+          </div>
+
+          <div class="milestone-content">
+            <div class="milestone-title-row">
+              <h4 class="mile-title">{{ mile.title }}</h4>
+              <span class="mile-time">{{ mile.time }}</span>
+            </div>
+            <span class="mile-location">{{ mile.location }}</span>
+            <p class="mile-desc">{{ mile.description }}</p>
+          </div>
+        </div>
+        }
+      </div>
+    </div>
+  </div>
+</div>
+}
+
+<!-- ==================== MODAL: GENERATE AWB JNE & J&T (DUAL COURIER API) ==================== -->
+@if (isAwbModalOpen(); as order) {
+<div class="modal-backdrop" (click)="closeAwbModal()">
+  <div class="awb-generator-modal" (click)="$event.stopPropagation()">
+    <div class="awb-modal-header">
+      <div class="awb-title-wrap">
+        @if (selectedAwbCourier() === 'J&T') {
+        <div class="awb-env-badge jnt" [class.live]="jntConfig().environment === 'live'">
+          <span class="dot"></span>
+          <span>J&amp;T ORDER API: {{ jntConfig().environment | uppercase }} ({{ jntConfig().username }})</span>
+        </div>
+        <h3>Terbitkan AWB / Resi J&amp;T Express</h3>
+        <p class="awb-subtext">Generate nomor resi resmi otomatis langsung dari gateway J&amp;T API
+          (<code>api/order/create</code>) untuk pesanan <strong>{{ activeAwbOrder()?.orderNumber }}</strong></p>
+        } @else {
+        <div class="awb-env-badge" [class.live]="jneConfig().environment === 'live'">
+          <span class="dot"></span>
+          <span>JNE CNOTE API: {{ jneConfig().environment | uppercase }}</span>
+        </div>
+        <h3>Terbitkan AWB (Air Waybill) / Resi JNE</h3>
+        <p class="awb-subtext">Generate nomor resi resmi otomatis langsung dari gateway JNE API
+          (<code>generatecnote</code>) untuk pesanan <strong>{{ activeAwbOrder()?.orderNumber }}</strong></p>
+        }
+      </div>
+      <button class="btn-close-modal" (click)="closeAwbModal()">✕</button>
+    </div>
+
+    <div class="awb-modal-body">
+      @if (activeAwbOrder(); as ord) {
+      <!-- Customer Chosen Courier Badge -->
+      <div class="awb-courier-switcher customer-courier-locked">
+        <span class="switcher-label">Ekspedisi</span>
+        <div class="customer-courier-badge-row">
+          @if (selectedAwbCourier() === 'J&T') {
+          <span class="customer-chosen-pill jnt">⚡ J&amp;T Express — {{ ord.serviceName }} (Gateway:
+            api/order/create)</span>
+          } @else {
+          <span class="customer-chosen-pill jne">📦 JNE Express — {{ ord.serviceName }} (Gateway: generatecnote)</span>
+          }
         </div>
       </div>
 
-      <div class="thermal-modal-body">
-        <div class="thermal-preview-container">
-          <div class="thermal-label-sheet">
+      <!-- Order & Logistics Summary Cards -->
+      <div class="awb-details-grid">
+        <div class="awb-box">
+          <span class="box-label">📦 Informasi Paket &amp; Pengiriman</span>
+          <div class="detail-row">
+            <span class="dt-key">No. Pesanan:</span>
+            <strong class="dt-val">{{ ord.orderNumber }}</strong>
+          </div>
+          <div class="detail-row">
+            <span class="dt-key">Layanan Aktif:</span>
+            <span class="dt-val highlight-service">{{ selectedAwbCourier() }} - {{ ord.serviceName }}</span>
+          </div>
+          <div class="detail-row">
+            <span class="dt-key">Rute Ekspedisi:</span>
+            @if (selectedAwbCourier() === 'J&T') {
+            <span class="dt-val font-mono">{{ jntConfig().sendSiteCode }} &rarr; {{
+              jntApiService.mapCityToAreaCode(ord.shippingAddress?.city || '') }}</span>
+            } @else {
+            <span class="dt-val font-mono">{{ jneConfig().originCode }} &rarr; {{
+              jneApiService.mapCityToDestCode(ord.shippingAddress?.city || '') }}</span>
+            }
+          </div>
+          <div class="detail-row">
+            <span class="dt-key">Berat / Qty:</span>
+            <span class="dt-val">{{ ord.weightGrams || 500 }} gr (Dihitung {{ (ord.weightGrams && ord.weightGrams >
+              1000) ? 2 : 1 }} kg) &bull; {{ ord.items.length }} Item</span>
+          </div>
+          <div class="detail-row">
+            <span class="dt-key">Nilai Barang:</span>
+            <span class="dt-val">Rp {{ ord.total | number:'1.0-0' }}</span>
+          </div>
+        </div>
+
+        <div class="awb-box">
+          <span class="box-label">🏢 Pengirim &amp; Penerima</span>
+          <div class="party-block">
+            <span class="party-role">PENGIRIM (SHIPPER):</span>
+            @if (selectedAwbCourier() === 'J&T') {
+            <strong>{{ jntConfig().shipperName }} ({{ jntConfig().shipperCity }})</strong>
+            <small>{{ jntConfig().shipperAddr }}, {{ jntConfig().shipperZip }}</small>
+            } @else {
+            <strong>{{ jneConfig().shipperName }} ({{ jneConfig().shipperCity }})</strong>
+            <small>{{ jneConfig().shipperAddr1 }}, {{ jneConfig().shipperZip }}</small>
+            }
+          </div>
+          <div class="party-block receiver">
+            <span class="party-role">PENERIMA (RECEIVER):</span>
+            <strong>{{ ord.customerName }}</strong>
+            <small>{{ ord.shippingAddress?.street }}, {{ ord.shippingAddress?.city }}, {{
+              ord.shippingAddress?.postalCode }}</small>
+            <small>Telp: {{ ord.customerPhone }}</small>
+          </div>
+        </div>
+      </div>
+
+      <!-- Current AWB Status -->
+      <div class="awb-current-status-banner">
+        <div class="status-left">
+          <span class="status-lbl">STATUS RESI SAAT INI:</span>
+          @if (ord.isLabelPrinted && ord.trackingNumber && !ord.trackingNumber.includes('PENDING')) {
+          <span class="awb-ready-code">✅ <code>{{ ord.trackingNumber }}</code> ({{ ord.courier }})</span>
+          } @else {
+          <span class="awb-pending-code">⏳ Belum Ada Resi Terbit</span>
+          }
+        </div>
+        <div class="status-right-actions">
+          @if (selectedAwbCourier() === 'J&T') {
+          <button type="button" class="btn-cancel-jnt" [disabled]="isCancellingJnt()"
+            (click)="cancelJntOrderForOrder(ord)" title="Batalkan Order di Server J&T (api/order/cancel)">
+            @if (isCancellingJnt()) {
+            ⏳ Membatalkan...
+            } @else {
+            🚫 Cancel Order J&amp;T
+            }
+          </button>
+          }
+          <button class="btn-config-shortcut" (click)="openJneSettings(selectedAwbCourier())"
+            title="Buka pengaturan API">
+            ⚙️ Pengaturan API {{ selectedAwbCourier() }}
+          </button>
+        </div>
+      </div>
+
+      <!-- J&T Cancellation Result Banner -->
+      @if (jntCancelResult(); as cancelRes) {
+      <div class="awb-alert-card" [class.success]="cancelRes.success" [class.warning]="!cancelRes.success">
+        <div class="alert-icon">{{ cancelRes.success ? '✅' : '⚠️' }}</div>
+        <div class="alert-content">
+          <h4>{{ cancelRes.success ? 'Order J&T Berhasil Dibatalkan' : 'Status Pembatalan J&T' }}</h4>
+          <p>{{ cancelRes.message }}</p>
+        </div>
+      </div>
+      }
+
+      <!-- JNE Results / Messages Area -->
+      @if (awbResult(); as res) {
+      @if (res.success && res.cnoteNo) {
+      <div class="awb-alert-card success">
+        <div class="alert-icon">🎉</div>
+        <div class="alert-content">
+          <h4>AWB Resmi JNE Berhasil Diterbitkan!</h4>
+          <p>{{ res.message }}</p>
+          <div class="awb-number-display">
+            <code>{{ res.cnoteNo }}</code>
+            <button class="btn-copy-mini" (click)="copyTrackingCode(res.cnoteNo)">📋 Salin</button>
+          </div>
+          <div class="next-actions-row">
+            <button class="btn-print-now" (click)="closeAwbModal(); openShippingLabel(ord)">
+              🖨️ Pratinjau &amp; Cetak Label Thermal 10x15
+            </button>
+          </div>
+        </div>
+      </div>
+      } @else {
+      <div class="awb-alert-card warning">
+        <div class="alert-icon">⚠️</div>
+        <div class="alert-content">
+          <h4>Pemberitahuan Gateway JNE</h4>
+          <p class="err-msg">{{ res.message }}</p>
+          <p class="err-help">
+            Jika akun JNE Anda belum dialokasikan sequence number oleh JNE IT Development, Anda dapat menggunakan opsi
+            nomor AWB standar di bawah agar proses pengemasan dapat langsung berjalan.
+          </p>
+          <div class="fallback-action-group">
+            <button class="btn-use-fallback" (click)="applyFallbackAwb(ord)">
+              ⚡ Gunakan Nomor AWB Resmi Valid (Standar JNE 12-Digit)
+            </button>
+          </div>
+        </div>
+      </div>
+      }
+      }
+
+      <!-- J&T Results / Messages Area -->
+      @if (jntAwbResult(); as jres) {
+      @if (jres.success && jres.awbNo) {
+      <div class="awb-alert-card success">
+        <div class="alert-icon">⚡</div>
+        <div class="alert-content">
+          <h4>AWB Resmi J&amp;T Express Berhasil Diterbitkan!</h4>
+          <p>{{ jres.message }}</p>
+          <div class="awb-number-display">
+            <code>{{ jres.awbNo }}</code>
+            <button class="btn-copy-mini" (click)="copyTrackingCode(jres.awbNo)">📋 Salin</button>
+          </div>
+          <div class="next-actions-row">
+            <button class="btn-print-now" (click)="closeAwbModal(); openShippingLabel(ord)">
+              🖨️ Pratinjau &amp; Cetak Label Thermal 10x15
+            </button>
+          </div>
+        </div>
+      </div>
+      } @else {
+      <div class="awb-alert-card warning">
+        <div class="alert-icon">⚠️</div>
+        <div class="alert-content">
+          <h4>Pemberitahuan Gateway J&amp;T Express</h4>
+          <p class="err-msg">{{ jres.message }}</p>
+          <p class="err-help">
+            Jika server UAT J&amp;T sedang membatasi akses atau membutuhkan alokasi nomor AWB baru, Anda dapat
+            menggunakan nomor AWB standar J&amp;T di bawah ini.
+          </p>
+          <div class="fallback-action-group">
+            <button class="btn-use-fallback jnt" (click)="applyFallbackAwb(ord)">
+              ⚡ Gunakan Nomor AWB Resmi Valid (Standar J&amp;T JT-10 Digit)
+            </button>
+          </div>
+        </div>
+      </div>
+      }
+      }
+
+      <!-- Manual AWB Option -->
+      <div class="manual-awb-section">
+        <div class="manual-header">
+          <span>Atau masukkan Nomor Resi Fisik / Agen {{ selectedAwbCourier() }} Manual:</span>
+        </div>
+        <div class="manual-input-row">
+          <input type="text"
+            [placeholder]="selectedAwbCourier() === 'J&T' ? 'Contoh: JT88291039401' : 'Contoh: 019283019283 / JNE991048201'"
+            [ngModel]="customAwbInput()" (ngModelChange)="customAwbInput.set($event)" />
+          <button class="btn-save-manual" (click)="applyCustomAwb(ord)">
+            Simpan Resi Manual
+          </button>
+        </div>
+      </div>
+      }
+    </div>
+
+    <div class="awb-modal-footer">
+      <button class="btn-secondary" (click)="closeAwbModal()">Batal / Tutup</button>
+      <button class="btn-primary-generate" [class.jnt]="selectedAwbCourier() === 'J&T'" [disabled]="isGeneratingAwb()"
+        (click)="activeAwbOrder() && generateAwbForActiveCourier(activeAwbOrder()!)">
+        @if (isGeneratingAwb()) {
+        <span class="spinner-small"></span> Menghubungi Gateway {{ selectedAwbCourier() }}...
+        } @else if (selectedAwbCourier() === 'J&T') {
+        ⚡ Hubungkan &amp; Generate AWB J&amp;T (api/order/create)
+        } @else {
+        🚀 Hubungkan &amp; Generate AWB JNE (generatecnote)
+        }
+      </button>
+    </div>
+  </div>
+</div>
+}
+
+<!-- ==================== MODAL: PENGATURAN API JNE & J&T ==================== -->
+@if (isJneSettingsOpen()) {
+<div class="modal-backdrop" (click)="closeJneSettings()">
+  <div class="jne-settings-modal" (click)="$event.stopPropagation()">
+    <div class="settings-modal-header">
+      <div class="st-head-title">
+        <span class="badge-jne-live">Dual Logistics Integrator</span>
+        <h3>Konfigurasi Gateway JNE &amp; J&amp;T Express API</h3>
+      </div>
+      <button class="btn-close-modal" (click)="closeJneSettings()">✕</button>
+    </div>
+
+    <div class="settings-modal-body">
+      <!-- Courier Settings Tabs -->
+      <div class="awb-courier-switcher">
+        <span class="switcher-label">Pilih Kurir:</span>
+        <div class="switcher-buttons">
+          <button type="button" class="btn-courier-engine" [class.active]="activeSettingsTab() === 'JNE'"
+            (click)="activeSettingsTab.set('JNE')">
+            📦 Konfigurasi JNE API
+          </button>
+          <button type="button" class="btn-courier-engine jnt" [class.active]="activeSettingsTab() === 'J&T'"
+            (click)="activeSettingsTab.set('J&T')">
+            ⚡ Konfigurasi J&amp;T API
+          </button>
+        </div>
+      </div>
+
+      @if (activeSettingsTab() === 'JNE') {
+      <!-- JNE Environment Selector -->
+      <div class="env-toggle-card">
+        <span class="env-lbl">Mode Environment JNE API:</span>
+        <div class="env-options">
+          <button type="button" class="btn-env-pill" [class.active]="editableJneConfig().environment === 'live'"
+            (click)="switchJneEnv('live')">
+            🟢 Production / Live (DODORAKOSMETIK)
+          </button>
+          <button type="button" class="btn-env-pill" [class.active]="editableJneConfig().environment === 'sandbox'"
+            (click)="switchJneEnv('sandbox')">
+            🟡 Sandbox / Testing (TESTAPI)
+          </button>
+        </div>
+      </div>
+
+      <div class="form-grid-two">
+        <div class="input-field">
+          <label>API Username (username) *</label>
+          <input type="text" [(ngModel)]="editableJneConfig().username"
+            placeholder="Contoh: DODORAKOSMETIK / TESTAPI" />
+        </div>
+
+        <div class="input-field">
+          <label>API Key (api_key) *</label>
+          <input type="text" [(ngModel)]="editableJneConfig().apiKey" placeholder="Contoh: 1ee372b12c8c..." />
+        </div>
+
+        <div class="input-field">
+          <label>Kode Branch (OLSHOP_BRANCH) *</label>
+          <input type="text" [(ngModel)]="editableJneConfig().branch" placeholder="Contoh: SUB000 / CGK000" />
+        </div>
+
+        <div class="input-field">
+          <label>Customer No. (OLSHOP_CUST) *</label>
+          <input type="text" [(ngModel)]="editableJneConfig().cust" placeholder="Nomor Pelanggan JNE Anda" />
+        </div>
+
+        <div class="input-field">
+          <label>Wilayah / Kota Asal Pengirim (OLSHOP_ORIG) *</label>
+          <select [ngModel]="editableJneConfig().originCode" (ngModelChange)="editableJneConfig().originCode = $event"
+            class="origin-select">
+            @for (orig of originList; track orig.code) {
+            <option [value]="orig.code">{{ orig.name }} ({{ orig.code }})</option>
+            }
+          </select>
+          <small class="field-hint">605 kota asal resmi JNE terdaftar (Default: SURABAYA - SUB10000)</small>
+        </div>
+
+        <div class="input-field">
+          <label>Nama Pengirim (OLSHOP_SHIPPER_NAME) *</label>
+          <input type="text" [(ngModel)]="editableJneConfig().shipperName" placeholder="PT SYB Official Store" />
+        </div>
+
+        <div class="input-field">
+          <label>Alamat Pengirim 1 (OLSHOP_SHIPPER_ADDR1)</label>
+          <input type="text" [(ngModel)]="editableJneConfig().shipperAddr1"
+            placeholder="Kawasan Rungkut Industri C-12" />
+        </div>
+
+        <div class="input-field">
+          <label>Alamat Pengirim 2 (OLSHOP_SHIPPER_ADDR2)</label>
+          <input type="text" [(ngModel)]="editableJneConfig().shipperAddr2" placeholder="Kecamatan Rungkut" />
+        </div>
+
+        <div class="input-field">
+          <label>Kota Pengirim (OLSHOP_SHIPPER_CITY)</label>
+          <input type="text" [(ngModel)]="editableJneConfig().shipperCity" placeholder="SURABAYA" />
+        </div>
+
+        <div class="input-field">
+          <label>Kode Pos Pengirim (OLSHOP_SHIPPER_ZIP)</label>
+          <input type="text" [(ngModel)]="editableJneConfig().shipperZip" placeholder="60293" />
+        </div>
+
+        <div class="input-field">
+          <label>No. Telp Pengirim (OLSHOP_SHIPPER_PHONE)</label>
+          <input type="text" [(ngModel)]="editableJneConfig().shipperPhone" placeholder="081233336909" />
+        </div>
+
+        <div class="input-field">
+          <label>Deskripsi Barang Default (OLSHOP_GOODSDESC)</label>
+          <input type="text" [(ngModel)]="editableJneConfig().defaultGoodsDesc"
+            placeholder="Kosmetik & Skincare SYB Resmi" />
+        </div>
+
+        <div class="input-field full-width">
+          <label>Backend / Proxy URL (PHP: generatecnote.php)</label>
+          <input type="text" [(ngModel)]="editableJneConfig().apiProxyUrl"
+            placeholder="/api/jne/generatecnote atau http://localhost:8000/generatecnote.php" />
+          <small class="field-hint">Arahkan ke backend PHP (misal <code>/server/generatecnote.php</code>,
+            <code>http://localhost:8000/generatecnote.php</code>, atau hosting Domainesia)</small>
+        </div>
+      </div>
+
+      <div class="info-alert-box">
+        <span class="info-icon">💡</span>
+        <div class="info-text">
+          <strong>Catatan Integrasi PHP &amp; API JNE:</strong>
+          <p>JNE endpoint: <code>https://apiv2.jne.co.id:10202/tracing/api/generatecnote</code> (Sandbox) atau
+            <code>https://apiv2.jne.co.id:10206/tracing/api/generatecnote</code> (Live). Backend PHP tersedia di
+            <code>server/generatecnote.php</code>.
+          </p>
+        </div>
+      </div>
+      } @else {
+      <!-- J&T Environment Selector -->
+      <div class="env-toggle-card">
+        <span class="env-lbl">Mode Environment J&amp;T Express API:</span>
+        <div class="env-options">
+          <button type="button" class="btn-env-pill" [class.active]="editableJntConfig().environment === 'testing'"
+            (click)="switchJntEnv('testing')">
+            🟡 Testing / UAT (SUB-PT-DODORA)
+          </button>
+          <button type="button" class="btn-env-pill" [class.active]="editableJntConfig().environment === 'live'"
+            (click)="switchJntEnv('live')">
+            🟢 Production / Live
+          </button>
+        </div>
+      </div>
+
+      <!-- 1. Order & Cancellation Credentials -->
+      <div class="jnt-cred-section-title">1. Order &amp; Cancellation API Credentials</div>
+      <div class="form-grid-two">
+        <div class="input-field">
+          <label>Username (Order &amp; Cancel) *</label>
+          <input type="text" [(ngModel)]="editableJntConfig().username" placeholder="SUB-PT-DODORA" />
+        </div>
+        <div class="input-field">
+          <label>API Key (Order &amp; Cancel) *</label>
+          <input type="text" [(ngModel)]="editableJntConfig().apiKey" placeholder="OKNECE" />
+        </div>
+        <div class="input-field full-width">
+          <label>Key Signature (Order &amp; Cancel MD5 Key) *</label>
+          <input type="text" [(ngModel)]="editableJntConfig().orderKey"
+            placeholder="AKe62df84bJ3d8e4b1hea2R45j11klsb" />
+        </div>
+        <div class="input-field full-width">
+          <label>Order Create Endpoint</label>
+          <input type="text" [(ngModel)]="editableJntConfig().orderCreateEndpoint" />
+        </div>
+        <div class="input-field full-width">
+          <label>Order Cancel Endpoint</label>
+          <input type="text" [(ngModel)]="editableJntConfig().orderCancelEndpoint" />
+        </div>
+      </div>
+
+      <!-- 2. Tariff Check Credentials -->
+      <div class="jnt-cred-section-title">2. Tariff Check API Credentials</div>
+      <div class="form-grid-two">
+        <div class="input-field">
+          <label>Customer Name (cusName) *</label>
+          <input type="text" [(ngModel)]="editableJntConfig().customerName" placeholder="SUB-PT-DODORA" />
+        </div>
+        <div class="input-field">
+          <label>Tariff Key *</label>
+          <input type="text" [(ngModel)]="editableJntConfig().tariffKey" placeholder="rL7xcBnvGli5" />
+        </div>
+        <div class="input-field full-width">
+          <label>Tariff Check Endpoint</label>
+          <input type="text" [(ngModel)]="editableJntConfig().tariffEndpoint" />
+        </div>
+      </div>
+
+      <!-- 3. Track Credentials -->
+      <div class="jnt-cred-section-title">3. Track API Credentials (Basic Authorization)</div>
+      <div class="form-grid-two">
+        <div class="input-field">
+          <label>Username / e-company ID *</label>
+          <input type="text" [(ngModel)]="editableJntConfig().trackUsername" placeholder="SUB-PT-DODORA" />
+        </div>
+        <div class="input-field">
+          <label>Password Track *</label>
+          <input type="text" [(ngModel)]="editableJntConfig().trackPassword" placeholder="rL7xcBnvGli5" />
+        </div>
+        <div class="input-field full-width">
+          <label>Track Endpoint</label>
+          <input type="text" [(ngModel)]="editableJntConfig().trackEndpoint" />
+        </div>
+      </div>
+
+      <!-- 4. Shipper & Proxy -->
+      <div class="jnt-cred-section-title">4. Data Pengirim Gudang &amp; PHP Gateway</div>
+      <div class="form-grid-two">
+        <div class="input-field">
+          <label>Send Site Code (Asal)</label>
+          <input type="text" [(ngModel)]="editableJntConfig().sendSiteCode" placeholder="SURABAYA" />
+        </div>
+        <div class="input-field">
+          <label>Nama Pengirim</label>
+          <input type="text" [(ngModel)]="editableJntConfig().shipperName" placeholder="PT SYB Official Store" />
+        </div>
+        <div class="input-field full-width">
+          <label>Backend / Proxy URL (PHP: jnt.php)</label>
+          <input type="text" [(ngModel)]="editableJntConfig().apiProxyUrl" placeholder="/server/jnt.php" />
+        </div>
+      </div>
+
+      <div class="info-alert-box">
+        <span class="info-icon">⚡</span>
+        <div class="info-text">
+          <strong>Catatan Integrasi PHP &amp; API J&amp;T Express:</strong>
+          <p>Semua 4 endpoint resmi J&amp;T (Order Create, Tariff Check, Track Basic Auth, dan Cancellation) aktif
+            secara berdampingan dengan JNE. File gateway PHP tersedia di <code>server/jnt.php</code>.</p>
+        </div>
+      </div>
+      }
+    </div>
+
+    <div class="settings-modal-footer">
+      <button class="btn-secondary" (click)="closeJneSettings()">Batal</button>
+      <button class="btn-primary-save" (click)="saveJneSettings()">💾 Simpan Konfigurasi JNE &amp; J&amp;T</button>
+    </div>
+  </div>
+</div>
+}
+
+<!-- ==================== MODAL: BULK AWB GENERATED & DOWNLOAD THERMAL PDF ==================== -->
+@if (isBulkModalOpen()) {
+<div class="modal-backdrop" (click)="closeBulkModal()">
+  <div class="bulk-awb-modal" (click)="$event.stopPropagation()">
+    <div class="bulk-modal-header">
+      <div class="bulk-modal-title-wrap">
+        <span class="badge-bulk-thermal">🖨️ Bulk AWB &amp; Thermal PDF Generator (10x15 cm / A6)</span>
+        <h3>Terbitkan AWB Massal &amp; Cetak PDF Printer Thermal</h3>
+        <p>Semua resi diterbitkan otomatis via JNE &amp; J&amp;T API dan disusun dalam dokumen PDF ukuran standar stiker
+          thermal 100x150 mm.</p>
+      </div>
+      <button class="btn-close-modal" (click)="closeBulkModal()">✕</button>
+    </div>
+
+    <div class="bulk-modal-body">
+      @if (isBulkGenerating()) {
+      <div class="bulk-progress-card">
+        <div class="spinner-bulk"></div>
+        <h4>Menghubungi Gateway JNE &amp; J&amp;T untuk Menerbitkan AWB...</h4>
+        <p>Memproses pesanan <strong>{{ bulkProgressCurrent() }}</strong> dari <strong>{{ bulkProgressTotal()
+            }}</strong></p>
+        <div class="bulk-progress-bar">
+          <span [style.width.%]="bulkProgressTotal() ? (bulkProgressCurrent() / bulkProgressTotal()) * 100 : 0"></span>
+        </div>
+      </div>
+      } @else {
+      <!-- Pop-up CTA Card to Download Thermal PDF -->
+      <div class="bulk-ready-cta-card">
+        <div class="bulk-ready-left">
+          <div class="bulk-ready-icon">🎉</div>
+          <div class="bulk-ready-text">
+            <h4>{{ filteredBulkGeneratedOrders().length }} Nomor Resi (AWB) Siap Dicetak!</h4>
+            <p>Diterbitkan <strong>10x15 cm (100x150 mm)</strong> untuk printer thermal Anda.</p>
+          </div>
+        </div>
+        <div class="bulk-ready-buttons">
+          <button type="button" class="btn-download-bulk-pdf" [disabled]="filteredBulkGeneratedOrders().length === 0"
+            (click)="downloadBulkThermalPdf()">
+            📥 Download PDF Resi ({{ filteredBulkGeneratedOrders().length }} Halaman)
+          </button>
+          <button type="button" class="btn-print-bulk-thermal" [disabled]="filteredBulkGeneratedOrders().length === 0"
+            (click)="printBulkThermalLabels()">
+            🖨️ Cetak ke Printer Thermal
+          </button>
+        </div>
+      </div>
+
+      <!-- Filter by Customer Chosen Courier inside Bulk Modal -->
+      <div class="bulk-modal-filter-bar">
+        <span class="bulk-filter-label">Filter Resi Berdasarkan Kurir</span>
+        <div class="bulk-courier-filter-pills">
+          <button type="button" class="bulk-filter-pill" [class.active]="bulkModalCourierFilter() === 'ALL'"
+            (click)="bulkModalCourierFilter.set('ALL')">
+            Semua Kurir ({{ bulkGeneratedOrders().length }})
+          </button>
+          <button type="button" class="bulk-filter-pill jne" [class.active]="bulkModalCourierFilter() === 'JNE'"
+            (click)="bulkModalCourierFilter.set('JNE')">
+            📦 JNE ({{ bulkGeneratedJneCount() }})
+          </button>
+          <button type="button" class="bulk-filter-pill jnt" [class.active]="bulkModalCourierFilter() === 'J&T'"
+            (click)="bulkModalCourierFilter.set('J&T')">
+            ⚡ J&amp;T ({{ bulkGeneratedJntCount() }})
+          </button>
+        </div>
+      </div>
+
+      <!-- Summary Table of Generated AWBs -->
+      <div class="bulk-summary-section">
+        <div class="bulk-section-head">
+          <strong>📋 Daftar Resi (AWB) Sesuai Kurir ({{ filteredBulkGeneratedOrders().length }} Pesanan)</strong>
+          <span>Status: Masuk Fase "Perlu Dikemas" (Packing)</span>
+        </div>
+        <div class="bulk-summary-table-wrap">
+          <table class="bulk-summary-table">
+            <thead>
+              <tr>
+                <th>NO. ORDER</th>
+                <th>PENERIMA &amp; KOTA TUJUAN</th>
+                <th>KURIR </th>
+                <th>NOMOR RESI (AWB)</th>
+                <th>BERAT</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (ord of filteredBulkGeneratedOrders(); track ord.id) {
+              <tr>
+                <td><strong>{{ ord.orderNumber }}</strong></td>
+                <td>
+                  <div class="bulk-cust-cell">
+                    <strong>{{ ord.customerName }}</strong>
+                    <small>{{ ord.shippingAddress.city }}, {{ ord.shippingAddress.postalCode }}</small>
+                  </div>
+                </td>
+                <td>
+                  <span class="courier-tag" [attr.data-c]="ord.courier">{{ ord.courier }}</span>
+                  <small class="bulk-srv-sub">{{ ord.serviceName }}</small>
+                </td>
+                <td>
+                  <div class="resi-row">
+                    <code>{{ ord.trackingNumber }}</code>
+                    <button class="btn-copy-mini" (click)="copyTrackingCode(ord.trackingNumber)"
+                      title="Salin AWB">📋</button>
+                  </div>
+                </td>
+                <td>{{ ord.weightGrams || 500 }} gr</td>
+              </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Multi-Page 10x15 Thermal Label Preview Grid -->
+      <div class="bulk-preview-section">
+        <div class="bulk-section-head">
+          <strong>🔍 Pratinjau Label Resi Thermal 10x15 cm ({{ filteredBulkGeneratedOrders().length }} Label)</strong>
+          <span>Setiap kartu di bawah mewakili 1 halaman penuh pada file PDF 100x150 mm</span>
+        </div>
+
+        <div class="bulk-thermal-grid">
+          @for (ord of filteredBulkGeneratedOrders(); track ord.id; let idx = $index) {
+          <div class="thermal-label-sheet bulk-mini-sheet">
             <div class="thermal-header-row">
               <div class="thermal-courier-logo">
-                <span class="courier-name-huge">{{ activeLabelOrder()?.courier }}</span>
-                <span class="service-name-huge">{{ activeLabelOrder()?.serviceName }}</span>
+                <span class="courier-name-huge">{{ ord.courier }}</span>
+                <span class="service-name-huge">{{ ord.serviceName }}</span>
               </div>
               <div class="thermal-routing-box">
-                <span class="route-code">SUB &rarr; {{ activeLabelOrder()?.shippingAddress?.city?.slice(0, 3)?.toUpperCase() }}</span>
-                <span class="route-hub">DC-{{ activeLabelOrder()?.shippingAddress?.postalCode }}</span>
+                <span class="route-code">SUB &rarr; {{ ord.shippingAddress.city.slice(0, 3).toUpperCase() }}</span>
+                <span class="route-hub">DC-{{ ord.shippingAddress.postalCode }}</span>
               </div>
             </div>
 
             <div class="thermal-barcode-section">
               <div class="barcode-graphic-stripes">
-                <div class="bar thin"></div><div class="bar thick"></div><div class="bar med"></div><div class="bar ultra"></div>
-                <div class="bar thick"></div><div class="bar thin"></div><div class="bar med"></div><div class="bar ultra"></div>
-                <div class="bar thin"></div><div class="bar thick"></div><div class="bar thin"></div><div class="bar thick"></div>
+                <div class="bar thin"></div>
+                <div class="bar thick"></div>
+                <div class="bar med"></div>
+                <div class="bar ultra"></div>
+                <div class="bar thick"></div>
+                <div class="bar thin"></div>
+                <div class="bar med"></div>
+                <div class="bar ultra"></div>
+                <div class="bar thin"></div>
+                <div class="bar thick"></div>
+                <div class="bar thin"></div>
+                <div class="bar thick"></div>
               </div>
-              <span class="barcode-num-text">{{ activeLabelOrder()?.trackingNumber }}</span>
+              <span class="barcode-num-text">{{ ord.trackingNumber }}</span>
             </div>
 
             <div class="thermal-address-grid">
               <div class="address-col sender">
-                <span class="address-role">PENGIRIM (SENDER):</span>
-                <strong class="company-name">SYBofficial Store (Pusat)</strong>
-                <p class="addr-detail">Kawasan Rungkut Industri Blok C-12, Surabaya, Jawa Timur 60293</p>
-                <span class="phone-num">Telp: 0812-3333-6909</span>
+                <span class="address-role">PENGIRIM:</span>
+                <strong class="company-name">SYBofficial Store</strong>
+                <p class="addr-detail">Rungkut Industri C-12, Surabaya 60293</p>
+                <span class="phone-num">0812-3333-6909</span>
               </div>
               <div class="address-col receiver">
-                <span class="address-role">PENERIMA (RECEIVER):</span>
-                <strong class="receiver-name">{{ activeLabelOrder()?.customerName }}</strong>
-                <p class="addr-detail">{{ activeLabelOrder()?.shippingAddress?.street }}, {{ activeLabelOrder()?.shippingAddress?.city }}, {{ activeLabelOrder()?.shippingAddress?.province }}</p>
-                <span class="postal-bold">KODE POS: {{ activeLabelOrder()?.shippingAddress?.postalCode }}</span>
-                <span class="phone-num">Telp: {{ activeLabelOrder()?.customerPhone }}</span>
+                <span class="address-role">PENERIMA:</span>
+                <strong class="receiver-name">{{ ord.customerName }}</strong>
+                <p class="addr-detail">{{ ord.shippingAddress.street }}, {{ ord.shippingAddress.city }}, {{
+                  ord.shippingAddress.province }}</p>
+                <span class="postal-bold">POS: {{ ord.shippingAddress.postalCode }}</span>
+                <span class="phone-num">{{ ord.customerPhone }}</span>
               </div>
             </div>
 
             <div class="thermal-specs-row">
               <div class="spec-cell">
-                <span class="sp-lbl">Berat Paket:</span>
-                <strong class="sp-val">{{ activeLabelOrder()?.weightGrams || 450 }} gr</strong>
+                <span class="sp-lbl">Berat:</span>
+                <strong class="sp-val">{{ ord.weightGrams || 500 }} gr</strong>
               </div>
               <div class="spec-cell">
-                <span class="sp-lbl">Status Pembayaran:</span>
-                <strong class="sp-val green-text">{{ activeLabelOrder()?.paymentStatus }}</strong>
+                <span class="sp-lbl">Bayar:</span>
+                <strong class="sp-val green-text">{{ ord.paymentStatus }}</strong>
               </div>
               <div class="spec-cell">
-                <span class="sp-lbl">No. Referensi:</span>
-                <strong class="sp-val">{{ activeLabelOrder()?.orderNumber }}</strong>
+                <span class="sp-lbl">Order:</span>
+                <strong class="sp-val">{{ ord.orderNumber }}</strong>
               </div>
             </div>
 
             <div class="thermal-goods-box">
-              <span class="goods-heading">Daftar Isi Paket:</span>
+              <span class="goods-heading">Isi Paket ({{ ord.items.length }} SKU):</span>
               <ul class="goods-list">
-                @for (item of activeLabelOrder()?.items; track item.productId) {
-                  <li>
-                    <span>• {{ item.title }} ({{ item.variantName }})</span>
-                    <strong>Qty: {{ item.quantity }}</strong>
-                  </li>
+                @for (item of ord.items; track item.productId) {
+                <li>
+                  <span>• {{ item.title }}</span>
+                  <strong>x{{ item.quantity }}</strong>
+                </li>
                 }
               </ul>
             </div>
 
             <div class="thermal-footer">
-              <span>PT SYB INOVASI NUSANTARA • OFFICIAL ORDER</span>
-              <span>Dicetak Otomatis dari Panel Admin SYB</span>
+              <span>PT SYB INOVASI NUSANTARA</span>
+              <span>HAL {{ idx + 1 }}/{{ filteredBulkGeneratedOrders().length }}</span>
             </div>
           </div>
-        </div>
-      </div>
-    </div>
-  </div>
-}
-
-<!-- ==================== MODAL: LIVE TRACKING ==================== -->
-@if (isTrackingModalOpen(); as order) {
-  <div class="modal-backdrop" (click)="closeTrackingModal()">
-    <div class="tracking-modal" (click)="$event.stopPropagation()">
-      <div class="tracking-modal-header">
-        <div class="tracking-header-info">
-          <span class="badge-courier-pill">{{ activeTrackingOrder()?.courier }} LIVE TRACKING</span>
-          <h3>Pelacakan Ekspedisi {{ activeTrackingOrder()?.orderNumber }}</h3>
-          <div class="tracking-sub-meta">
-            <span>Resi: <strong>{{ activeTrackingOrder()?.trackingNumber }}</strong></span>
-            <span>&bull;</span>
-            <span>Tujuan: <strong>{{ activeTrackingOrder()?.shippingAddress?.city }}</strong></span>
-          </div>
-        </div>
-        <button class="btn-close-modal" (click)="closeTrackingModal()">✕</button>
-      </div>
-
-      <div class="tracking-modal-body">
-        <div class="milestones-timeline-wrap">
-          @for (mile of activeTrackingMilestones(); track mile.title) {
-            <div class="milestone-entry" [class.completed]="mile.status === 'completed'" [class.active]="mile.status === 'active'">
-              <div class="milestone-indicator">
-                <div class="indicator-icon">
-                  @if (mile.status === 'completed') { ✓ }
-                  @else if (mile.status === 'active') { ⚡ }
-                  @else { ○ }
-                </div>
-                <div class="indicator-line"></div>
-              </div>
-
-              <div class="milestone-content">
-                <div class="milestone-title-row">
-                  <h4 class="mile-title">{{ mile.title }}</h4>
-                  <span class="mile-time">{{ mile.time }}</span>
-                </div>
-                <span class="mile-location">{{ mile.location }}</span>
-                <p class="mile-desc">{{ mile.description }}</p>
-              </div>
-            </div>
           }
         </div>
       </div>
+      }
+    </div>
+
+    <div class="bulk-modal-footer">
+      <button type="button" class="btn-secondary" (click)="closeBulkModal()">Tutup</button>
+      @if (!isBulkGenerating() && filteredBulkGeneratedOrders().length > 0) {
+      <button type="button" class="btn-print-bulk-thermal" (click)="printBulkThermalLabels()">
+        🖨️ Cetak ke Printer Thermal
+      </button>
+      <button type="button" class="btn-download-bulk-pdf" (click)="downloadBulkThermalPdf()">
+        📥 Download PDF Resi ({{ filteredBulkGeneratedOrders().length }} Halaman)
+      </button>
+      }
     </div>
   </div>
+</div>
 }
 
-<!-- ==================== MODAL: GENERATE AWB JNE (CNOTE API) ==================== -->
-@if (isAwbModalOpen(); as order) {
-  <div class="modal-backdrop" (click)="closeAwbModal()">
-    <div class="awb-generator-modal" (click)="$event.stopPropagation()">
-      <div class="awb-modal-header">
-        <div class="awb-title-wrap">
-          <div class="awb-env-badge" [class.live]="jneConfig().environment === 'live'">
-            <span class="dot"></span>
-            <span>JNE CNOTE API: {{ jneConfig().environment | uppercase }}</span>
-          </div>
-          <h3>Terbitkan AWB (Air Waybill) / Resi JNE</h3>
-          <p class="awb-subtext">Generate nomor resi resmi otomatis langsung dari gateway JNE API untuk pesanan <strong>{{ activeAwbOrder()?.orderNumber }}</strong></p>
-        </div>
-        <button class="btn-close-modal" (click)="closeAwbModal()">✕</button>
-      </div>
+<!-- ==================== CUSTOM LUXURY CONFIRMATION POPUP MODAL ==================== -->
+@if (confirmDialog(); as dialog) {
+<div class="confirm-modal-backdrop" (click)="closeConfirm()">
+  <div
+    class="confirm-modal-card"
+    (click)="$event.stopPropagation()"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="confirm-orders-title"
+  >
+    <button
+      type="button"
+      class="confirm-btn-close"
+      (click)="closeConfirm()"
+      aria-label="Tutup dialog"
+    >
+      ✕
+    </button>
 
-      <div class="awb-modal-body">
-        @if (activeAwbOrder(); as ord) {
-          <!-- Order & Logistics Summary Cards -->
-          <div class="awb-details-grid">
-            <div class="awb-box">
-              <span class="box-label">📦 Informasi Paket & Pengiriman</span>
-              <div class="detail-row">
-                <span class="dt-key">No. Pesanan:</span>
-                <strong class="dt-val">{{ ord.orderNumber }}</strong>
-              </div>
-              <div class="detail-row">
-                <span class="dt-key">Layanan:</span>
-                <span class="dt-val highlight-service">{{ ord.courier }} - {{ ord.serviceName }}</span>
-              </div>
-              <div class="detail-row">
-                <span class="dt-key">Rute Ekspedisi:</span>
-                <span class="dt-val font-mono">{{ jneConfig().originCode }} &rarr; {{ jneApiService.mapCityToDestCode(ord.shippingAddress?.city || '') }}</span>
-              </div>
-              <div class="detail-row">
-                <span class="dt-key">Berat / Qty:</span>
-                <span class="dt-val">{{ ord.weightGrams || 500 }} gr (Dihitung {{ (ord.weightGrams && ord.weightGrams > 1000) ? 2 : 1 }} kg) &bull; {{ ord.items.length }} Item</span>
-              </div>
-              <div class="detail-row">
-                <span class="dt-key">Nilai Barang:</span>
-                <span class="dt-val">Rp {{ ord.total | number:'1.0-0' }}</span>
-              </div>
-            </div>
+    <div class="confirm-icon-bubble" [class.is-danger]="dialog.isDanger">
+      <span class="icon-glyph">{{ dialog.isDanger ? '🗑️' : '⚠️' }}</span>
+    </div>
 
-            <div class="awb-box">
-              <span class="box-label">🏢 Pengirim & Penerima</span>
-              <div class="party-block">
-                <span class="party-role">PENGIRIM (SHIPPER):</span>
-                <strong>{{ jneConfig().shipperName }} ({{ jneConfig().shipperCity }})</strong>
-                <small>{{ jneConfig().shipperAddr1 }}, {{ jneConfig().shipperZip }}</small>
-              </div>
-              <div class="party-block receiver">
-                <span class="party-role">PENERIMA (RECEIVER):</span>
-                <strong>{{ ord.customerName }}</strong>
-                <small>{{ ord.shippingAddress?.street }}, {{ ord.shippingAddress?.city }}, {{ ord.shippingAddress?.postalCode }}</small>
-                <small>Telp: {{ ord.customerPhone }}</small>
-              </div>
-            </div>
-          </div>
+    <h3 id="confirm-orders-title" class="confirm-title">{{ dialog.title }}</h3>
+    <p class="confirm-message">{{ dialog.message }}</p>
 
-          <!-- Current AWB Status -->
-          <div class="awb-current-status-banner">
-            <div class="status-left">
-              <span class="status-lbl">STATUS RESI SAAT INI:</span>
-              @if (ord.isLabelPrinted && ord.trackingNumber && !ord.trackingNumber.includes('PENDING')) {
-                <span class="awb-ready-code">✅ <code>{{ ord.trackingNumber }}</code></span>
-              } @else {
-                <span class="awb-pending-code">⏳ Belum Ada Resi Terbit</span>
-              }
-            </div>
-            <button class="btn-config-shortcut" (click)="openJneSettings()" title="Buka pengaturan API JNE">
-              ⚙️ Pengaturan API
-            </button>
-          </div>
-
-          <!-- Results / Messages Area -->
-          @if (awbResult(); as res) {
-            @if (res.success && res.cnoteNo) {
-              <div class="awb-alert-card success">
-                <div class="alert-icon">🎉</div>
-                <div class="alert-content">
-                  <h4>AWB Resmi Berhasil Diterbitkan!</h4>
-                  <p>{{ res.message }}</p>
-                  <div class="awb-number-display">
-                    <code>{{ res.cnoteNo }}</code>
-                    <button class="btn-copy-mini" (click)="copyTrackingCode(res.cnoteNo)">📋 Salin</button>
-                  </div>
-                  <div class="next-actions-row">
-                    <button class="btn-print-now" (click)="closeAwbModal(); openShippingLabel(ord)">
-                      🖨️ Pratinjau & Cetak Label Thermal 10x15
-                    </button>
-                  </div>
-                </div>
-              </div>
-            } @else {
-              <div class="awb-alert-card warning">
-                <div class="alert-icon">⚠️</div>
-                <div class="alert-content">
-                  <h4>Pemberitahuan Gateway JNE</h4>
-                  <p class="err-msg">{{ res.message }}</p>
-                  <p class="err-help">
-                    Jika akun JNE Anda belum dialokasikan sequence number oleh JNE IT Development, Anda dapat menggunakan opsi nomor AWB standar di bawah agar proses pengemasan dapat langsung berjalan.
-                  </p>
-                  <div class="fallback-action-group">
-                    <button class="btn-use-fallback" (click)="applyFallbackAwb(ord)">
-                      ⚡ Gunakan Nomor AWB Resmi Valid (Standar JNE 12-Digit)
-                    </button>
-                  </div>
-                </div>
-              </div>
-            }
-          }
-
-          <!-- Manual AWB Option -->
-          <div class="manual-awb-section">
-            <div class="manual-header">
-              <span>Atau masukkan Nomor Resi Fisik / Agen JNE Manual:</span>
-            </div>
-            <div class="manual-input-row">
-              <input
-                type="text"
-                placeholder="Contoh: 019283019283 / JNE991048201"
-                [ngModel]="customAwbInput()"
-                (ngModelChange)="customAwbInput.set($event)"
-              />
-              <button class="btn-save-manual" (click)="applyCustomAwb(ord)">
-                Simpan Resi Manual
-              </button>
-            </div>
-          </div>
-        }
-      </div>
-
-      <div class="awb-modal-footer">
-        <button class="btn-secondary" (click)="closeAwbModal()">Batal / Tutup</button>
-        <button
-          class="btn-primary-generate"
-          [disabled]="isGeneratingAwb()"
-          (click)="activeAwbOrder() && generateJneAwbForOrder(activeAwbOrder()!)"
-        >
-          @if (isGeneratingAwb()) {
-            <span class="spinner-small"></span> Menghubungi Gateway JNE...
-          } @else {
-            🚀 Hubungkan & Generate AWB JNE (generatecnote)
-          }
-        </button>
-      </div>
+    <div class="confirm-actions">
+      <button
+        type="button"
+        class="btn-confirm-cancel"
+        (click)="closeConfirm()"
+      >
+        {{ dialog.cancelLabel || 'Batal' }}
+      </button>
+      <button
+        type="button"
+        class="btn-confirm-proceed"
+        [class.btn-danger]="dialog.isDanger"
+        (click)="dialog.onConfirm()"
+      >
+        <span>{{ dialog.confirmLabel }}</span>
+      </button>
     </div>
   </div>
-}
-
-<!-- ==================== MODAL: PENGATURAN API JNE ==================== -->
-@if (isJneSettingsOpen()) {
-  <div class="modal-backdrop" (click)="closeJneSettings()">
-    <div class="jne-settings-modal" (click)="$event.stopPropagation()">
-      <div class="settings-modal-header">
-        <div class="st-head-title">
-          <span class="badge-jne-live">API Integrator</span>
-          <h3>Konfigurasi Gateway JNE (generatecnote)</h3>
-        </div>
-        <button class="btn-close-modal" (click)="closeJneSettings()">✕</button>
-      </div>
-
-      <div class="settings-modal-body">
-        <!-- Environment Selector -->
-        <div class="env-toggle-card">
-          <span class="env-lbl">Mode Environment API:</span>
-          <div class="env-options">
-            <button
-              type="button"
-              class="btn-env-pill"
-              [class.active]="editableJneConfig().environment === 'live'"
-              (click)="switchJneEnv('live')"
-            >
-              🟢 Production / Live (DODORAKOSMETIK)
-            </button>
-            <button
-              type="button"
-              class="btn-env-pill"
-              [class.active]="editableJneConfig().environment === 'sandbox'"
-              (click)="switchJneEnv('sandbox')"
-            >
-              🟡 Sandbox / Testing (TESTAPI)
-            </button>
-          </div>
-        </div>
-
-        <div class="form-grid-two">
-          <div class="input-field">
-            <label>API Username (username) *</label>
-            <input
-              type="text"
-              [(ngModel)]="editableJneConfig().username"
-              placeholder="Contoh: DODORAKOSMETIK / TESTAPI"
-            />
-          </div>
-
-          <div class="input-field">
-            <label>API Key (api_key) *</label>
-            <input
-              type="text"
-              [(ngModel)]="editableJneConfig().apiKey"
-              placeholder="Contoh: 1ee372b12c8c..."
-            />
-          </div>
-
-          <div class="input-field">
-            <label>Kode Branch (OLSHOP_BRANCH) *</label>
-            <input
-              type="text"
-              [(ngModel)]="editableJneConfig().branch"
-              placeholder="Contoh: SUB000 / CGK000"
-            />
-          </div>
-
-          <div class="input-field">
-            <label>Customer No. (OLSHOP_CUST) *</label>
-            <input
-              type="text"
-              [(ngModel)]="editableJneConfig().cust"
-              placeholder="Nomor Pelanggan JNE Anda"
-            />
-          </div>
-
-          <div class="input-field">
-            <label>Wilayah / Kota Asal Pengirim (OLSHOP_ORIG) *</label>
-            <select
-              [ngModel]="editableJneConfig().originCode"
-              (ngModelChange)="editableJneConfig().originCode = $event"
-              class="origin-select"
-            >
-              @for (orig of originList; track orig.code) {
-                <option [value]="orig.code">{{ orig.name }} ({{ orig.code }})</option>
-              }
-            </select>
-            <small class="field-hint">605 kota asal resmi JNE terdaftar (Default: SURABAYA - SUB10000)</small>
-          </div>
-
-          <div class="input-field">
-            <label>Nama Pengirim (OLSHOP_SHIPPER_NAME) *</label>
-            <input
-              type="text"
-              [(ngModel)]="editableJneConfig().shipperName"
-              placeholder="PT SYB Official Store"
-            />
-          </div>
-
-          <div class="input-field">
-            <label>Alamat Pengirim 1 (OLSHOP_SHIPPER_ADDR1)</label>
-            <input
-              type="text"
-              [(ngModel)]="editableJneConfig().shipperAddr1"
-              placeholder="Kawasan Rungkut Industri C-12"
-            />
-          </div>
-
-          <div class="input-field">
-            <label>Alamat Pengirim 2 (OLSHOP_SHIPPER_ADDR2)</label>
-            <input
-              type="text"
-              [(ngModel)]="editableJneConfig().shipperAddr2"
-              placeholder="Kecamatan Rungkut"
-            />
-          </div>
-
-          <div class="input-field">
-            <label>Kota Pengirim (OLSHOP_SHIPPER_CITY)</label>
-            <input
-              type="text"
-              [(ngModel)]="editableJneConfig().shipperCity"
-              placeholder="SURABAYA"
-            />
-          </div>
-
-          <div class="input-field">
-            <label>Kode Pos Pengirim (OLSHOP_SHIPPER_ZIP)</label>
-            <input
-              type="text"
-              [(ngModel)]="editableJneConfig().shipperZip"
-              placeholder="60293"
-            />
-          </div>
-
-          <div class="input-field">
-            <label>No. Telp Pengirim (OLSHOP_SHIPPER_PHONE)</label>
-            <input
-              type="text"
-              [(ngModel)]="editableJneConfig().shipperPhone"
-              placeholder="081233336909"
-            />
-          </div>
-
-          <div class="input-field">
-            <label>Deskripsi Barang Default (OLSHOP_GOODSDESC)</label>
-            <input
-              type="text"
-              [(ngModel)]="editableJneConfig().defaultGoodsDesc"
-              placeholder="Kosmetik & Skincare SYB Resmi"
-            />
-          </div>
-
-          <div class="input-field full-width">
-            <label>Backend / Proxy URL (PHP: generatecnote.php)</label>
-            <input
-              type="text"
-              [(ngModel)]="editableJneConfig().apiProxyUrl"
-              placeholder="/api/jne/generatecnote atau http://localhost:8000/generatecnote.php"
-            />
-            <small class="field-hint">Arahkan ke backend PHP (misal <code>/server/generatecnote.php</code>, <code>http://localhost:8000/generatecnote.php</code>, atau hosting Domainesia)</small>
-          </div>
-        </div>
-
-        <div class="info-alert-box">
-          <span class="info-icon">💡</span>
-          <div class="info-text">
-            <strong>Catatan Integrasi PHP & API JNE:</strong>
-            <p>JNE endpoint: <code>https://apiv2.jne.co.id:10202/tracing/api/generatecnote</code> (Sandbox) atau <code>https://apiv2.jne.co.id:10206/tracing/api/generatecnote</code> (Live). Backend PHP tersedia di <code>server/generatecnote.php</code> (jalankan dengan <code>npm run proxy:php</code> atau deploy ke web server hosting).</p>
-          </div>
-        </div>
-      </div>
-
-      <div class="settings-modal-footer">
-        <button class="btn-secondary" (click)="closeJneSettings()">Batal</button>
-        <button class="btn-primary-save" (click)="saveJneSettings()">💾 Simpan Konfigurasi</button>
-      </div>
-    </div>
-  </div>
+</div>
 }
 
 <!-- Toast -->
 @if (toastMessage(); as msg) {
-  <div class="admin-toast" role="alert">
-    {{ msg }}
-  </div>
+<div class="admin-toast" role="alert">
+  {{ msg }}
+</div>
 }

@@ -404,34 +404,6 @@
         </div>
       </div>
 
-      <!-- Quick Hour End Presets -->
-      <div class="schedule-presets-block">
-        <span class="block-label">Preset Jam Selesai Cepat (Hari Ini):</span>
-        <div class="hour-presets-row">
-          @for (preset of hourPresets; track preset.label) {
-            <button
-              type="button"
-              class="btn-hour-preset"
-              (click)="applyHourPreset(preset.hour, preset.min)"
-            >
-              {{ preset.label }}
-            </button>
-          }
-        </div>
-      </div>
-
-      <!-- Duration Quick Add Buttons -->
-      <div class="duration-block">
-        <span class="block-label">Atau Tambah Durasi dari Sekarang:</span>
-        <div class="duration-btns-row">
-          @for (hrs of durationPresets; track hrs) {
-            <button type="button" class="btn-duration" (click)="applyDurationPreset(hrs)">
-              +{{ hrs }} Jam
-            </button>
-          }
-        </div>
-      </div>
-
       <!-- Banner Text Customization -->
       <div class="banner-texts-block">
         <div class="text-inputs-row">
@@ -626,10 +598,11 @@
                       <div class="price-input-box">
                         <span class="rp-prefix">Rp</span>
                         <input
-                          type="number"
-                          step="500"
-                          [ngModel]="product.price"
-                          (ngModelChange)="onPriceChange(product, $event)"
+                          type="text"
+                          inputmode="numeric"
+                          [value]="formatThousand(product.price)"
+                          (input)="onFormatNumericInput($event)"
+                          (change)="onPriceChange(product, $any($event.target).value)"
                           aria-label="Harga Flash Sale"
                         />
                       </div>
@@ -640,11 +613,11 @@
                     <td class="col-fs-quota">
                       <div class="quota-input-box">
                         <input
-                          type="number"
-                          min="1"
-                          max="9999"
-                          [ngModel]="product.flashSaleQuota || 50"
-                          (ngModelChange)="onQuotaChange(product, $event)"
+                          type="text"
+                          inputmode="numeric"
+                          [value]="formatThousand(product.flashSaleQuota || 50)"
+                          (input)="onFormatNumericInput($event)"
+                          (change)="onQuotaChange(product, $any($event.target).value)"
                           aria-label="Kuota flash sale"
                         />
                         <span class="quota-unit">pcs</span>

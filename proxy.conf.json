@@ -22,5 +22,42 @@
     "pathRewrite": {
       "^/api/jne": "/tracing/api"
     }
+  },
+  "/api/jnt/order/create": {
+    "target": "https://demo-ecommerce.inuat-jntexpress.id",
+    "secure": false,
+    "changeOrigin": true,
+    "pathRewrite": {
+      "^/api/jnt/order/create": "/jts-idn-ecommerce-api/api/order/create"
+    }
+  },
+  "/api/jnt/order/cancel": {
+    "target": "https://demo-ecommerce.inuat-jntexpress.id",
+    "secure": false,
+    "changeOrigin": true,
+    "pathRewrite": {
+      "^/api/jnt/order/cancel": "/jts-idn-ecommerce-api/api/order/cancel"
+    }
+  },
+  "/api/jnt/tariff": {
+    "target": "https://demo-general.inuat-jntexpress.id",
+    "secure": false,
+    "changeOrigin": true,
+    "pathRewrite": {
+      "^/api/jnt/tariff": "/jandt_track/inquiry.action"
+    }
+  },
+  "/api/jnt/track": {
+    "target": "https://demo-general.inuat-jntexpress.id",
+    "secure": false,
+    "changeOrigin": true,
+    "pathRewrite": {
+      "^/api/jnt/track": "/jandt_track/track/trackAction!tracking.action"
+    }
+  },
+  "/api": {
+    "target": "http://localhost",
+    "secure": false,
+    "changeOrigin": true
   }
 }
